@@ -1,0 +1,8 @@
+{
+  "name": "@kropi/schemas",
+  "version": "1.0.0",
+  "main": "src/enum.ts",
+  "dependencies": {
+    "zod": "^4.4.3"
+  }
+}

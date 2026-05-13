@@ -1,0 +1,25 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+/* Enables class-based dark mode switching across the app */
+@custom-variant dark (&:is(.dark *));
+
+@layer base {
+  body {
+    /* 
+      Provides a smooth global fade when the dark mode switch is toggled,
+      and sets the base fallbacks.
+    */
+    @apply bg-stone-50 text-stone-800 dark:bg-stone-950 dark:text-stone-100 transition-colors duration-300 antialiased;
+  }
+}
+.scroll-hidden::-webkit-scrollbar {
+  width: 0px; /* Hide vertical scrollbar */
+}
+
+.scroll-hidden {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+  overflow-y: scroll;
+}
