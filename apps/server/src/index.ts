@@ -13,7 +13,22 @@ const app = express();
 // 1. Global Middleware
 app.use(helmet());
 app.use(cors({
-  origin: env.CLIENT_URL,
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    // Allow the exact CLIENT_URL (which has no trailing slash now)
+    if (origin === env.CLIENT_URL) {
+      return callback(null, true);
+    }
+    
+    // Allow localhost during development
+    if (env.NODE_ENV === 'development' && origin.startsWith('http://localhost')) {
+      return callback(null, true);
+    }
+    
+    callback(new Error('Not allowed by CORS'));
+  },
   credentials: true,
 }));
 app.use(express.json());

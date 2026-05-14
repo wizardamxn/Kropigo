@@ -24,7 +24,7 @@ const envSchema = z.object({
     JWT_REFRESH_EXPIRY: z.string().default('7d'),
 
     // CORS
-    CLIENT_URL: z.string().url('CLIENT_URL must be a valid URL'),
+    CLIENT_URL: z.string().url('CLIENT_URL must be a valid URL').transform(url => url.replace(/\/$/, '')),
 
     // Cloudinary
     CLOUDINARY_CLOUD_NAME: z.string().min(1, 'CLOUDINARY_CLOUD_NAME is required'),
