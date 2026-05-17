@@ -9,19 +9,19 @@ const envSchema = z.object({
         .string()
         .default('5000')
         .transform((v) => parseInt(v, 10)),
+    BYPASS_TIME_WINDOW: z.enum(['true', 'false']).default('false').transform(v => v === 'true'),
 
     // Database
     MONGODB_URI: z.string().min(1, 'MONGODB_URI is required'),
 
     // JWT
-    JWT_ACCESS_SECRET: z
+    JWT_SECRET: z
         .string()
-        .min(32, 'JWT_ACCESS_SECRET must be at least 32 characters'),
-    JWT_REFRESH_SECRET: z
+        .min(32, 'JWT_SECRET must be at least 32 characters'),
+    JWT_COOKIE_EXPIRY_DAYS: z
         .string()
-        .min(32, 'JWT_REFRESH_SECRET must be at least 32 characters'),
-    JWT_ACCESS_EXPIRY: z.string().default('15m'),
-    JWT_REFRESH_EXPIRY: z.string().default('7d'),
+        .default('7')
+        .transform((v) => parseInt(v, 10)),
 
     // CORS
     CLIENT_URL: z.string().url('CLIENT_URL must be a valid URL').transform(url => url.replace(/\/$/, '')),

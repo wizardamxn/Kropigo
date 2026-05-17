@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useAppDispatch } from '@/store/hooks';
-import { setCredentials } from '@/store/slices/authSlice';
+import { setUser } from '@/store/slices/authSlice';
 import { useRouter } from 'next/navigation';
 import { useRegisterMutation } from '@/store/endpoints/authApi';
 import Link from 'next/link';
@@ -33,12 +33,7 @@ export default function RegisterPage() {
         role,
       }).unwrap();
 
-      dispatch(
-        setCredentials({
-          accessToken: response.data.accessToken,
-          user: response.data.user,
-        })
-      );
+      dispatch(setUser(response.data.user));
 
       // RoleGuard on '/' detects the new state and redirects correctly
       router.push('/');

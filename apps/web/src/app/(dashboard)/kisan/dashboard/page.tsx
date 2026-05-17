@@ -1,47 +1,210 @@
 'use client';
 
 import { useAuth } from '@/hooks/useAuth';
-import { useLogoutMutation } from '@/store/endpoints/authApi';
-import { useRouter } from 'next/navigation';
-import { useAppDispatch } from '@/store/hooks';
-import { logout as logoutAction } from '@/store/slices/authSlice';
+import { useGetListingsQuery } from '@/store/endpoints/listingsApi';
+import Link from 'next/link';
+
+// Helper function to color-code status badges
+const getStatusBadge = (status: string) => {
+  switch (status.toLowerCase()) {
+    case 'open':
+      return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 border-green-200 dark:border-green-800/50';
+    case 'draft':
+      return 'bg-stone-100 text-stone-700 dark:bg-stone-800 dark:text-stone-300 border-stone-200 dark:border-stone-700';
+    case 'sale_confirmed':
+    case 'closed':
+      return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 border-blue-200 dark:border-blue-800/50';
+    default:
+      return 'bg-stone-100 text-stone-700 dark:bg-stone-800 dark:text-stone-300 border-stone-200 dark:border-stone-700';
+  }
+};
+
+// Helper function to format status text nicely
+const formatStatus = (status: string) => {
+  return status.replace('_', ' ').replace(/\b\w/g, (char) => char.toUpperCase());
+};
 
 export default function KisanDashboard() {
   const { user } = useAuth();
-  const dispatch = useAppDispatch();
-  const router = useRouter();
-  const [logout] = useLogoutMutation();
+  const { data, isLoading, isError } = useGetListingsQuery(
+    { sellerId: user?.id, limit: 100 },
+    { skip: !user?.id }
+  );
 
-  const handleLogout = async () => {
-    try {
-      await logout().unwrap();
-      dispatch(logoutAction());
-      router.push('/login');
-    } catch (err) {
-      console.error('Failed to logout', err);
-    }
+  if (isLoading) {
+    return (
+      <div className="animate-pulse space-y-8">
+        <div className="space-y-3">
+          <div className="h-10 bg-stone-200 dark:bg-stone-800 rounded-lg w-1/3"></div>
+          <div className="h-5 bg-stone-200 dark:bg-stone-800 rounded-lg w-1/4"></div>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="h-28 bg-stone-200 dark:bg-stone-800 rounded-2xl"></div>
+          ))}
+        </div>
+        <div className="h-64 bg-stone-200 dark:bg-stone-800 rounded-2xl w-full"></div>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="p-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl flex flex-col items-center justify-center text-center space-y-3">
+        <svg className="w-10 h-10 text-red-500 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+        <p className="font-sans text-red-800 dark:text-red-300 font-medium">Failed to load dashboard data.</p>
+        <button onClick={() => window.location.reload()} className="px-4 py-2 bg-white dark:bg-stone-800 text-stone-800 dark:text-stone-200 rounded-xl shadow-sm text-sm font-medium hover:bg-stone-50 dark:hover:bg-stone-700 transition-colors">Try Again</button>
+      </div>
+    );
+  }
+
+  const listings: any[] = data?.data ?? [];
+  const open = listings.filter((l) => l.status === 'open').length;
+  const sold = listings.filter((l) => ['sale_confirmed', 'closed'].includes(l.status)).length;
+  const draft = listings.filter((l) => l.status === 'draft').length;
+
+  return (
+    <div className="space-y-8 animate-in fade-in duration-500">
+      
+      {/* Header Section */}
+      <header className="flex flex-col gap-2">
+        <h1 className="font-serif text-3xl md:text-4xl text-stone-800 dark:text-stone-100 font-medium tracking-tight">
+          Dashboard
+        </h1>
+        <p className="font-sans text-stone-600 dark:text-stone-400 text-lg">
+          Welcome back, <span className="font-medium text-green-800 dark:text-green-500">{user?.name}</span>
+        </p>
+      </header>
+
+      {/* Summary Cards Grid */}
+      <section>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <StatCard title="Total Listings" value={listings.length} icon="M4 6h16M4 10h16M4 14h16M4 18h16" />
+          <StatCard title="Active (Open)" value={open} icon="M5 13l4 4L19 7" color="green" />
+          <StatCard title="Drafts" value={draft} icon="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" color="stone" />
+          <StatCard title="Sold / Closed" value={sold} icon="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" color="blue" />
+        </div>
+      </section>
+
+      {/* Recent Listings Section */}
+      <section className="bg-white dark:bg-stone-900 rounded-2xl shadow-sm border border-stone-200 dark:border-stone-800 overflow-hidden">
+        <div className="p-6 border-b border-stone-100 dark:border-stone-800 flex justify-between items-center">
+          <h2 className="font-serif text-2xl text-stone-800 dark:text-stone-100">Recent Listings</h2>
+          <Link 
+            href="/kisan/listings" 
+            className="font-sans text-sm font-medium text-green-800 dark:text-green-500 hover:text-green-700 dark:hover:text-green-400 hover:underline px-2 py-1 rounded-lg"
+          >
+            View All
+          </Link>
+        </div>
+
+        {listings.length === 0 ? (
+          <div className="p-12 text-center flex flex-col items-center justify-center gap-4">
+            <div className="w-16 h-16 bg-stone-100 dark:bg-stone-800 rounded-full flex items-center justify-center text-stone-400">
+              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
+            </div>
+            <p className="font-sans text-stone-500 dark:text-stone-400">You haven't created any listings yet.</p>
+            <Link 
+              href="/kisan/listings/create" 
+              className="mt-2 h-12 px-6 rounded-xl bg-green-800 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white font-sans font-medium transition-colors inline-flex items-center justify-center"
+            >
+              Create First Listing
+            </Link>
+          </div>
+        ) : (
+          <>
+            {/* Desktop Table View (Hidden on Mobile) */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-stone-50 dark:bg-stone-950/50 font-sans text-sm text-stone-500 dark:text-stone-400 uppercase tracking-wider">
+                    <th className="px-6 py-4 font-medium">Crop</th>
+                    <th className="px-6 py-4 font-medium">Quantity</th>
+                    <th className="px-6 py-4 font-medium">Asking Price</th>
+                    <th className="px-6 py-4 font-medium">Status</th>
+                    <th className="px-6 py-4 font-medium">Date Created</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-stone-100 dark:divide-stone-800">
+                  {listings.slice(0, 5).map((l) => (
+                    <tr key={l._id} className="hover:bg-stone-50/50 dark:hover:bg-stone-800/50 transition-colors">
+                      <td className="px-6 py-4 font-sans text-stone-800 dark:text-stone-200 font-medium">
+                        {l.cropId?.name ?? l.cropId}
+                      </td>
+                      <td className="px-6 py-4 font-sans text-stone-600 dark:text-stone-300">
+                        {l.quantity} <span className="text-stone-400 text-sm">{l.unit}</span>
+                      </td>
+                      <td className="px-6 py-4 font-sans text-stone-800 dark:text-stone-200">
+                        ₹{l.askingPrice.toLocaleString('en-IN')}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${getStatusBadge(l.status)}`}>
+                          {formatStatus(l.status)}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 font-sans text-sm text-stone-500 dark:text-stone-400">
+                        {new Date(l.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Card View (Hidden on Desktop) */}
+            <div className="md:hidden flex flex-col divide-y divide-stone-100 dark:divide-stone-800">
+              {listings.slice(0, 5).map((l) => (
+                <div key={l._id} className="p-4 flex flex-col gap-3">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="font-sans text-lg font-medium text-stone-800 dark:text-stone-100">{l.cropId?.name ?? l.cropId}</h3>
+                      <p className="font-sans text-sm text-stone-500 dark:text-stone-400">
+                        {new Date(l.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      </p>
+                    </div>
+                    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${getStatusBadge(l.status)}`}>
+                      {formatStatus(l.status)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-end bg-stone-50 dark:bg-stone-950/50 p-3 rounded-xl border border-stone-100 dark:border-stone-800">
+                    <div className="flex flex-col">
+                      <span className="text-xs text-stone-500 dark:text-stone-400 uppercase tracking-wider">Quantity</span>
+                      <span className="font-sans text-stone-800 dark:text-stone-200">{l.quantity} {l.unit}</span>
+                    </div>
+                    <div className="flex flex-col items-end">
+                      <span className="text-xs text-stone-500 dark:text-stone-400 uppercase tracking-wider">Price</span>
+                      <span className="font-sans font-medium text-green-800 dark:text-green-500">₹{l.askingPrice.toLocaleString('en-IN')}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+      </section>
+    </div>
+  );
+}
+
+// Reusable Sub-component for the top statistics grid
+function StatCard({ title, value, icon, color = 'green' }: { title: string, value: number, icon: string, color?: 'green' | 'stone' | 'blue' }) {
+  const colorMap = {
+    green: 'bg-green-50 text-green-800 dark:bg-green-900/20 dark:text-green-500',
+    stone: 'bg-stone-100 text-stone-700 dark:bg-stone-800/50 dark:text-stone-400',
+    blue: 'bg-blue-50 text-blue-800 dark:bg-blue-900/20 dark:text-blue-500'
   };
 
   return (
-    <div className="bg-white shadow rounded-lg p-6">
-      <h1 className="text-2xl font-bold mb-4">Welcome, {user?.name || 'Kisan'}!</h1>
-      <p className="text-gray-600 mb-6">This is your main dashboard.</p>
-      
-      <div className="bg-green-50 border border-green-200 rounded p-4 mb-6">
-        <h2 className="font-semibold text-green-800">Your Profile</h2>
-        <ul className="text-sm mt-2 space-y-1">
-          <li><strong>Phone:</strong> {user?.phone}</li>
-          <li><strong>Role:</strong> {user?.role}</li>
-          <li><strong>Status:</strong> {user?.isVerified ? 'Verified ✓' : 'Pending Verification ⏳'}</li>
-        </ul>
+    <div className="bg-white dark:bg-stone-900 p-5 rounded-2xl shadow-sm border border-stone-200 dark:border-stone-800 flex flex-col gap-3">
+      <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${colorMap[color]}`}>
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={icon} />
+        </svg>
       </div>
-
-      <button 
-        onClick={handleLogout}
-        className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-      >
-        Logout
-      </button>
+      <div>
+        <p className="font-sans text-sm text-stone-500 dark:text-stone-400 font-medium mb-1">{title}</p>
+        <p className="font-serif text-3xl text-stone-800 dark:text-stone-100">{value}</p>
+      </div>
     </div>
   );
 }

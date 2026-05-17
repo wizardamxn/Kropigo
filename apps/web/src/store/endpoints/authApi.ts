@@ -3,7 +3,7 @@ import { baseApi } from '../baseApi';
 export const authApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     register: builder.mutation<
-      { data: { accessToken: string; user: any }; message: string },
+      { data: { user: any }; message: string },
       { name: string; email: string; phone: string; password: string; role: string }
     >({
       query: (body) => ({
@@ -13,7 +13,7 @@ export const authApi = baseApi.injectEndpoints({
       }),
     }),
     login: builder.mutation<
-      { data: { accessToken: string; user: any }; message: string },
+      { data: { user: any }; message: string },
       { email: string; password: string }
     >({
       query: (body) => ({
@@ -22,30 +22,14 @@ export const authApi = baseApi.injectEndpoints({
         body,
       }),
     }),
-    /*
-    sendOtp: builder.mutation<{ message: string }, { phone: string }>({
-      query: (body) => ({
-        url: '/auth/send-otp',
-        method: 'POST',
-        body,
-      }),
-    }),
-    verifyOtp: builder.mutation<
-      { accessToken: string; user: any },
-      { phone: string; otp: string }
-    >({
-      query: (body) => ({
-        url: '/auth/verify-otp',
-        method: 'POST',
-        body,
-      }),
-    }),
-    */
     logout: builder.mutation<{ message: string }, void>({
       query: () => ({
         url: '/auth/logout',
         method: 'POST',
       }),
+    }),
+    getMe: builder.query<{ data: { user: any }; message: string }, void>({
+      query: () => '/auth/me',
     }),
     updateProfile: builder.mutation<
       { data: any; message: string },
@@ -63,8 +47,7 @@ export const authApi = baseApi.injectEndpoints({
 export const {
   useRegisterMutation,
   useLoginMutation,
-  // useSendOtpMutation,
-  // useVerifyOtpMutation,
   useLogoutMutation,
+  useGetMeQuery,
   useUpdateProfileMutation,
 } = authApi;

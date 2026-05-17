@@ -14,14 +14,14 @@ export interface AuthUser {
 }
 
 export interface AuthState {
-  accessToken: string | null;
   isAuthenticated: boolean;
-  user: AuthUser | null; 
+  isInitialized: boolean;
+  user: AuthUser | null;
 }
 
 const initialState: AuthState = {
-  accessToken: null,
   isAuthenticated: false,
+  isInitialized: false,
   user: null,
 };
 
@@ -29,26 +29,23 @@ const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
-    setCredentials: (
-      state,
-      action: PayloadAction<{ accessToken: string; user: AuthUser }>
-    ) => {
-      state.accessToken = action.payload.accessToken;
-      state.user = action.payload.user;
+    setUser: (state, action: PayloadAction<AuthUser>) => {
+      state.user = action.payload;
       state.isAuthenticated = true;
+      state.isInitialized = true;
     },
-    logout: (state) => {
-      state.accessToken = null;
-      state.isAuthenticated = false;
+    clearUser: (state) => {
       state.user = null;
+      state.isAuthenticated = false;
+      state.isInitialized = true;  // 401 / logout → we now know the answer
     },
     updateUser: (state, action: PayloadAction<Partial<AuthUser>>) => {
       if (state.user) {
         state.user = { ...state.user, ...action.payload };
       }
-    }
+    },
   },
 });
 
-export const { setCredentials, logout, updateUser } = authSlice.actions;
+export const { setUser, clearUser, updateUser } = authSlice.actions;
 export default authSlice.reducer;

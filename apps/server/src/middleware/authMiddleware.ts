@@ -18,21 +18,23 @@ declare global {
   }
 }
 
-export const authenticate: RequestHandler = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-  const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    throw new ApiError(401, 'No token provided or invalid format');
-  }
+export const authenticate: RequestHandler = asyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const token = req.cookies?.token;
 
-  const token = authHeader.split(' ')[1];
-  try {
-    const decoded = jwt.verify(token, env.JWT_ACCESS_SECRET) as JwtPayload;
-    req.user = decoded;
-    next();
-  } catch (error) {
-    throw new ApiError(401, 'Invalid or expired access token');
+    if (!token) {
+      throw new ApiError(401, 'Not authenticated. Please log in.');
+    }
+
+    try {
+      const decoded = jwt.verify(token, env.JWT_SECRET) as JwtPayload;
+      req.user = decoded;
+      next();
+    } catch (error) {
+      throw new ApiError(401, 'Invalid or expired session. Please log in again.');
+    }
   }
-});
+);
 
 export const requireRole = (role: UserRole): RequestHandler => {
   return (req: Request, res: Response, next: NextFunction) => {

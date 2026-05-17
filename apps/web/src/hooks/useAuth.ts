@@ -1,12 +1,12 @@
 import { useAppSelector } from '../store/hooks';
 
 export const useAuth = () => {
-  const { user, isAuthenticated, accessToken } = useAppSelector((state) => state.auth);
+  const { user, isAuthenticated, isInitialized } = useAppSelector((state) => state.auth);
 
   return {
     user,
     isAuthenticated,
-    accessToken,
+    isInitialized,
     role: user?.role,
     location: user?.location,
     isVerified: user?.isVerified,

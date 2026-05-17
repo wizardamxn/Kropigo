@@ -12,6 +12,7 @@ export const ListingStatusSchema = z.enum([
   'sale_confirmed',
   'cancelled',
   'expired',
+  'closed'
 ]);
 export type ListingStatus = z.infer<typeof ListingStatusSchema>;
 
@@ -60,4 +61,13 @@ export type PaymentStatus = z.infer<typeof PaymentStatusSchema>;
 export const ReviewTargetSchema = z.enum(['kisan', 'buyer', 'driver']);
 export type ReviewTarget = z.infer<typeof ReviewTargetSchema>;
 
+// --- Crop ---
+export const CropCategorySchema = z.enum(['vegetable', 'fruit', 'grain', 'spice', 'other']);
+export type CropCategory = z.infer<typeof CropCategorySchema>;
 
+export const CropUnitSchema = z.enum(['kg', 'quintal', 'ton']);
+export type CropUnit = z.infer<typeof CropUnitSchema>;
+
+// --- Mandi Rate ---
+export const MandiRateSourceSchema = z.enum(['agmarknet', 'manual']);
+export type MandiRateSource = z.infer<typeof MandiRateSourceSchema>;

@@ -1,4 +1,7 @@
 process.env.TZ = 'Asia/Kolkata'
+import { setServers } from "node:dns/promises";
+
+setServers(["1.1.1.1", "8.8.8.8"]);
 import express, { Request, Response } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -50,7 +53,21 @@ app.use('/webhook', authRoutes)
 import userRoutes from './routes/userRoutes';
 app.use('/api/v1/user', userRoutes);
 
-// 4. TODO: Register Cron Jobs (node-cron)
+import listingRoutes from './routes/listing.routes';
+app.use('/api/v1/listings', listingRoutes);
+
+import mediaRoutes from './routes/media.routes';
+app.use('/api/v1/media', mediaRoutes);
+
+import mandiRateRoutes from './routes/mandiRate.routes';
+app.use('/api/v1/mandi-rates', mandiRateRoutes);
+
+import cropRoutes from './routes/crop.routes';
+app.use('/api/v1/crops', cropRoutes);
+
+// 4. Register Cron Jobs
+import { registerJobs } from './jobs/cronJobs';
+registerJobs();
 
 // Health Check
 app.get('/health', (req: Request, res: Response) => {

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useAppDispatch } from '@/store/hooks';
-import { setCredentials } from '@/store/slices/authSlice';
+import { setUser } from '@/store/slices/authSlice';
 import { useRouter } from 'next/navigation';
 import { useLoginMutation } from '@/store/endpoints/authApi';
 import Link from 'next/link';
@@ -24,13 +24,10 @@ export default function LoginPage() {
     try {
       const response = await login({ email, password }).unwrap();
 
-      dispatch(setCredentials({ 
-        accessToken: response.data.accessToken,
-        user: response.data.user
-      }));
+      dispatch(setUser(response.data.user));
       // RoleGuard on '/' will detect the state change and redirect to the
       // correct destination: /profile-setup (no name) or /{role}/dashboard
-      router.push('/');
+      router.push('/kisan/dashboard');
     } catch (err: any) {
       setError(err?.data?.message || 'Invalid email or password');
     }
