@@ -13,7 +13,8 @@ const COOKIE_NAME = 'token';
 const COOKIE_OPTIONS = {
   httpOnly: true,
   secure: env.NODE_ENV === 'production',
-  sameSite: 'strict' as const,
+  // cross-origin (Netlify → Render): 'none' requires secure:true; locally 'lax' is fine
+  sameSite: (env.NODE_ENV === 'production' ? 'none' : 'lax') as 'none' | 'lax',
   maxAge: env.JWT_COOKIE_EXPIRY_DAYS * 24 * 60 * 60 * 1000,
 };
 
@@ -117,7 +118,7 @@ export const logout: RequestHandler = asyncHandler(
     res.clearCookie(COOKIE_NAME, {
       httpOnly: true,
       secure: env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: env.NODE_ENV === 'production' ? 'none' : 'lax',
     });
     res.status(200).json(new ApiResponse(200, null, "Logged out successfully"));
   }

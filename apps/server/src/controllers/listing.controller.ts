@@ -1,31 +1,47 @@
-import { Request, Response } from 'express';
-import { Listing } from '../models/Listing.model';
-import { MandiRate } from '../models/MandiRate.model';
-import { deleteMediaByUrls } from '../services/upload.service';
+import { Request, Response } from "express";
+import { Listing } from "../models/Listing.model";
+import { MandiRate } from "../models/MandiRate.model";
+import { deleteMediaByUrls } from "../services/upload.service";
 
 const parseStringArray = (value: unknown, fieldName: string): string[] => {
   if (value === undefined) return [];
-  if (!Array.isArray(value) || value.some((item) => typeof item !== 'string')) {
+  if (!Array.isArray(value) || value.some((item) => typeof item !== "string")) {
     throw new Error(`${fieldName} must be an array of strings`);
   }
   return value;
 };
 
-export const createListing = async (req: Request, res: Response): Promise<void> => {
+export const createListing = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
   try {
-    const { cropId, quantity, unit, askingPrice, description, farmAddress, farmState, farmDistrict, lat, lng } = req.body;
-    const mediaUrls = parseStringArray(req.body.mediaUrls, 'mediaUrls');
-    
+    const {
+      cropId,
+      quantity,
+      unit,
+      askingPrice,
+      description,
+      farmAddress,
+      farmState,
+      farmDistrict,
+      lat,
+      lng,
+    } = req.body;
+    const mediaUrls = parseStringArray(req.body.mediaUrls, "mediaUrls");
+
     // Auth middleware assumed to attach user to req.user
-    const sellerId = req.user?.userId; 
+    const sellerId = req.user?.userId;
 
     if (!sellerId) {
-      res.status(401).json({ success: false, message: 'Unauthorized' });
+      res.status(401).json({ success: false, message: "Unauthorized" });
       return;
     }
 
     if (mediaUrls.length > 6) {
-      res.status(400).json({ success: false, message: 'Maximum 6 media files allowed' });
+      res
+        .status(400)
+        .json({ success: false, message: "Maximum 6 media files allowed" });
       return;
     }
 
@@ -40,8 +56,9 @@ export const createListing = async (req: Request, res: Response): Promise<void> 
       farmAddress,
       farmState,
       farmDistrict,
-      farmCoordinates: lat && lng ? { lat: Number(lat), lng: Number(lng) } : undefined,
-      status: 'open', // Defaults to open or draft depending on frontend
+      farmCoordinates:
+        lat && lng ? { lat: Number(lat), lng: Number(lng) } : undefined,
+      status: "open", // Defaults to open or draft depending on frontend
     });
 
     // Fetch current Mandi rate for reference
@@ -50,26 +67,39 @@ export const createListing = async (req: Request, res: Response): Promise<void> 
 
     const latestMandiRate = await MandiRate.findOne({
       cropId,
-      date: { $gte: today }
+      date: { $gte: today },
     }).sort({ date: -1 });
 
     res.status(201).json({
       success: true,
       data: listing,
       mandiRateReference: latestMandiRate || null,
-      message: latestMandiRate 
-        ? `Current market rate: ₹${latestMandiRate.minPrice} - ₹${latestMandiRate.maxPrice}/${latestMandiRate.unit || 'unit'}`
-        : 'No recent mandi rates available'
+      message: latestMandiRate
+        ? `Current market rate: ₹${latestMandiRate.minPrice} - ₹${latestMandiRate.maxPrice}/${latestMandiRate.unit || "unit"}`
+        : "No recent mandi rates available",
     });
   } catch (error: any) {
-    const statusCode = error.message?.includes('must be an array') ? 400 : 500;
+    const statusCode = error.message?.includes("must be an array") ? 400 : 500;
     res.status(statusCode).json({ success: false, message: error.message });
   }
 };
 
-export const getListings = async (req: Request, res: Response): Promise<void> => {
+export const getListings = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
   try {
-    const { cropId, district, state, minPrice, maxPrice, status, sellerId, page = 1, limit = 10 } = req.query;
+    const {
+      cropId,
+      district,
+      state,
+      minPrice,
+      maxPrice,
+      status,
+      sellerId,
+      page = 1,
+      limit = 10,
+    } = req.query;
 
     const query: any = {};
     if (cropId) query.cropId = cropId;
@@ -77,7 +107,7 @@ export const getListings = async (req: Request, res: Response): Promise<void> =>
     if (state) query.farmState = state;
     if (sellerId) query.sellerId = sellerId;
     if (status) query.status = status;
-    else if (!sellerId) query.status = 'open'; // default to open for public; kisan sees all their own statuses
+    else if (!sellerId) query.status = "open"; // default to open for public; kisan sees all their own statuses
 
     if (minPrice || maxPrice) {
       query.askingPrice = {};
@@ -86,8 +116,8 @@ export const getListings = async (req: Request, res: Response): Promise<void> =>
     }
 
     const listings = await Listing.find(query)
-      .populate('cropId', 'name category unit')
-      .populate('sellerId', 'name location isVerified averageRating')
+      .populate("cropId", "name category unit")
+      .populate("sellerId", "name location isVerified averageRating")
       .sort({ createdAt: -1 })
       .skip((Number(page) - 1) * Number(limit))
       .limit(Number(limit));
@@ -101,23 +131,26 @@ export const getListings = async (req: Request, res: Response): Promise<void> =>
         total,
         page: Number(page),
         limit: Number(limit),
-        totalPages: Math.ceil(total / Number(limit))
-      }
+        totalPages: Math.ceil(total / Number(limit)),
+      },
     });
   } catch (error: any) {
-    const statusCode = error.message?.includes('must be an array') ? 400 : 500;
+    const statusCode = error.message?.includes("must be an array") ? 400 : 500;
     res.status(statusCode).json({ success: false, message: error.message });
   }
 };
 
-export const getListingById = async (req: Request, res: Response): Promise<void> => {
+export const getListingById = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
   try {
     const listing = await Listing.findById(req.params.id)
-      .populate('cropId', 'name category unit')
-      .populate('sellerId', 'name location isVerified averageRating'); // NO phone
+      .populate("cropId", "name category unit")
+      .populate("sellerId", "name location isVerified averageRating"); // NO phone
 
     if (!listing) {
-      res.status(404).json({ success: false, message: 'Listing not found' });
+      res.status(404).json({ success: false, message: "Listing not found" });
       return;
     }
 
@@ -131,27 +164,44 @@ export const getListingById = async (req: Request, res: Response): Promise<void>
   }
 };
 
-export const updateListing = async (req: Request, res: Response): Promise<void> => {
+export const updateListing = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
   try {
     const sellerId = req.user?.userId;
     const listing = await Listing.findOne({ _id: req.params.id, sellerId });
 
     if (!listing) {
-      res.status(404).json({ success: false, message: 'Listing not found or unauthorized' });
+      res
+        .status(404)
+        .json({ success: false, message: "Listing not found or unauthorized" });
       return;
     }
 
-    if (listing.status !== 'draft' && listing.status !== 'open') {
-      res.status(400).json({ success: false, message: 'Cannot update listing in current status' });
+    if (listing.status !== "draft" && listing.status !== "open") {
+      res
+        .status(400)
+        .json({
+          success: false,
+          message: "Cannot update listing in current status",
+        });
       return;
     }
 
-    const deletedMediaUrls = parseStringArray(req.body.deletedMediaUrls, 'deletedMediaUrls');
-    const mediaUrls = parseStringArray(req.body.mediaUrls, 'mediaUrls');
-    const keptMediaUrls = listing.mediaUrls.filter(url => !deletedMediaUrls.includes(url));
+    const deletedMediaUrls = parseStringArray(
+      req.body.deletedMediaUrls,
+      "deletedMediaUrls",
+    );
+    const mediaUrls = parseStringArray(req.body.mediaUrls, "mediaUrls");
+    const keptMediaUrls = listing.mediaUrls.filter(
+      (url) => !deletedMediaUrls.includes(url),
+    );
 
     if (keptMediaUrls.length + mediaUrls.length > 6) {
-      res.status(400).json({ success: false, message: 'Maximum 6 media files allowed' });
+      res
+        .status(400)
+        .json({ success: false, message: "Maximum 6 media files allowed" });
       return;
     }
 
@@ -166,8 +216,17 @@ export const updateListing = async (req: Request, res: Response): Promise<void> 
     }
 
     // Update other fields
-    const updates = ['quantity', 'unit', 'askingPrice', 'description', 'farmAddress', 'farmState', 'farmDistrict', 'status'];
-    updates.forEach(field => {
+    const updates = [
+      "quantity",
+      "unit",
+      "askingPrice",
+      "description",
+      "farmAddress",
+      "farmState",
+      "farmDistrict",
+      "status",
+    ];
+    updates.forEach((field) => {
       if (req.body[field] !== undefined) {
         (listing as any)[field] = req.body[field];
       }
@@ -180,18 +239,28 @@ export const updateListing = async (req: Request, res: Response): Promise<void> 
   }
 };
 
-export const deleteListing = async (req: Request, res: Response): Promise<void> => {
+export const deleteListing = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
   try {
     const sellerId = req.user?.userId;
     const listing = await Listing.findOne({ _id: req.params.id, sellerId });
 
     if (!listing) {
-      res.status(404).json({ success: false, message: 'Listing not found or unauthorized' });
+      res
+        .status(404)
+        .json({ success: false, message: "Listing not found or unauthorized" });
       return;
     }
 
-    if (listing.status !== 'draft' && listing.status !== 'open') {
-      res.status(400).json({ success: false, message: 'Only draft or open listings can be deleted' });
+    if (listing.status !== "draft" && listing.status !== "open") {
+      res
+        .status(400)
+        .json({
+          success: false,
+          message: "Only draft or open listings can be deleted",
+        });
       return;
     }
 
@@ -204,7 +273,9 @@ export const deleteListing = async (req: Request, res: Response): Promise<void> 
     // await Interest.updateMany({ listingId: listing._id, status: 'pending' }, { status: 'withdrawn' });
 
     await listing.deleteOne();
-    res.status(200).json({ success: true, message: 'Listing deleted successfully' });
+    res
+      .status(200)
+      .json({ success: true, message: "Listing deleted successfully" });
   } catch (error: any) {
     res.status(500).json({ success: false, message: error.message });
   }
