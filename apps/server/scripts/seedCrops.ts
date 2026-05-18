@@ -16,77 +16,115 @@ if (!MONGODB_URI) {
   process.exit(1);
 }
 
-const cropsToSeed: { name: string; category: CropCategory; unit: CropUnit }[] = [
+const cropsToSeed: { name: string; nameHindi: string; searchQuery: string; category: CropCategory; unit: CropUnit }[] = [
   // Vegetables
-  { name: 'tomato', category: 'vegetable', unit: 'quintal' },
-  { name: 'onion', category: 'vegetable', unit: 'quintal' },
-  { name: 'potato', category: 'vegetable', unit: 'quintal' },
-  { name: 'garlic', category: 'vegetable', unit: 'quintal' },
-  { name: 'cauliflower', category: 'vegetable', unit: 'quintal' },
-  { name: 'cabbage', category: 'vegetable', unit: 'quintal' },
-  { name: 'brinjal', category: 'vegetable', unit: 'quintal' },
-  { name: 'okra', category: 'vegetable', unit: 'quintal' },
-  { name: 'spinach', category: 'vegetable', unit: 'kg' },
-  { name: 'peas', category: 'vegetable', unit: 'quintal' },
-  { name: 'bitter gourd', category: 'vegetable', unit: 'quintal' },
-  { name: 'bottle gourd', category: 'vegetable', unit: 'quintal' },
+  { name: 'tomato', nameHindi: 'टमाटर', searchQuery: 'tomato', category: 'vegetable', unit: 'quintal' },
+  { name: 'onion', nameHindi: 'प्याज', searchQuery: 'onion', category: 'vegetable', unit: 'quintal' },
+  { name: 'potato', nameHindi: 'आलू', searchQuery: 'potato', category: 'vegetable', unit: 'quintal' },
+  { name: 'garlic', nameHindi: 'लहसुन', searchQuery: 'garlic', category: 'vegetable', unit: 'quintal' },
+  { name: 'cauliflower', nameHindi: 'फूलगोभी', searchQuery: 'cauliflower', category: 'vegetable', unit: 'quintal' },
+  { name: 'cabbage', nameHindi: 'पत्तागोभी', searchQuery: 'cabbage', category: 'vegetable', unit: 'quintal' },
+  { name: 'brinjal', nameHindi: 'बैंगन', searchQuery: 'eggplant', category: 'vegetable', unit: 'quintal' },
+  { name: 'okra', nameHindi: 'भिंडी', searchQuery: 'okra', category: 'vegetable', unit: 'quintal' },
+  { name: 'spinach', nameHindi: 'पालक', searchQuery: 'spinach', category: 'vegetable', unit: 'kg' },
+  { name: 'peas', nameHindi: 'मटर', searchQuery: 'peas', category: 'vegetable', unit: 'quintal' },
+  { name: 'bitter gourd', nameHindi: 'करेला', searchQuery: 'bitter gourd', category: 'vegetable', unit: 'quintal' },
+  { name: 'bottle gourd', nameHindi: 'लौकी', searchQuery: 'bottle gourd', category: 'vegetable', unit: 'quintal' },
 
   // Fruits
-  { name: 'mango', category: 'fruit', unit: 'ton' },
-  { name: 'banana', category: 'fruit', unit: 'quintal' },
-  { name: 'watermelon', category: 'fruit', unit: 'quintal' },
-  { name: 'grapes', category: 'fruit', unit: 'quintal' },
-  { name: 'pomegranate', category: 'fruit', unit: 'quintal' },
-  { name: 'guava', category: 'fruit', unit: 'quintal' },
-  { name: 'apple', category: 'fruit', unit: 'quintal' },
-  { name: 'orange', category: 'fruit', unit: 'quintal' },
-  { name: 'papaya', category: 'fruit', unit: 'quintal' },
+  { name: 'mango', nameHindi: 'आम', searchQuery: 'mango', category: 'fruit', unit: 'ton' },
+  { name: 'banana', nameHindi: 'केला', searchQuery: 'banana', category: 'fruit', unit: 'quintal' },
+  { name: 'watermelon', nameHindi: 'तरबूज', searchQuery: 'watermelon', category: 'fruit', unit: 'quintal' },
+  { name: 'grapes', nameHindi: 'अंगूर', searchQuery: 'grapes', category: 'fruit', unit: 'quintal' },
+  { name: 'pomegranate', nameHindi: 'अनार', searchQuery: 'pomegranate', category: 'fruit', unit: 'quintal' },
+  { name: 'guava', nameHindi: 'अमरूद', searchQuery: 'guava', category: 'fruit', unit: 'quintal' },
+  { name: 'apple', nameHindi: 'सेब', searchQuery: 'apple', category: 'fruit', unit: 'quintal' },
+  { name: 'orange', nameHindi: 'संतरा', searchQuery: 'orange fruit', category: 'fruit', unit: 'quintal' },
+  { name: 'papaya', nameHindi: 'पपीता', searchQuery: 'papaya', category: 'fruit', unit: 'quintal' },
 
   // Grains
-  { name: 'wheat', category: 'grain', unit: 'quintal' },
-  { name: 'rice', category: 'grain', unit: 'quintal' },
-  { name: 'bajra', category: 'grain', unit: 'quintal' },
-  { name: 'jowar', category: 'grain', unit: 'quintal' },
-  { name: 'chickpea', category: 'grain', unit: 'quintal' },
-  { name: 'lentils', category: 'grain', unit: 'quintal' },
-  { name: 'soybean', category: 'grain', unit: 'quintal' },
+  { name: 'wheat', nameHindi: 'गेहूं', searchQuery: 'wheat field', category: 'grain', unit: 'quintal' },
+  { name: 'rice', nameHindi: 'चावल / धान', searchQuery: 'rice paddy', category: 'grain', unit: 'quintal' },
+  { name: 'bajra', nameHindi: 'बाजरा', searchQuery: 'pearl millet', category: 'grain', unit: 'quintal' },
+  { name: 'jowar', nameHindi: 'ज्वार', searchQuery: 'sorghum', category: 'grain', unit: 'quintal' },
+  { name: 'chickpea', nameHindi: 'चना', searchQuery: 'chickpeas', category: 'grain', unit: 'quintal' },
+  { name: 'lentils', nameHindi: 'मसूर दाल', searchQuery: 'lentils', category: 'grain', unit: 'quintal' },
+  { name: 'soybean', nameHindi: 'सोयाबीन', searchQuery: 'soybean', category: 'grain', unit: 'quintal' },
 
   // Spices
-  { name: 'chilli', category: 'spice', unit: 'quintal' },
-  { name: 'turmeric', category: 'spice', unit: 'quintal' },
-  { name: 'ginger', category: 'spice', unit: 'quintal' },
-  { name: 'coriander', category: 'spice', unit: 'kg' },
-  { name: 'fenugreek', category: 'spice', unit: 'kg' },
-  { name: 'cumin', category: 'spice', unit: 'kg' },
-  { name: 'black pepper', category: 'spice', unit: 'kg' },
-  { name: 'cardamom', category: 'spice', unit: 'kg' },
+  { name: 'chilli', nameHindi: 'मिर्च', searchQuery: 'chilli pepper', category: 'spice', unit: 'quintal' },
+  { name: 'turmeric', nameHindi: 'हल्दी', searchQuery: 'turmeric', category: 'spice', unit: 'quintal' },
+  { name: 'ginger', nameHindi: 'अदरक', searchQuery: 'ginger root', category: 'spice', unit: 'quintal' },
+  { name: 'coriander', nameHindi: 'धनिया', searchQuery: 'coriander', category: 'spice', unit: 'kg' },
+  { name: 'fenugreek', nameHindi: 'मेथी', searchQuery: 'fenugreek', category: 'spice', unit: 'kg' },
+  { name: 'cumin', nameHindi: 'जीरा', searchQuery: 'cumin seeds', category: 'spice', unit: 'kg' },
+  { name: 'black pepper', nameHindi: 'काली मिर्च', searchQuery: 'black pepper', category: 'spice', unit: 'kg' },
+  { name: 'cardamom', nameHindi: 'इलायची', searchQuery: 'cardamom', category: 'spice', unit: 'kg' },
 
   // Other (Cash Crops/Oilseeds)
-  { name: 'cotton', category: 'other', unit: 'quintal' },
-  { name: 'sugarcane', category: 'other', unit: 'ton' },
-  { name: 'groundnut', category: 'other', unit: 'quintal' },
-  { name: 'mustard', category: 'other', unit: 'quintal' },
+  { name: 'cotton', nameHindi: 'कपास', searchQuery: 'cotton field', category: 'other', unit: 'quintal' },
+  { name: 'sugarcane', nameHindi: 'गन्ना', searchQuery: 'sugarcane', category: 'other', unit: 'ton' },
+  { name: 'groundnut', nameHindi: 'मूंगफली', searchQuery: 'peanut plant', category: 'other', unit: 'quintal' },
+  { name: 'mustard', nameHindi: 'सरसों', searchQuery: 'mustard field', category: 'other', unit: 'quintal' },
 ];
+
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+async function fetchUnsplashImage(query: string): Promise<string | undefined> {
+  const apiKey = process.env.UNSPLASH_ACCESS_KEY;
+  if (!apiKey) {
+    console.warn('⚠️ No UNSPLASH_ACCESS_KEY found in .env, skipping image fetch.');
+    return undefined;
+  }
+  
+  try {
+    const url = `https://api.unsplash.com/search/photos?query=${encodeURIComponent(query)}&per_page=1&client_id=${apiKey}`;
+    const response = await fetch(url);
+    const data = (await response.json()) as any;
+    if (data.results && data.results.length > 0) {
+      return data.results[0].urls.regular;
+    }
+  } catch (error) {
+    console.error(`Error fetching image for ${query}:`, error);
+  }
+  return undefined;
+}
+
+function generateDescription(name: string, nameHindi: string, category: string): string {
+  return `Fresh and high-quality ${nameHindi} (${name}) ${category !== 'other' ? category : 'crop'} ready for the market.`;
+}
 
 async function seed() {
   try {
     await mongoose.connect(MONGODB_URI as string);
     console.log('📦 Connected to MongoDB');
 
-    let inserted = 0;
-    let skipped = 0;
+    let insertedOrUpdated = 0;
 
     for (const crop of cropsToSeed) {
-      const existing = await Crop.findOne({ name: crop.name });
-      if (existing) {
-        skipped++;
-        continue;
-      }
-      await Crop.create(crop);
-      inserted++;
+      console.log(`⏳ Processing ${crop.name}...`);
+      
+      const imageUrl = await fetchUnsplashImage(`${crop.searchQuery}`);
+      const description = generateDescription(crop.name, crop.nameHindi, crop.category);
+      
+      const cropData = {
+        ...crop,
+        imageUrl,
+        description
+      };
+
+      await Crop.findOneAndUpdate(
+        { name: crop.name },
+        { $set: cropData },
+        { upsert: true, new: true }
+      );
+      insertedOrUpdated++;
+      
+      // Delay to respect Unsplash rate limits
+      await delay(1000);
     }
 
-    console.log(`✅ Seeding complete. Inserted: ${inserted}, Skipped (already exist): ${skipped}`);
+    console.log(`✅ Seeding complete. Inserted/Updated: ${insertedOrUpdated}`);
   } catch (error) {
     console.error('❌ Error seeding crops:', error);
   } finally {

@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { useGetCropsQuery } from "@/store/endpoints/cropsApi";
+import CropSelector from "@/components/CropSelector";
 import { useGetMandiRatesQuery } from "@/store/endpoints/mandiApi";
 import { useCreateListingMutation } from "@/store/endpoints/listingsApi";
 import {
@@ -36,13 +36,13 @@ export default function CreateListing() {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [mediaPreviews, setMediaPreviews] = useState<MediaPreview[]>([]);
 
-  const { data: cropsData, isLoading: cropsLoading } = useGetCropsQuery();
+
   const { data: mandiData } = useGetMandiRatesQuery(cropId, { skip: !cropId });
   const [createListing, { isLoading }] = useCreateListingMutation();
   const [getCloudinarySignature] = useGetCloudinarySignatureMutation();
   const [deleteCloudinaryMedia] = useDeleteCloudinaryMediaMutation();
 
-  const crops: any[] = cropsData?.data ?? [];
+
   const mandiRates: any[] = mandiData?.data ?? [];
   const latestRate = mandiRates[0];
   const isSubmitting = isLoading || isUploading;
@@ -241,24 +241,7 @@ export default function CreateListing() {
             Crop Details
           </h2>
 
-          <div>
-            <label className={labelBaseClass}>Select Crop *</label>
-            <select
-              value={cropId}
-              onChange={(e) => setCropId(e.target.value)}
-              required
-              className={`${inputBaseClass} appearance-none cursor-pointer`}
-            >
-              <option value="" disabled>-- Choose a crop --</option>
-              {cropsLoading ? (
-                <option disabled>Loading database...</option>
-              ) : (
-                crops.map((c) => (
-                  <option key={c._id} value={c._id}>{c.name} ({c.category})</option>
-                ))
-              )}
-            </select>
-          </div>
+          <CropSelector cropId={cropId} setCropId={setCropId} />
 
           <div className="flex flex-col sm:flex-row gap-5">
             <div className="flex-1">

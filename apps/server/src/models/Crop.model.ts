@@ -3,8 +3,11 @@ import { CropCategory, CropUnit } from '@kropi/schemas/enum';
 
 export interface ICrop extends Document {
   name: string;
+  nameHindi?: string;
   category: CropCategory;
   unit: CropUnit;
+  imageUrl?: string;
+  description?: string;
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -19,6 +22,11 @@ const cropSchema = new Schema<ICrop>(
       trim: true,
       lowercase: true,
     },
+    nameHindi: {
+      type: String,
+      required: false,
+      trim: true,
+    },
     category: {
       type: String,
       enum: ['vegetable', 'fruit', 'grain', 'spice', 'other'],
@@ -28,6 +36,14 @@ const cropSchema = new Schema<ICrop>(
       type: String,
       enum: ['kg', 'quintal', 'ton'],
       required: true,
+    },
+    imageUrl: {
+      type: String,
+      required: false,
+    },
+    description: {
+      type: String,
+      required: false,
     },
     isActive: {
       type: Boolean,
