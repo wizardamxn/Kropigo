@@ -8,7 +8,8 @@
     "build": "tsc",
     "start": "node dist/apps/server/src/index.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "seed:crops": "ts-node -r tsconfig-paths/register scripts/seedCrops.ts"
+    "seed:crops": "ts-node -r tsconfig-paths/register scripts/seedCrops.ts",
+    "seed:interests": "ts-node -r tsconfig-paths/register scripts/seedInterests.ts"
   },
   "keywords": [],
   "author": "",

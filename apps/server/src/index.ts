@@ -65,6 +65,9 @@ app.use('/api/v1/mandi-rates', mandiRateRoutes);
 import cropRoutes from './routes/crop.routes';
 app.use('/api/v1/crops', cropRoutes);
 
+import interestRoutes from './routes/interest.routes';
+app.use('/api/v1/interests', interestRoutes);
+
 // 4. Register Cron Jobs
 import { registerJobs } from './jobs/cronJobs';
 registerJobs();
