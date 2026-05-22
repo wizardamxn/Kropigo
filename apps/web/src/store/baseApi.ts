@@ -6,6 +6,6 @@ export const baseApi = createApi({
     baseUrl: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1',
     credentials: 'include', // sends the httpOnly cookie automatically on every request
   }),
-  tagTypes: ['User', 'Listing', 'Crop', 'MandiRate'],
+  tagTypes: ['User', 'Listing', 'Crop', 'MandiRate', 'Interest'],
   endpoints: () => ({}),
 });

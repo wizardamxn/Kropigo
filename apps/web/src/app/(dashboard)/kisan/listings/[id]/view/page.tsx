@@ -3,7 +3,12 @@
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useState } from 'react';
-import { useGetListingByIdQuery } from '@/store/endpoints/listingsApi';
+import {
+  useGetListingByIdQuery,
+  useGetListingInterestsQuery,
+  useAcceptInterestMutation,
+  useRejectInterestMutation,
+} from '@/store/endpoints/listingsApi';
 
 /*
   API: GET /listings/:id
@@ -41,7 +46,12 @@ export default function ListingViewPage() {
   const [activeImage, setActiveImage] = useState(0);
 
   const { data, isLoading, isError } = useGetListingByIdQuery(id);
+  const { data: interestsData, isLoading: interestsLoading } = useGetListingInterestsQuery(id);
+  const [acceptInterest, { isLoading: isAccepting }] = useAcceptInterestMutation();
+  const [rejectInterest, { isLoading: isRejecting }] = useRejectInterestMutation();
+
   const listing = data?.data;
+  const interests = interestsData?.data ?? [];
 
   // ─── Loading ────────────────────────────────────────────────────
   if (isLoading) {
@@ -253,22 +263,160 @@ export default function ListingViewPage() {
         </div>
       </section>
 
-      {/* ── CTA ──────────────────────────────────────────────────── */}
-      {/* This button area is for buyer actions — currently a placeholder */}
-      {listing.status === 'open' && (
-        <div className="pt-2">
-          <button
-            type="button"
-            disabled
-            className="w-full h-14 rounded-xl bg-green-800 text-white font-sans text-lg font-medium opacity-50 cursor-not-allowed"
-          >
-            Express Interest — Coming Soon
-          </button>
-          <p className="text-center text-xs text-stone-400 dark:text-stone-500 font-sans mt-2">
-            Buyer interest flow not yet implemented
-          </p>
-        </div>
-      )}
+      {/* ── BUYER OFFERS / INTERESTS ────────────────────────────── */}
+      <section className="space-y-6 pt-4 border-t border-stone-200 dark:border-stone-800">
+        <h2 className="font-serif text-2xl text-stone-800 dark:text-stone-100 font-medium">
+          Received Offers ({interests.length})
+        </h2>
+
+        {interestsLoading ? (
+          <div className="space-y-3 animate-pulse">
+            <div className="h-20 bg-stone-100 dark:bg-stone-850 rounded-xl" />
+            <div className="h-20 bg-stone-100 dark:bg-stone-850 rounded-xl" />
+          </div>
+        ) : interests.length === 0 ? (
+          <div className="bg-stone-50 dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 p-8 text-center text-stone-500 dark:text-stone-400 font-sans text-sm">
+            No offers received on this listing yet.
+          </div>
+        ) : (
+          <div className="flex flex-col gap-4">
+            {interests.map((interest: any) => {
+              const totalVal = interest.price * interest.quantity;
+              const isPending = interest.status === 'pending';
+              const isAccepted = interest.status === 'accepted';
+              const isRejected = interest.status === 'rejected';
+              const isWithdrawn = interest.status === 'withdrawn';
+
+              return (
+                <div
+                  key={interest._id}
+                  className={`p-5 rounded-2xl border transition-all ${
+                    isAccepted
+                      ? 'bg-green-50/50 dark:bg-green-950/10 border-green-200 dark:border-green-800/50 shadow-sm'
+                      : isRejected || isWithdrawn
+                      ? 'bg-stone-50/50 dark:bg-stone-900/50 border-stone-200/60 dark:border-stone-800/60 opacity-60'
+                      : 'bg-white dark:bg-stone-900 border-stone-200 dark:border-stone-800 shadow-sm'
+                  }`}
+                >
+                  <div className="flex flex-wrap items-start justify-between gap-4">
+                    {/* Buyer info */}
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-stone-100 dark:bg-stone-800 flex items-center justify-center font-sans font-semibold text-stone-600 dark:text-stone-300">
+                        {interest.buyerId?.name ? interest.buyerId.name[0].toUpperCase() : 'B'}
+                      </div>
+                      <div>
+                        <h4 className="font-sans font-semibold text-stone-800 dark:text-stone-200">
+                          {interest.buyerId?.name ?? 'Anonymous Buyer'}
+                        </h4>
+                        <div className="flex items-center gap-1.5 text-xs text-stone-500 dark:text-stone-400 font-sans mt-0.5">
+                          <span className="flex items-center gap-0.5 text-amber-500">
+                            ★ {interest.buyerId?.averageRating?.toFixed(1) ?? '5.0'}
+                          </span>
+                          <span>•</span>
+                          <span>{interest.buyerId?.phone ?? 'No phone'}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Badge status */}
+                    <div>
+                      <span
+                        className={`inline-block px-2.5 py-1 rounded-full text-xs font-semibold font-sans border capitalize ${
+                          isAccepted
+                            ? 'bg-green-100 dark:bg-green-950/30 text-green-800 dark:text-green-400 border-green-200 dark:border-green-800'
+                            : isRejected
+                            ? 'bg-red-50 dark:bg-red-950/20 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800'
+                            : isWithdrawn
+                            ? 'bg-stone-100 dark:bg-stone-800 text-stone-500 dark:text-stone-400 border-stone-200 dark:border-stone-700'
+                            : 'bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800'
+                        }`}
+                      >
+                        {interest.status}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Bid price details */}
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 bg-stone-50 dark:bg-stone-950/50 p-4 rounded-xl border border-stone-100 dark:border-stone-800 my-4">
+                    <div>
+                      <span className="block text-xs text-stone-500 dark:text-stone-400 uppercase tracking-wider font-sans mb-0.5">Offered Price</span>
+                      <span className="font-serif text-lg text-stone-800 dark:text-stone-100">
+                        ₹{interest.price.toLocaleString('en-IN')}
+                        <span className="text-xs text-stone-500 dark:text-stone-400 font-sans font-normal ml-0.5">/ {listing.unit}</span>
+                      </span>
+                    </div>
+                    <div>
+                      <span className="block text-xs text-stone-500 dark:text-stone-400 uppercase tracking-wider font-sans mb-0.5">Requested Qty</span>
+                      <span className="font-serif text-lg text-stone-800 dark:text-stone-100">
+                        {interest.quantity}
+                        <span className="text-xs text-stone-500 dark:text-stone-400 font-sans font-normal ml-0.5"> {listing.unit}</span>
+                      </span>
+                    </div>
+                    <div className="col-span-2 sm:col-span-1">
+                      <span className="block text-xs text-stone-500 dark:text-stone-400 uppercase tracking-wider font-sans mb-0.5">Total Deal Value</span>
+                      <span className="font-serif text-lg font-bold text-green-800 dark:text-green-500">
+                        ₹{totalVal.toLocaleString('en-IN')}
+                      </span>
+                    </div>
+                  </div>
+
+                  {interest.notes && (
+                    <div className="text-sm font-sans text-stone-600 dark:text-stone-400 leading-relaxed bg-stone-50/50 dark:bg-stone-900/30 p-3 rounded-lg border border-stone-100 dark:border-stone-800/50 mb-4">
+                      <p className="font-medium text-xs text-stone-400 dark:text-stone-500 uppercase tracking-wider mb-1">Buyer Notes</p>
+                      {interest.notes}
+                    </div>
+                  )}
+
+                  {/* Accept / Reject actions */}
+                  {isPending && listing.status !== 'sale_confirmed' && (
+                    <div className="flex gap-3 mt-4">
+                      <button
+                        type="button"
+                        disabled={isAccepting || isRejecting}
+                        onClick={async () => {
+                          if (confirm(`Are you sure you want to accept this offer from ${interest.buyerId?.name || 'this buyer'}? This will confirm the sale and reject all other pending offers.`)) {
+                            try {
+                              await acceptInterest({ listingId: listing._id, interestId: interest._id }).unwrap();
+                            } catch (err: any) {
+                              alert(err?.data?.message || 'Failed to accept offer');
+                            }
+                          }
+                        }}
+                        className="flex-1 h-11 rounded-xl bg-green-800 hover:bg-green-700 text-white font-sans text-sm font-medium transition-colors disabled:opacity-50"
+                      >
+                        {isAccepting ? 'Accepting...' : 'Accept Offer'}
+                      </button>
+                      <button
+                        type="button"
+                        disabled={isAccepting || isRejecting}
+                        onClick={async () => {
+                          if (confirm('Are you sure you want to reject this offer?')) {
+                            try {
+                              await rejectInterest({ listingId: listing._id, interestId: interest._id }).unwrap();
+                            } catch (err: any) {
+                              alert(err?.data?.message || 'Failed to reject offer');
+                            }
+                          }
+                        }}
+                        className="h-11 px-6 rounded-xl bg-red-50 hover:bg-red-100 dark:bg-red-950/20 dark:hover:bg-red-950/30 text-red-700 dark:text-red-400 font-sans text-sm font-medium border border-red-200 dark:border-red-800/40 transition-colors disabled:opacity-50"
+                      >
+                        {isRejecting ? 'Rejecting...' : 'Reject'}
+                      </button>
+                    </div>
+                  )}
+
+                  {isAccepted && (
+                    <div className="mt-3 bg-green-50 dark:bg-green-950/20 text-green-800 dark:text-green-400 text-sm font-sans px-4 py-2.5 rounded-xl border border-green-200/50 dark:border-green-800/30 flex items-center gap-2">
+                      <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                      <span>You have accepted this offer. Deal closed.</span>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </section>
 
     </div>
   );

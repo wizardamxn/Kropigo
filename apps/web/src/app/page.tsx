@@ -7,6 +7,7 @@ import Image from 'next/image';
 
 export default function LandingPage() {
   const { isAuthenticated, role } = useAuth();
+  const roleHome = role === 'buyer' ? '/buyer/marketplace' : role ? `/${role}/dashboard` : '/';
   const [isDark, setIsDark] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
 
@@ -64,7 +65,7 @@ export default function LandingPage() {
 
             {isAuthenticated ? (
               <Link 
-                href={`/${role}/dashboard`}
+                href={roleHome}
                 className="h-10 px-5 flex items-center justify-center rounded-xl bg-green-800 hover:bg-green-700 text-white font-medium transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
               >
                 Dashboard
@@ -123,7 +124,7 @@ export default function LandingPage() {
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               {isAuthenticated ? (
                 <Link 
-                  href={`/${role}/dashboard`}
+                  href={roleHome}
                   className="h-14 px-8 w-full sm:w-auto flex items-center justify-center rounded-xl bg-green-600 hover:bg-green-500 text-white font-medium text-lg transition-all shadow-xl hover:shadow-green-900/20 transform hover:-translate-y-1"
                 >
                   Enter Application
@@ -137,10 +138,10 @@ export default function LandingPage() {
                     Join the Marketplace
                   </Link>
                   <Link 
-                    href="#how-it-works"
+                    href="/buyer/marketplace"
                     className="h-14 px-8 w-full sm:w-auto flex items-center justify-center rounded-xl bg-white/10 hover:bg-white/20 text-white font-medium text-lg backdrop-blur-md border border-white/20 transition-all"
                   >
-                    See How It Works
+                    Browse Crops
                   </Link>
                 </>
               )}

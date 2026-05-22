@@ -29,7 +29,8 @@ export const RoleGuard = ({ children, allowedRoles }: RoleGuardProps) => {
     // 2. Check specific roles if provided
     if (allowedRoles && allowedRoles.length > 0 && role) {
       if (!allowedRoles.includes(role)) {
-        router.push(`/${role}/dashboard`);
+        const home = role === 'buyer' ? '/buyer/marketplace' : `/${role}/dashboard`;
+        router.push(home);
         return;
       }
     }

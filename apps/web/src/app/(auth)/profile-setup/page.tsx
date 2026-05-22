@@ -24,9 +24,10 @@ export default function ProfileSetupPage() {
       router.replace('/login');
       return;
     }
-    // Already completed — skip to dashboard
+    // Already completed — skip to correct home
     if (hasCompletedProfile && role) {
-      router.replace(`/${role}/dashboard`);
+      const dest = role === 'buyer' ? '/buyer/marketplace' : `/${role}/dashboard`;
+      router.replace(dest);
     }
   }, [isAuthenticated, hasCompletedProfile, role]);
 
@@ -38,7 +39,8 @@ export default function ProfileSetupPage() {
       await updateProfile({ name, role: role!, location }).unwrap();
       // Sync Redux so RoleGuard picks up hasCompletedProfile = true immediately
       dispatch(updateUser({ name, location }));
-      router.push(`/${role}/dashboard`);
+      const dest = role === 'buyer' ? '/buyer/marketplace' : `/${role}/dashboard`;
+      router.push(dest);
     } catch (err: any) {
       setError(err?.data?.message || 'Failed to save profile. Please try again.');
     }

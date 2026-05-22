@@ -63,6 +63,14 @@ export default function KisanDashboard() {
   const sold = listings.filter((l) => ['sale_confirmed', 'closed'].includes(l.status)).length;
   const draft = listings.filter((l) => l.status === 'draft').length;
 
+  const confirmedSales = listings
+    .filter((l) => ['sale_confirmed', 'closed'].includes(l.status))
+    .reduce((sum, l) => sum + (l.askingPrice * l.quantity), 0);
+
+  const pendingPayouts = listings
+    .filter((l) => l.status === 'sale_confirmed')
+    .reduce((sum, l) => sum + (l.askingPrice * l.quantity), 0);
+
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       
@@ -83,6 +91,31 @@ export default function KisanDashboard() {
           <StatCard title="Active (Open)" value={open} icon="M5 13l4 4L19 7" color="green" />
           <StatCard title="Drafts" value={draft} icon="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" color="stone" />
           <StatCard title="Sold / Closed" value={sold} icon="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" color="blue" />
+        </div>
+      </section>
+
+      {/* Earnings Summary Section */}
+      <section className="bg-stone-50 dark:bg-stone-900/50 p-6 rounded-2xl border border-stone-200 dark:border-stone-800 space-y-4">
+        <h2 className="font-serif text-xl text-stone-800 dark:text-stone-100 font-medium">Earnings Summary</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="bg-white dark:bg-stone-900 p-5 rounded-xl border border-stone-100 dark:border-stone-800 flex items-center justify-between shadow-sm">
+            <div>
+              <p className="font-sans text-sm text-stone-500 dark:text-stone-400 font-medium mb-1">Confirmed Sales</p>
+              <p className="font-serif text-3xl font-bold text-green-800 dark:text-green-500">₹{confirmedSales.toLocaleString('en-IN')}</p>
+            </div>
+            <div className="w-12 h-12 bg-green-100 dark:bg-green-950/30 text-green-800 dark:text-green-500 rounded-xl flex items-center justify-center">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            </div>
+          </div>
+          <div className="bg-white dark:bg-stone-900 p-5 rounded-xl border border-stone-100 dark:border-stone-800 flex items-center justify-between shadow-sm">
+            <div>
+              <p className="font-sans text-sm text-stone-500 dark:text-stone-400 font-medium mb-1">Pending Payouts</p>
+              <p className="font-serif text-3xl font-bold text-amber-600 dark:text-amber-500">₹{pendingPayouts.toLocaleString('en-IN')}</p>
+            </div>
+            <div className="w-12 h-12 bg-amber-100 dark:bg-amber-950/30 text-amber-600 dark:text-amber-500 rounded-xl flex items-center justify-center">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -122,6 +155,7 @@ export default function KisanDashboard() {
                     <th className="px-6 py-4 font-medium">Quantity</th>
                     <th className="px-6 py-4 font-medium">Asking Price</th>
                     <th className="px-6 py-4 font-medium">Status</th>
+                    <th className="px-6 py-4 font-medium text-center">Interests</th>
                     <th className="px-6 py-4 font-medium">Date Created</th>
                   </tr>
                 </thead>
@@ -129,18 +163,35 @@ export default function KisanDashboard() {
                   {listings.slice(0, 5).map((l) => (
                     <tr key={l._id} className="hover:bg-stone-50/50 dark:hover:bg-stone-800/50 transition-colors">
                       <td className="px-6 py-4 font-sans text-stone-800 dark:text-stone-200 font-medium">
-                        {l.cropId?.name ?? l.cropId}
+                        <Link href={`/kisan/listings/${l._id}/view`} className="hover:underline">
+                          {l.cropId?.name ?? l.cropId}
+                        </Link>
                       </td>
                       <td className="px-6 py-4 font-sans text-stone-600 dark:text-stone-300">
                         {l.quantity} <span className="text-stone-400 text-sm">{l.unit}</span>
                       </td>
-                      <td className="px-6 py-4 font-sans text-stone-800 dark:text-stone-200">
+                      <td className="px-6 py-4 font-sans text-stone-800 dark:text-stone-200 font-medium">
                         ₹{l.askingPrice.toLocaleString('en-IN')}
                       </td>
                       <td className="px-6 py-4">
                         <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${getStatusBadge(l.status)}`}>
                           {formatStatus(l.status)}
                         </span>
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        {l.interestCount > 0 ? (
+                          <span className="relative inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800/50">
+                            {l.interestCount}
+                            {l.hasUnreadInterests && (
+                              <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>
+                              </span>
+                            )}
+                          </span>
+                        ) : (
+                          <span className="text-stone-400">—</span>
+                        )}
                       </td>
                       <td className="px-6 py-4 font-sans text-sm text-stone-500 dark:text-stone-400">
                         {new Date(l.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
@@ -157,7 +208,11 @@ export default function KisanDashboard() {
                 <div key={l._id} className="p-4 flex flex-col gap-3">
                   <div className="flex justify-between items-start">
                     <div>
-                      <h3 className="font-sans text-lg font-medium text-stone-800 dark:text-stone-100">{l.cropId?.name ?? l.cropId}</h3>
+                      <h3 className="font-sans text-lg font-medium text-stone-800 dark:text-stone-100">
+                        <Link href={`/kisan/listings/${l._id}/view`} className="hover:underline">
+                          {l.cropId?.name ?? l.cropId}
+                        </Link>
+                      </h3>
                       <p className="font-sans text-sm text-stone-500 dark:text-stone-400">
                         {new Date(l.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                       </p>
@@ -171,6 +226,20 @@ export default function KisanDashboard() {
                       <span className="text-xs text-stone-500 dark:text-stone-400 uppercase tracking-wider">Quantity</span>
                       <span className="font-sans text-stone-800 dark:text-stone-200">{l.quantity} {l.unit}</span>
                     </div>
+                    {l.interestCount > 0 && (
+                      <div className="flex flex-col items-center">
+                        <span className="text-xs text-stone-500 dark:text-stone-400 uppercase tracking-wider">Bids</span>
+                        <span className="relative inline-flex items-center px-2 py-0.5 rounded bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400 border border-amber-100 dark:border-amber-800/30 text-xs font-semibold">
+                          {l.interestCount}
+                          {l.hasUnreadInterests && (
+                            <span className="absolute -top-0.5 -right-0.5 flex h-1.5 w-1.5">
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500"></span>
+                            </span>
+                          )}
+                        </span>
+                      </div>
+                    )}
                     <div className="flex flex-col items-end">
                       <span className="text-xs text-stone-500 dark:text-stone-400 uppercase tracking-wider">Price</span>
                       <span className="font-sans font-medium text-green-800 dark:text-green-500">₹{l.askingPrice.toLocaleString('en-IN')}</span>

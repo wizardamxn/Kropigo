@@ -26,12 +26,14 @@ export const RoleGuard = ({ children, allowedRoles }: RoleGuardProps) => {
     }
 
     if (hasCompletedProfile && pathname === '/profile-setup') {
-        router.replace(`/${role}/dashboard`);
+        const dest = role === 'buyer' ? '/buyer/marketplace' : `/${role}/dashboard`;
+        router.replace(dest);
         return;
     }
 
     if (allowedRoles && role && !allowedRoles.includes(role)) {
-      router.replace(`/${role}/dashboard`); // Redirect to their actual dashboard
+      const home = role === 'buyer' ? '/buyer/marketplace' : `/${role}/dashboard`;
+      router.replace(home); // Redirect to their actual home
     }
   }, [isAuthenticated, role, hasCompletedProfile, allowedRoles, router, pathname]);
 

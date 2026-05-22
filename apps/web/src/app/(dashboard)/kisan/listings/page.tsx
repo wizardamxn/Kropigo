@@ -141,6 +141,7 @@ export default function KisanListings() {
                     <th className="px-6 py-4 font-medium">Qty</th>
                     <th className="px-6 py-4 font-medium">Price</th>
                     <th className="px-6 py-4 font-medium">Status</th>
+                    <th className="px-6 py-4 font-medium text-center">Interests</th>
                     <th className="px-6 py-4 font-medium text-center">Views</th>
                     <th className="px-6 py-4 font-medium">Date</th>
                     <th className="px-6 py-4 font-medium text-right">Actions</th>
@@ -182,6 +183,21 @@ export default function KisanListings() {
                           <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${getStatusBadge(l.status)}`}>
                             {formatStatus(l.status)}
                           </span>
+                        </td>
+                        <td className="px-6 py-4 text-center">
+                          {l.interestCount > 0 ? (
+                            <span className="relative inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800/50">
+                              {l.interestCount}
+                              {l.hasUnreadInterests && (
+                                <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
+                                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>
+                                </span>
+                              )}
+                            </span>
+                          ) : (
+                            <span className="text-stone-400">—</span>
+                          )}
                         </td>
                         <td className="px-6 py-4 text-center font-sans text-stone-500 dark:text-stone-400">
                           {l.viewCount || 0}
@@ -279,9 +295,22 @@ export default function KisanListings() {
                       </div>
 
                       <div className="flex justify-between items-center pt-2 border-t border-stone-100 dark:border-stone-800">
-                        <div className="flex items-center gap-1.5 text-stone-500 dark:text-stone-400 text-sm">
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-                          {l.viewCount || 0} views
+                        <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-1.5 text-stone-500 dark:text-stone-400 text-sm">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                            {l.viewCount || 0}
+                          </div>
+                          {l.interestCount > 0 && (
+                            <span className="relative inline-flex items-center px-2 py-0.5 rounded bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400 border border-amber-100 dark:border-amber-800/30 text-xs font-semibold">
+                              {l.interestCount} bids
+                              {l.hasUnreadInterests && (
+                                <span className="absolute -top-0.5 -right-0.5 flex h-1.5 w-1.5">
+                                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500"></span>
+                                </span>
+                              )}
+                            </span>
+                          )}
                         </div>
                         <div className="flex gap-2">
                           <Link

@@ -18,16 +18,31 @@ export default function LoginPage() {
   const router = useRouter();
   const [login, { isLoading: isLoggingIn }] = useLoginMutation();
 
+  // Read ?redirect=... so we can return buyer to the listing they were on
+  const redirectParam = typeof window !== 'undefined'
+    ? new URLSearchParams(window.location.search).get('redirect')
+    : null;
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     try {
       const response = await login({ email, password }).unwrap();
-
       dispatch(setUser(response.data.user));
-      // RoleGuard on '/' will detect the state change and redirect to the
-      // correct destination: /profile-setup (no name) or /{role}/dashboard
-      router.push('/kisan/dashboard');
+
+      const userRole = response.data.user?.role;
+
+      // Honor ?redirect param (e.g. from listing detail page)
+      if (redirectParam) {
+        router.push(redirectParam);
+        return;
+      }
+
+      if (userRole === 'buyer') {
+        router.push('/buyer/marketplace');
+      } else {
+        router.push('/kisan/dashboard');
+      }
     } catch (err: any) {
       setError(err?.data?.message || 'Invalid email or password');
     }

@@ -35,8 +35,13 @@ export default function RegisterPage() {
 
       dispatch(setUser(response.data.user));
 
-      // RoleGuard on '/' detects the new state and redirects correctly
-      router.push('/');
+      const userRole = response.data.user?.role;
+      if (userRole === 'buyer') {
+        router.push('/buyer/marketplace');
+      } else {
+        // Kisan: let root redirect handle profile-setup vs dashboard
+        router.push('/');
+      }
     } catch (err: any) {
       setError(err?.data?.message || 'Failed to register');
     }

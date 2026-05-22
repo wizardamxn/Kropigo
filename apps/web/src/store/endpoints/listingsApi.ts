@@ -16,6 +16,12 @@ export type ListingPayload = {
   status?: string;
 };
 
+export type SubmitInterestPayload = {
+  price: number;
+  quantity?: number;
+  notes?: string;
+};
+
 export const listingsApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getListings: builder.query<any, Record<string, any>>({
@@ -52,6 +58,50 @@ export const listingsApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ['Listing'],
     }),
+    getListingInterests: builder.query<any, string>({
+      query: (listingId) => `/listings/${listingId}/interests`,
+      providesTags: (result, error, listingId) => [{ type: 'Listing', id: `interests-${listingId}` }],
+    }),
+    acceptInterest: builder.mutation<any, { listingId: string; interestId: string }>({
+      query: ({ listingId, interestId }) => ({
+        url: `/listings/${listingId}/interests/${interestId}/accept`,
+        method: 'PATCH',
+      }),
+      invalidatesTags: (result, error, { listingId }) => [
+        { type: 'Listing', id: listingId },
+        { type: 'Listing', id: `interests-${listingId}` },
+        'Listing',
+      ],
+    }),
+    rejectInterest: builder.mutation<any, { listingId: string; interestId: string }>({
+      query: ({ listingId, interestId }) => ({
+        url: `/listings/${listingId}/interests/${interestId}/reject`,
+        method: 'PATCH',
+      }),
+      invalidatesTags: (result, error, { listingId }) => [
+        { type: 'Listing', id: listingId },
+        { type: 'Listing', id: `interests-${listingId}` },
+        'Listing',
+      ],
+    }),
+    // Buyer: submit an interest on a listing
+    submitInterest: builder.mutation<any, { listingId: string; body: SubmitInterestPayload }>({
+      query: ({ listingId, body }) => ({
+        url: `/listings/${listingId}/interests`,
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: (result, error, { listingId }) => [
+        { type: 'Interest', id: `mine-${listingId}` },
+        'Interest',
+        { type: 'Listing', id: listingId },
+      ],
+    }),
+    // Buyer: get their own interest for a specific listing
+    getMyInterestForListing: builder.query<any, string>({
+      query: (listingId) => `/listings/${listingId}/interests/mine`,
+      providesTags: (result, error, listingId) => [{ type: 'Interest', id: `mine-${listingId}` }],
+    }),
   }),
 });
 
@@ -61,4 +111,9 @@ export const {
   useCreateListingMutation,
   useUpdateListingMutation,
   useDeleteListingMutation,
+  useGetListingInterestsQuery,
+  useAcceptInterestMutation,
+  useRejectInterestMutation,
+  useSubmitInterestMutation,
+  useGetMyInterestForListingQuery,
 } = listingsApi;
