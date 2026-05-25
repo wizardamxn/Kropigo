@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { getOrders, getOrderById } from '../controllers/order.controller';
 import { authenticate } from '../middleware/authMiddleware';
 
-const router = Router();
+const router: Router = Router();
 
 // Apply auth middleware to all order routes
 router.use(authenticate);

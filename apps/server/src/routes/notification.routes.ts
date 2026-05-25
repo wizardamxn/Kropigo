@@ -7,7 +7,7 @@ import {
 } from '../controllers/notification.controller'
 import { authenticate } from '../middleware/authMiddleware'
 
-const router = Router()
+const router: Router = Router()
 
 // All authenticated users can get their own notifications
 router.get('/', authenticate, getNotifications)
