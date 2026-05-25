@@ -3,7 +3,10 @@ import mongoose from "mongoose";
 import { Listing } from "../models/Listing.model";
 import { MandiRate } from "../models/MandiRate.model";
 import { Interest } from "../models/Interest.model";
+import { Order } from "../models/Order.model";
 import { deleteMediaByUrls } from "../services/upload.service";
+import { createAndEmitNotification } from "../services/socket.service";
+import { SOCKET_EVENTS } from "../utils/socketEvents";
 
 const parseStringArray = (value: unknown, fieldName: string): string[] => {
   if (value === undefined) return [];
@@ -21,6 +24,7 @@ export const createListing = async (
     const {
       cropId,
       quantity,
+      variety,
       unit,
       askingPrice,
       description,
@@ -51,6 +55,7 @@ export const createListing = async (
       cropId,
       sellerId,
       quantity,
+      variety,
       unit,
       askingPrice,
       description,
@@ -109,7 +114,7 @@ export const getListings = async (
     if (state) query.farmState = state;
     if (sellerId) query.sellerId = sellerId;
     if (status) query.status = status;
-    else if (!sellerId) query.status = "open"; // default to open for public; kisan sees all their own statuses
+    else if (!sellerId) query.status = { $in: ["open", "interest_received"] }; // Public sees both open and listings with interests
 
     if (minPrice || maxPrice) {
       query.askingPrice = {};
@@ -241,6 +246,7 @@ export const updateListing = async (
     // Update other fields
     const updates = [
       "quantity",
+      "variety",
       "unit",
       "askingPrice",
       "description",
@@ -341,75 +347,188 @@ export const acceptInterest = async (
   res: Response,
 ): Promise<void> => {
   const session = await mongoose.startSession();
-  session.startTransaction();
+  
   try {
-    const sellerId = req.user?.userId;
     const { id: listingId, interestId } = req.params;
+    const kisanId = req.user?.userId;
+    
+    let createdOrder: any = null;
 
-    const listing = await Listing.findOne({ _id: listingId, sellerId }).session(session);
-    if (!listing) {
-      res
-        .status(404)
-        .json({ success: false, message: "Listing not found or unauthorized" });
-      await session.abortTransaction();
-      session.endSession();
-      return;
-    }
+    await session.withTransaction(async () => {
+      // 1. Find the listing and verify ownership
+      const listing = await Listing.findOne({ 
+        _id: listingId, 
+        sellerId: kisanId 
+      }).session(session);
 
-    if (
-      listing.status === "sale_confirmed" ||
-      listing.status === "cancelled" ||
-      listing.status === "closed"
-    ) {
-      res
-        .status(400)
-        .json({ success: false, message: "Listing is already inactive or sold" });
-      await session.abortTransaction();
-      session.endSession();
-      return;
-    }
+      if (!listing) {
+        throw new Error('Listing not found or unauthorized');
+      }
 
-    const interest = await Interest.findOne({ _id: interestId, listingId }).session(session);
-    if (!interest) {
-      res.status(404).json({ success: false, message: "Interest not found" });
-      await session.abortTransaction();
-      session.endSession();
-      return;
-    }
+      if (listing.status === 'sale_confirmed') {
+        throw new Error('Deal already confirmed for this listing');
+      }
 
-    if (interest.status !== "pending") {
-      res
-        .status(400)
-        .json({ success: false, message: `Interest is already ${interest.status}` });
-      await session.abortTransaction();
-      session.endSession();
-      return;
-    }
+      // 2. Find the interest being accepted
+      const interest = await Interest.findOne({ 
+        _id: interestId, 
+        listingId: listingId,
+        status: 'pending'
+      }).session(session);
 
-    // Accept target interest
-    interest.status = "accepted";
-    await interest.save({ session });
+      if (!interest) {
+        throw new Error('Interest not found or already processed');
+      }
 
-    // Mark listing as sale_confirmed
-    listing.status = "sale_confirmed";
-    await listing.save({ session });
+      const orderQuantity = interest.quantity || listing.quantity;
 
-    // Reject all other pending interests for this listing
-    await Interest.updateMany(
-      { listingId, _id: { $ne: interestId }, status: "pending" },
-      { status: "rejected" }
-    ).session(session);
+      // 3. Create the Order — array wrapper is mandatory for session
+      const orderDocs = await Order.create([{
+        listingId: listing._id,
+        interestId: interest._id,
+        buyerId: interest.buyerId,
+        sellerId: listing.sellerId,
+        agreedPrice: interest.price,
+        quantity: orderQuantity,
+        unit: listing.unit,
+        totalAmount: interest.price * orderQuantity,
+        status: 'sale_confirmed',
+        timeline: [{
+          status: 'sale_confirmed',
+          timestamp: new Date(),
+          actorId: new mongoose.Types.ObjectId(kisanId),
+          note: 'Kisan ne deal confirm ki'
+        }]
+      }], { session });
 
-    await session.commitTransaction();
+      createdOrder = orderDocs[0];
+
+      // 4. Set orderId on the accepted interest
+      await Interest.findByIdAndUpdate(
+        interest._id,
+        { 
+          status: 'accepted',
+          orderId: createdOrder._id 
+        },
+        { session }
+      );
+
+      // 5. Reject all other pending interests on this listing
+      await Interest.updateMany(
+        { 
+          listingId: listing._id, 
+          _id: { $ne: interest._id },
+          status: 'pending'
+        },
+        { status: 'rejected' },
+        { session }
+      );
+
+      // 6. Update the listing status
+      await Listing.findByIdAndUpdate(
+        listing._id,
+        { 
+          status: 'sale_confirmed',
+          confirmedBuyerId: interest.buyerId
+        },
+        { session }
+      );
+    });
+
     session.endSession();
 
-    res
-      .status(200)
-      .json({ success: true, message: "Interest accepted, sale confirmed" });
+    // Populate the order for socket notifications (outside transaction)
+    const populatedOrder = await Order.findById(createdOrder._id)
+      .populate({ path: 'listingId', select: 'farmAddress farmDistrict farmState', populate: { path: 'cropId', select: 'name' } })
+      .populate('buyerId', 'name phone')
+      .populate('sellerId', 'name phone');
+
+    if (populatedOrder) {
+      const cropName = (populatedOrder.listingId as any)?.cropId?.name ?? 'Fasal';
+      const kisan = populatedOrder.sellerId as any;
+      const buyer = populatedOrder.buyerId as any;
+      const listing = populatedOrder.listingId as any;
+
+      Promise.all([
+        // Admin notification
+        createAndEmitNotification({
+          type: SOCKET_EVENTS.NEW_DEAL,
+          message: `New deal: ${cropName} - ${populatedOrder.quantity} ${populatedOrder.unit} | Rs.${populatedOrder.totalAmount}`,
+          payload: {
+            orderId: populatedOrder._id.toString(),
+            kisanName: kisan?.name ?? '',
+            kisanPhone: kisan?.phone ?? '',
+            buyerName: buyer?.name ?? '',
+            buyerPhone: buyer?.phone ?? '',
+            cropName,
+            quantity: populatedOrder.quantity,
+            unit: populatedOrder.unit,
+            agreedPrice: populatedOrder.agreedPrice,
+            totalAmount: populatedOrder.totalAmount,
+            farmAddress: listing?.farmAddress ?? '',
+            farmDistrict: listing?.farmDistrict ?? '',
+            farmState: listing?.farmState ?? '',
+            createdAt: populatedOrder.createdAt
+          },
+          targetRole: 'admin',
+          targetUserId: null,
+          orderId: populatedOrder._id.toString()
+        }),
+
+        // Buyer notification
+        createAndEmitNotification({
+          type: SOCKET_EVENTS.OFFER_ACCEPTED,
+          message: `Aapka offer accept ho gaya! ${cropName} - Rs.${populatedOrder.totalAmount}`,
+          payload: {
+            orderId: populatedOrder._id.toString(),
+            cropName,
+            quantity: populatedOrder.quantity,
+            unit: populatedOrder.unit,
+            agreedPrice: populatedOrder.agreedPrice,
+            totalAmount: populatedOrder.totalAmount
+          },
+          targetRole: 'buyer',
+          targetUserId: buyer?._id?.toString(),
+          orderId: populatedOrder._id.toString()
+        }),
+
+        // Kisan notification
+        createAndEmitNotification({
+          type: SOCKET_EVENTS.ORDER_STATUS_UPDATED,
+          message: `Deal confirm ho gayi! ${cropName} - Rs.${populatedOrder.totalAmount}. Hamari team jald contact karegi.`,
+          payload: {
+            orderId: populatedOrder._id.toString(),
+            cropName,
+            quantity: populatedOrder.quantity,
+            unit: populatedOrder.unit,
+            agreedPrice: populatedOrder.agreedPrice,
+            totalAmount: populatedOrder.totalAmount
+          },
+          targetRole: 'kisan',
+          targetUserId: kisan?._id?.toString(),
+          orderId: populatedOrder._id.toString()
+        })
+      ]).catch((err) => {
+        console.error('Notification creation failed:', err)
+      })
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Deal confirm ho gayi',
+      orderId: createdOrder._id,
+      totalAmount: createdOrder.totalAmount,
+      agreedPrice: createdOrder.agreedPrice,
+      quantity: createdOrder.quantity
+    });
   } catch (error: any) {
-    await session.abortTransaction();
+    if (session.inTransaction()) {
+      await session.abortTransaction();
+    }
     session.endSession();
-    res.status(500).json({ success: false, message: error.message });
+    
+    const statusCode = error.message.includes('not found') || error.message.includes('already') ? 400 : 500;
+    res.status(statusCode).json({ success: false, message: error.message });
   }
 };
 

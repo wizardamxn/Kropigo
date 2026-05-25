@@ -9,6 +9,7 @@ const CATEGORIES = [
   { id: 'fruit', label: 'Fruits', icon: '🍎' },
   { id: 'grain', label: 'Grains', icon: '🌾' },
   { id: 'spice', label: 'Spices', icon: '🌶️' },
+  { id: 'flower', label: 'Flowers', icon: '🌸' },
   { id: 'other', label: 'Other', icon: '🌱' },
 ];
 

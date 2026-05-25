@@ -9,6 +9,7 @@ export interface IInterest extends Document {
   status: InterestStatus;
   notes?: string;
   isReadBySeller: boolean;
+  orderId?: mongoose.Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -46,6 +47,10 @@ const interestSchema = new Schema<IInterest>(
     isReadBySeller: {
       type: Boolean,
       default: false,
+    },
+    orderId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Order',
     },
   },
   {

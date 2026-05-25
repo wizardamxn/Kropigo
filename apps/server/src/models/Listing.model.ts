@@ -5,11 +5,13 @@ export interface IListing extends Document {
   cropId: mongoose.Types.ObjectId;
   sellerId: mongoose.Types.ObjectId;
   quantity: number;
+  variety?: string;
   unit: CropUnit;
   askingPrice: number;
   description?: string;
   mediaUrls: string[];
   status: ListingStatus;
+  confirmedBuyerId?: mongoose.Types.ObjectId;
   farmAddress: string;
   farmState: string;
   farmDistrict: string;
@@ -41,6 +43,10 @@ const listingSchema = new Schema<IListing>(
       required: true,
       min: 0,
     },
+    variety: {
+      type: String,
+      maxlength: 100,
+    },
     unit: {
       type: String,
       enum: ['kg', 'quintal', 'ton'],
@@ -70,6 +76,11 @@ const listingSchema = new Schema<IListing>(
       enum: ['draft', 'open', 'interest_received', 'sale_confirmed', 'cancelled', 'expired', 'closed'],
       default: 'draft',
       required: true,
+    },
+    confirmedBuyerId: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      default: null,
     },
     farmAddress: {
       type: String,

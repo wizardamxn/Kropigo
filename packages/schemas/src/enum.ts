@@ -62,7 +62,7 @@ export const ReviewTargetSchema = z.enum(['kisan', 'buyer', 'driver']);
 export type ReviewTarget = z.infer<typeof ReviewTargetSchema>;
 
 // --- Crop ---
-export const CropCategorySchema = z.enum(['vegetable', 'fruit', 'grain', 'spice', 'other']);
+export const CropCategorySchema = z.enum(['vegetable', 'fruit', 'grain', 'spice', 'flower', 'other']);
 export type CropCategory = z.infer<typeof CropCategorySchema>;
 
 export const CropUnitSchema = z.enum(['kg', 'quintal', 'ton']);

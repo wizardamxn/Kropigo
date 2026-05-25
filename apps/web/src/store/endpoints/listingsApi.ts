@@ -62,7 +62,7 @@ export const listingsApi = baseApi.injectEndpoints({
       query: (listingId) => `/listings/${listingId}/interests`,
       providesTags: (result, error, listingId) => [{ type: 'Listing', id: `interests-${listingId}` }],
     }),
-    acceptInterest: builder.mutation<any, { listingId: string; interestId: string }>({
+    acceptInterest: builder.mutation<{ success: boolean; message: string; orderId?: string }, { listingId: string; interestId: string }>({
       query: ({ listingId, interestId }) => ({
         url: `/listings/${listingId}/interests/${interestId}/accept`,
         method: 'PATCH',

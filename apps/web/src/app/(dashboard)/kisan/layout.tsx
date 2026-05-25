@@ -3,6 +3,9 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { RoleGuard } from '@/components/auth/RoleGuard';
+import { useSocket } from '@/hooks/useSocket';
+import { useNotifications } from '@/hooks/useNotifications';
+import { NotificationBell } from '@/components/shared/NotificationBell';
 
 const navLinks = [
   { 
@@ -32,10 +35,21 @@ const navLinks = [
       </svg>
     )
   },
+  { 
+    href: '/kisan/orders', 
+    label: 'Orders',
+    icon: (
+      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+      </svg>
+    )
+  },
 ];
 
 export default function KisanLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  useSocket();
+  useNotifications();
 
   return (
     <RoleGuard allowedRoles={['kisan']}>
@@ -44,14 +58,17 @@ export default function KisanLayout({ children }: { children: React.ReactNode })
         {/* Navigation: Bottom Bar on Mobile, Sticky Sidebar on Desktop */}
         <nav className="fixed bottom-0 left-0 right-0 z-50 w-full bg-white dark:bg-stone-900 border-t border-stone-200 dark:border-stone-800 flex flex-row justify-around p-2 pb-safe md:relative md:w-64 md:flex-col md:justify-start md:border-t-0 md:border-r md:p-6 md:h-screen md:sticky md:top-0 md:overflow-y-auto">
           
-          {/* Brand Identity - Desktop Only */}
-          <div className="hidden md:block font-serif text-2xl font-bold text-green-800 dark:text-green-600 mb-8 px-4">
-            Kropigo
+          {/* Brand Identity — Desktop Only */}
+          <div className="hidden md:flex items-center justify-between mb-8 px-4">
+            <span className="font-serif text-2xl font-bold text-green-800 dark:text-green-600">Kropigo</span>
+            <NotificationBell />
           </div>
 
           <div className="flex flex-row md:flex-col justify-around md:justify-start w-full gap-2">
             {navLinks.map(({ href, label, icon }) => {
-              const isActive = pathname === href;
+              const isActive = href === '/kisan/listings/create'
+                ? pathname === href
+                : pathname === href || (href !== '/kisan/dashboard' && pathname.startsWith(href));
               return (
                 <Link
                   key={href}

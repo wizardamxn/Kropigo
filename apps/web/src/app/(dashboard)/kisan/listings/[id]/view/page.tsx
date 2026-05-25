@@ -9,6 +9,7 @@ import {
   useAcceptInterestMutation,
   useRejectInterestMutation,
 } from '@/store/endpoints/listingsApi';
+import { Modal } from '@/components/ui/modal';
 
 /*
   API: GET /listings/:id
@@ -49,6 +50,39 @@ export default function ListingViewPage() {
   const { data: interestsData, isLoading: interestsLoading } = useGetListingInterestsQuery(id);
   const [acceptInterest, { isLoading: isAccepting }] = useAcceptInterestMutation();
   const [rejectInterest, { isLoading: isRejecting }] = useRejectInterestMutation();
+
+  const [modalState, setModalState] = useState<{
+    isOpen: boolean;
+    type: 'accept' | 'reject' | null;
+    interestId: string | null;
+    buyerName: string;
+  }>({ isOpen: false, type: null, interestId: null, buyerName: '' });
+
+  const closeActionModal = () => {
+    setModalState((prev) => ({ ...prev, isOpen: false }));
+    setTimeout(() => setModalState({ isOpen: false, type: null, interestId: null, buyerName: '' }), 300);
+  };
+
+  const handleConfirmAction = async () => {
+    if (!modalState.interestId || !modalState.type || !listing?._id) return;
+
+    if (modalState.type === 'accept') {
+      try {
+        const response = await acceptInterest({ listingId: listing._id, interestId: modalState.interestId }).unwrap();
+        closeActionModal();
+        router.push(`/kisan/orders/${response.orderId}`);
+      } catch (err: any) {
+        alert(err?.data?.message || 'Failed to accept offer');
+      }
+    } else if (modalState.type === 'reject') {
+      try {
+        await rejectInterest({ listingId: listing._id, interestId: modalState.interestId }).unwrap();
+        closeActionModal();
+      } catch (err: any) {
+        alert(err?.data?.message || 'Failed to reject offer');
+      }
+    }
+  };
 
   const listing = data?.data;
   const interests = interestsData?.data ?? [];
@@ -309,11 +343,7 @@ export default function ListingViewPage() {
                           {interest.buyerId?.name ?? 'Anonymous Buyer'}
                         </h4>
                         <div className="flex items-center gap-1.5 text-xs text-stone-500 dark:text-stone-400 font-sans mt-0.5">
-                          <span className="flex items-center gap-0.5 text-amber-500">
-                            ★ {interest.buyerId?.averageRating?.toFixed(1) ?? '5.0'}
-                          </span>
-                          <span>•</span>
-                          <span>{interest.buyerId?.phone ?? 'No phone'}</span>
+                          <span>Phone number hidden for privacy</span>
                         </div>
                       </div>
                     </div>
@@ -372,43 +402,39 @@ export default function ListingViewPage() {
                     <div className="flex gap-3 mt-4">
                       <button
                         type="button"
-                        disabled={isAccepting || isRejecting}
-                        onClick={async () => {
-                          if (confirm(`Are you sure you want to accept this offer from ${interest.buyerId?.name || 'this buyer'}? This will confirm the sale and reject all other pending offers.`)) {
-                            try {
-                              await acceptInterest({ listingId: listing._id, interestId: interest._id }).unwrap();
-                            } catch (err: any) {
-                              alert(err?.data?.message || 'Failed to accept offer');
-                            }
-                          }
-                        }}
-                        className="flex-1 h-11 rounded-xl bg-green-800 hover:bg-green-700 text-white font-sans text-sm font-medium transition-colors disabled:opacity-50"
+                        onClick={() => setModalState({ isOpen: true, type: 'accept', interestId: interest._id, buyerName: interest.buyerId?.name || 'this buyer' })}
+                        className="flex-1 h-11 rounded-xl bg-green-800 hover:bg-green-700 text-white font-sans text-sm font-medium transition-colors"
                       >
-                        {isAccepting ? 'Accepting...' : 'Accept Offer'}
+                        Accept Offer
                       </button>
                       <button
                         type="button"
-                        disabled={isAccepting || isRejecting}
-                        onClick={async () => {
-                          if (confirm('Are you sure you want to reject this offer?')) {
-                            try {
-                              await rejectInterest({ listingId: listing._id, interestId: interest._id }).unwrap();
-                            } catch (err: any) {
-                              alert(err?.data?.message || 'Failed to reject offer');
-                            }
-                          }
-                        }}
-                        className="h-11 px-6 rounded-xl bg-red-50 hover:bg-red-100 dark:bg-red-950/20 dark:hover:bg-red-950/30 text-red-700 dark:text-red-400 font-sans text-sm font-medium border border-red-200 dark:border-red-800/40 transition-colors disabled:opacity-50"
+                        onClick={() => setModalState({ isOpen: true, type: 'reject', interestId: interest._id, buyerName: interest.buyerId?.name || 'this buyer' })}
+                        className="h-11 px-6 rounded-xl bg-red-50 hover:bg-red-100 dark:bg-red-950/20 dark:hover:bg-red-950/30 text-red-700 dark:text-red-400 font-sans text-sm font-medium border border-red-200 dark:border-red-800/40 transition-colors"
                       >
-                        {isRejecting ? 'Rejecting...' : 'Reject'}
+                        Reject
                       </button>
                     </div>
                   )}
 
                   {isAccepted && (
-                    <div className="mt-3 bg-green-50 dark:bg-green-950/20 text-green-800 dark:text-green-400 text-sm font-sans px-4 py-2.5 rounded-xl border border-green-200/50 dark:border-green-800/30 flex items-center gap-2">
-                      <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                      <span>You have accepted this offer. Deal closed.</span>
+                    <div className="mt-3 bg-green-50 dark:bg-green-950/20 text-green-800 dark:text-green-400 text-sm font-sans px-4 py-3 rounded-xl border border-green-200/50 dark:border-green-800/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div className="flex items-center gap-2">
+                        <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        <span>
+                          Deal confirmed! Hamari team jald contact karegi. 
+                          {interest.orderId && <strong className="ml-1">Order ID: {interest.orderId}</strong>}
+                        </span>
+                      </div>
+                      {interest.orderId && (
+                        <Link
+                          href={`/kisan/orders/${interest.orderId}`}
+                          className="flex items-center gap-1.5 px-3 py-1.5 bg-green-100 dark:bg-green-900/50 hover:bg-green-200 dark:hover:bg-green-800 text-green-800 dark:text-green-300 rounded-lg font-medium transition-colors text-xs whitespace-nowrap self-start sm:self-auto"
+                        >
+                          View Order
+                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                        </Link>
+                      )}
                     </div>
                   )}
                 </div>
@@ -417,6 +443,58 @@ export default function ListingViewPage() {
           </div>
         )}
       </section>
+
+      {/* Confirmation Modal */}
+      <Modal
+        isOpen={modalState.isOpen}
+        onClose={closeActionModal}
+        title={modalState.type === 'accept' ? 'Accept Offer' : 'Reject Offer'}
+        description={
+          modalState.type === 'accept' 
+            ? `Are you sure you want to accept the offer from ${modalState.buyerName}? This will confirm the sale and automatically reject all other pending offers on this listing.`
+            : `Are you sure you want to reject the offer from ${modalState.buyerName}? This action cannot be undone.`
+        }
+        footer={
+          <>
+            <button
+              onClick={closeActionModal}
+              disabled={isAccepting || isRejecting}
+              className="px-4 py-2 text-sm font-medium text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-lg transition-colors disabled:opacity-50"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleConfirmAction}
+              disabled={isAccepting || isRejecting}
+              className={`px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors shadow-sm disabled:opacity-50 flex items-center gap-2 ${
+                modalState.type === 'accept'
+                  ? 'bg-green-700 hover:bg-green-800'
+                  : 'bg-red-600 hover:bg-red-700'
+              }`}
+            >
+              {(isAccepting || isRejecting) && (
+                <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+              )}
+              {modalState.type === 'accept' ? 'Yes, Accept Offer' : 'Yes, Reject'}
+            </button>
+          </>
+        }
+      >
+        <div className="flex items-center gap-3 p-4 bg-stone-50 dark:bg-stone-800/50 border border-stone-200 dark:border-stone-700 rounded-xl">
+          <div className={`p-2 rounded-full ${modalState.type === 'accept' ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400' : 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400'}`}>
+            {modalState.type === 'accept' ? (
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+            ) : (
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+            )}
+          </div>
+          <p className="text-sm text-stone-600 dark:text-stone-300">
+            {modalState.type === 'accept' 
+              ? 'Accepting this offer means you are committing to sell the requested quantity at the offered price.' 
+              : 'The buyer will be notified that their offer was declined.'}
+          </p>
+        </div>
+      </Modal>
 
     </div>
   );

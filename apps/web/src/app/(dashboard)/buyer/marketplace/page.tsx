@@ -95,7 +95,7 @@ function CropCard({ listing }: { listing: any }) {
       {/* Info */}
       <div className="p-4 flex flex-col gap-2 flex-1">
         <h3 className="font-serif text-lg font-medium text-stone-800 dark:text-stone-100 leading-tight line-clamp-1">
-          {crop?.name ?? '—'}
+          {crop?.name ?? '—'} {listing.variety ? `(${listing.variety})` : ''}
         </h3>
 
         <div className="flex items-baseline gap-1">
@@ -120,7 +120,7 @@ function CropCard({ listing }: { listing: any }) {
             <span className="truncate">{listing.farmDistrict}, {listing.farmState}</span>
           </div>
           {seller?.isVerified && (
-            <span className="flex items-center gap-0.5 text-[10px] text-green-700 dark:text-green-500 font-semibold flex-shrink-0">
+            <span className="flex items-center gap-0.5 text-[10px] text-blue-600 dark:text-blue-400 font-semibold flex-shrink-0">
               <svg className="w-3 h-3" viewBox="0 0 20 20" fill="currentColor">
                 <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
               </svg>
@@ -176,7 +176,7 @@ export default function MarketplacePage() {
 
   // Build query params
   const queryParams = useMemo(() => {
-    const p: Record<string, any> = { page, limit: 12, status: 'open' };
+    const p: Record<string, any> = { page, limit: 12 };
     if (filters.cropId) p.cropId = filters.cropId;
     if (filters.state) p.state = filters.state;
     if (filters.district) p.district = filters.district;

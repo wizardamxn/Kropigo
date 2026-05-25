@@ -21,6 +21,7 @@ export default function CreateListing() {
   const mediaPreviewsRef = useRef<MediaPreview[]>([]);
 
   const [cropId, setCropId] = useState("");
+  const [variety, setVariety] = useState("");
   const [quantity, setQuantity] = useState("");
   const [unit, setUnit] = useState("quintal");
   const [askingPrice, setAskingPrice] = useState("");
@@ -159,6 +160,7 @@ export default function CreateListing() {
 
       await createListing({
         cropId,
+        variety: variety || undefined,
         quantity,
         unit,
         askingPrice,
@@ -242,6 +244,17 @@ export default function CreateListing() {
           </h2>
 
           <CropSelector cropId={cropId} setCropId={setCropId} />
+
+          <div>
+            <label className={labelBaseClass}>Variety (Optional)</label>
+            <input
+              type="text"
+              value={variety}
+              onChange={(e) => setVariety(e.target.value)}
+              placeholder="e.g. Sharbati, Alphonso, Hass"
+              className={inputBaseClass}
+            />
+          </div>
 
           <div className="flex flex-col sm:flex-row gap-5">
             <div className="flex-1">

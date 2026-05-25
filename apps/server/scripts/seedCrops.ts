@@ -41,31 +41,29 @@ const cropsToSeed: { name: string; nameHindi: string; searchQuery: string; categ
   { name: 'apple', nameHindi: 'सेब', searchQuery: 'apple', category: 'fruit', unit: 'quintal' },
   { name: 'orange', nameHindi: 'संतरा', searchQuery: 'orange fruit', category: 'fruit', unit: 'quintal' },
   { name: 'papaya', nameHindi: 'पपीता', searchQuery: 'papaya', category: 'fruit', unit: 'quintal' },
+  { name: 'lemon', nameHindi: 'नींबू', searchQuery: 'lemon', category: 'fruit', unit: 'quintal' },
+
+  // Flowers
+  { name: 'marigold', nameHindi: 'गेंदा', searchQuery: 'marigold flower', category: 'flower', unit: 'kg' },
+  { name: 'rose', nameHindi: 'गुलाब', searchQuery: 'rose flower', category: 'flower', unit: 'kg' },
+  { name: 'jasmine', nameHindi: 'चमेली', searchQuery: 'jasmine flower', category: 'flower', unit: 'kg' },
 
   // Grains
   { name: 'wheat', nameHindi: 'गेहूं', searchQuery: 'wheat field', category: 'grain', unit: 'quintal' },
   { name: 'rice', nameHindi: 'चावल / धान', searchQuery: 'rice paddy', category: 'grain', unit: 'quintal' },
   { name: 'bajra', nameHindi: 'बाजरा', searchQuery: 'pearl millet', category: 'grain', unit: 'quintal' },
-  { name: 'jowar', nameHindi: 'ज्वार', searchQuery: 'sorghum', category: 'grain', unit: 'quintal' },
   { name: 'chickpea', nameHindi: 'चना', searchQuery: 'chickpeas', category: 'grain', unit: 'quintal' },
   { name: 'lentils', nameHindi: 'मसूर दाल', searchQuery: 'lentils', category: 'grain', unit: 'quintal' },
-  { name: 'soybean', nameHindi: 'सोयाबीन', searchQuery: 'soybean', category: 'grain', unit: 'quintal' },
 
   // Spices
   { name: 'chilli', nameHindi: 'मिर्च', searchQuery: 'chilli pepper', category: 'spice', unit: 'quintal' },
   { name: 'turmeric', nameHindi: 'हल्दी', searchQuery: 'turmeric', category: 'spice', unit: 'quintal' },
   { name: 'ginger', nameHindi: 'अदरक', searchQuery: 'ginger root', category: 'spice', unit: 'quintal' },
   { name: 'coriander', nameHindi: 'धनिया', searchQuery: 'coriander', category: 'spice', unit: 'kg' },
-  { name: 'fenugreek', nameHindi: 'मेथी', searchQuery: 'fenugreek', category: 'spice', unit: 'kg' },
-  { name: 'cumin', nameHindi: 'जीरा', searchQuery: 'cumin seeds', category: 'spice', unit: 'kg' },
   { name: 'black pepper', nameHindi: 'काली मिर्च', searchQuery: 'black pepper', category: 'spice', unit: 'kg' },
-  { name: 'cardamom', nameHindi: 'इलायची', searchQuery: 'cardamom', category: 'spice', unit: 'kg' },
 
   // Other (Cash Crops/Oilseeds)
   { name: 'cotton', nameHindi: 'कपास', searchQuery: 'cotton field', category: 'other', unit: 'quintal' },
-  { name: 'sugarcane', nameHindi: 'गन्ना', searchQuery: 'sugarcane', category: 'other', unit: 'ton' },
-  { name: 'groundnut', nameHindi: 'मूंगफली', searchQuery: 'peanut plant', category: 'other', unit: 'quintal' },
-  { name: 'mustard', nameHindi: 'सरसों', searchQuery: 'mustard field', category: 'other', unit: 'quintal' },
 ];
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
@@ -98,6 +96,11 @@ async function seed() {
   try {
     await mongoose.connect(MONGODB_URI as string);
     console.log('📦 Connected to MongoDB');
+
+    // Remove unwanted crops from database
+    const cropsToRemove = ['jowar', 'groundnut', 'soybean', 'sugarcane', 'cumin', 'fenugreek', 'cardamom'];
+    const deleteResult = await Crop.deleteMany({ name: { $in: cropsToRemove } });
+    console.log(`🗑️ Removed ${deleteResult.deletedCount} unwanted crops from the database.`);
 
     let insertedOrUpdated = 0;
 

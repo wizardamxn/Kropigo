@@ -1,0 +1,199 @@
+'use client';
+
+import { useGetOrdersQuery } from '@/store/endpoints/ordersApi';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { RoleGuard } from '@/components/auth/RoleGuard';
+
+const STATUS_LABELS: Record<string, string> = {
+  sale_confirmed: 'Deal Confirmed',
+  admin_notified: 'Admin Notified',
+  qc_scheduled: 'QC Scheduled',
+  qc_passed: 'QC Passed',
+  qc_failed: 'QC Failed',
+  pickup_scheduled: 'Pickup Scheduled',
+  in_transit: 'In Transit',
+  delivered: 'Delivered',
+};
+
+const STATUS_STYLES: Record<string, string> = {
+  sale_confirmed: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 border-amber-200 dark:border-amber-800/50',
+  admin_notified: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 border-blue-200 dark:border-blue-800/50',
+  qc_scheduled: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400 border-purple-200 dark:border-purple-800/50',
+  qc_passed: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 border-green-200 dark:border-green-800/50',
+  qc_failed: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 border-red-200 dark:border-red-800/50',
+  pickup_scheduled: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-400 border-indigo-200 dark:border-indigo-800/50',
+  in_transit: 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400 border-orange-200 dark:border-orange-800/50',
+  delivered: 'bg-green-200 text-green-900 dark:bg-green-900/50 dark:text-green-300 border-green-300 dark:border-green-700',
+};
+
+export default function KisanOrdersPage() {
+  const router = useRouter();
+  const [page, setPage] = useState(1);
+  const [statusFilter, setStatusFilter] = useState('');
+
+  const { data, isLoading } = useGetOrdersQuery({
+    page,
+    limit: 15,
+    status: statusFilter || undefined,
+  });
+
+  const orders = data?.data ?? [];
+
+  return (
+    <RoleGuard allowedRoles={['kisan']}>
+      <div className="space-y-8 animate-in fade-in duration-500">
+
+        {/* Header */}
+        <header>
+          <h1 className="font-serif text-3xl md:text-4xl text-stone-800 dark:text-stone-100 font-medium tracking-tight">
+            Confirmed Deals
+          </h1>
+          <p className="font-sans text-stone-600 dark:text-stone-400 mt-2">
+            Track the status of all your accepted orders.
+          </p>
+        </header>
+
+        {/* Status Filters */}
+        <div className="flex gap-2 flex-wrap">
+          {['', ...Object.keys(STATUS_LABELS)].map((status) => (
+            <button
+              key={status}
+              onClick={() => { setStatusFilter(status); setPage(1); }}
+              className={`px-3 py-1.5 rounded-full text-sm font-sans font-medium transition-colors ${
+                statusFilter === status
+                  ? 'bg-green-800 dark:bg-green-700 text-white'
+                  : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400 hover:bg-stone-200 dark:hover:bg-stone-700'
+              }`}
+            >
+              {status === '' ? 'All Orders' : STATUS_LABELS[status]}
+            </button>
+          ))}
+        </div>
+
+        {/* Orders List */}
+        {isLoading ? (
+          <div className="animate-pulse space-y-4">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="h-24 bg-stone-200 dark:bg-stone-800 rounded-2xl" />
+            ))}
+          </div>
+        ) : orders.length === 0 ? (
+          <div className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 p-16 flex flex-col items-center text-center gap-4 shadow-sm">
+            <div className="w-16 h-16 bg-stone-100 dark:bg-stone-800 rounded-full flex items-center justify-center">
+              <svg className="w-8 h-8 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+            </div>
+            <div>
+              <p className="font-serif text-xl text-stone-700 dark:text-stone-300">No orders found</p>
+              <p className="font-sans text-stone-500 dark:text-stone-400 text-sm mt-1">
+                {statusFilter ? 'Try a different status filter.' : 'Accept a buyer interest to create your first order.'}
+              </p>
+            </div>
+          </div>
+        ) : (
+          <>
+            {/* Desktop Table */}
+            <div className="hidden md:block bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 overflow-hidden shadow-sm">
+              <table className="w-full text-left">
+                <thead className="bg-stone-50 dark:bg-stone-950/50 border-b border-stone-200 dark:border-stone-800">
+                  <tr className="font-sans text-xs text-stone-500 dark:text-stone-400 uppercase tracking-wider">
+                    <th className="px-6 py-4 font-medium">Order ID</th>
+                    <th className="px-6 py-4 font-medium">Crop</th>
+                    <th className="px-6 py-4 font-medium">Buyer</th>
+                    <th className="px-6 py-4 font-medium text-right">Total</th>
+                    <th className="px-6 py-4 font-medium text-center">Status</th>
+                    <th className="px-6 py-4 font-medium">Date</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-stone-100 dark:divide-stone-800">
+                  {orders.map((order) => (
+                    <tr
+                      key={order._id}
+                      onClick={() => router.push(`/kisan/orders/${order._id}`)}
+                      className="hover:bg-stone-50/80 dark:hover:bg-stone-800/50 cursor-pointer transition-colors"
+                    >
+                      <td className="px-6 py-4 font-mono text-xs text-stone-500 dark:text-stone-400">
+                        #{order._id.slice(-6).toUpperCase()}
+                      </td>
+                      <td className="px-6 py-4 font-sans font-medium text-stone-800 dark:text-stone-100">
+                        {(order.listingId as any)?.cropId?.name ?? '—'}
+                      </td>
+                      <td className="px-6 py-4 font-sans text-stone-600 dark:text-stone-300">
+                        {(order.buyerId as any)?.name ?? '—'}
+                      </td>
+                      <td className="px-6 py-4 font-sans font-medium text-stone-800 dark:text-stone-100 text-right">
+                        ₹{order.totalAmount?.toLocaleString('en-IN')}
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${STATUS_STYLES[order.status] ?? 'bg-stone-100 text-stone-700 border-stone-200'}`}>
+                          {STATUS_LABELS[order.status] ?? order.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 font-sans text-sm text-stone-500 dark:text-stone-400">
+                        {new Date(order.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Cards */}
+            <div className="md:hidden flex flex-col gap-3">
+              {orders.map((order) => (
+                <div
+                  key={order._id}
+                  onClick={() => router.push(`/kisan/orders/${order._id}`)}
+                  className="bg-white dark:bg-stone-900 p-4 rounded-xl border border-stone-200 dark:border-stone-800 shadow-sm cursor-pointer active:scale-[0.98] transition-transform flex flex-col gap-3"
+                >
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <p className="font-mono text-xs text-stone-400 mb-0.5">#{order._id.slice(-6).toUpperCase()}</p>
+                      <p className="font-serif text-lg text-stone-800 dark:text-stone-100">{(order.listingId as any)?.cropId?.name ?? '—'}</p>
+                      <p className="font-sans text-sm text-stone-500 dark:text-stone-400 mt-0.5">Buyer: {(order.buyerId as any)?.name ?? '—'}</p>
+                    </div>
+                    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold border ${STATUS_STYLES[order.status] ?? 'bg-stone-100 text-stone-700 border-stone-200'}`}>
+                      {STATUS_LABELS[order.status] ?? order.status}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center pt-3 border-t border-stone-100 dark:border-stone-800">
+                    <span className="font-sans text-xs text-stone-400 uppercase tracking-wider">Total</span>
+                    <span className="font-sans font-medium text-green-800 dark:text-green-500">₹{order.totalAmount?.toLocaleString('en-IN')}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Pagination */}
+            <div className="flex justify-between items-center">
+              <p className="font-sans text-sm text-stone-500 dark:text-stone-400">
+                {data?.pagination.total} total order{data?.pagination.total !== 1 ? 's' : ''}
+              </p>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  className="px-4 py-2 text-sm font-sans border border-stone-200 dark:border-stone-700 rounded-xl bg-white dark:bg-stone-900 text-stone-600 dark:text-stone-400 disabled:opacity-40 hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors"
+                >
+                  ← Prev
+                </button>
+                <span className="px-3 py-2 text-sm font-sans text-stone-500 dark:text-stone-400">
+                  {page} / {data?.pagination.pages ?? 1}
+                </span>
+                <button
+                  onClick={() => setPage((p) => p + 1)}
+                  disabled={page === (data?.pagination.pages ?? 1)}
+                  className="px-4 py-2 text-sm font-sans border border-stone-200 dark:border-stone-700 rounded-xl bg-white dark:bg-stone-900 text-stone-600 dark:text-stone-400 disabled:opacity-40 hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors"
+                >
+                  Next →
+                </button>
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+    </RoleGuard>
+  );
+}

@@ -132,17 +132,33 @@ function InterestCard({ interest }: { interest: any }) {
                 : `Submitted ${fmtRelative(interest.createdAt)}`}
             </span>
 
-            {listing?._id && (
-              <Link
-                href={`/buyer/marketplace/${typeof listing === 'string' ? listing : listing._id}`}
-                className="flex items-center gap-1 text-xs font-medium text-amber-700 dark:text-amber-500 hover:underline font-sans flex-shrink-0"
-              >
-                View Listing
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                </svg>
-              </Link>
-            )}
+            <div className="flex items-center gap-4">
+              {interest.status === 'accepted' && (
+                <div className="flex items-center gap-3">
+                  <span className="text-green-600 dark:text-green-500 font-medium font-sans text-sm flex items-center gap-1">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                    Deal Confirm Ho Gayi
+                  </span>
+                  <Link
+                    href={interest.orderId ? `/buyer/orders/${interest.orderId}` : '#'}
+                    className="flex items-center gap-1.5 h-8 px-3 text-xs font-medium bg-stone-100 hover:bg-stone-200 dark:bg-stone-800 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-300 rounded-md font-sans transition-colors"
+                  >
+                    Order Track Karein
+                  </Link>
+                </div>
+              )}
+              {listing?._id && (
+                <Link
+                  href={`/buyer/marketplace/${typeof listing === 'string' ? listing : listing._id}`}
+                  className="flex items-center gap-1 text-xs font-medium text-amber-700 dark:text-amber-500 hover:underline font-sans flex-shrink-0"
+                >
+                  View Listing
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                </Link>
+              )}
+            </div>
           </div>
         </div>
       </div>

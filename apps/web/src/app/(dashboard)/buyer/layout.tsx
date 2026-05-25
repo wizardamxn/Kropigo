@@ -3,8 +3,20 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
+import { useSocket } from '@/hooks/useSocket';
+import { useNotifications } from '@/hooks/useNotifications';
+import { NotificationBell } from '@/components/shared/NotificationBell';
 
 const navLinks = [
+  {
+    href: '/buyer/dashboard',
+    label: 'Dashboard',
+    icon: (
+      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+      </svg>
+    ),
+  },
   {
     href: '/buyer/marketplace',
     label: 'Marketplace',
@@ -16,7 +28,16 @@ const navLinks = [
   },
   {
     href: '/buyer/interests',
-    label: 'My Interests',
+    label: 'Interests',
+    icon: (
+      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+      </svg>
+    ),
+  },
+  {
+    href: '/buyer/orders',
+    label: 'Orders',
     icon: (
       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
@@ -28,6 +49,8 @@ const navLinks = [
 export default function BuyerLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { isAuthenticated, role } = useAuth();
+  useSocket();
+  useNotifications();
 
   // Determine if the current path requires a buyer session
   // (marketplace pages are public; interests page is protected at page level)
@@ -41,11 +64,14 @@ export default function BuyerLayout({ children }: { children: React.ReactNode })
       <nav className="fixed bottom-0 left-0 right-0 z-50 w-full bg-white dark:bg-stone-900 border-t border-stone-200 dark:border-stone-800 flex flex-row justify-around p-2 pb-safe md:relative md:w-64 md:flex-col md:justify-start md:border-t-0 md:border-r md:p-6 md:h-screen md:sticky md:top-0 md:overflow-y-auto">
 
         {/* Brand — Desktop Only */}
-        <div className="hidden md:flex items-center gap-2 font-serif text-2xl font-bold text-green-800 dark:text-green-600 mb-8 px-4">
-          <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3C8 3 4 7 4 12s4 9 8 9 8-4 8-9-4-9-8-9z" />
-          </svg>
-          Kropigo
+        <div className="hidden md:flex items-center justify-between mb-8 px-4">
+          <div className="flex items-center gap-2 font-serif text-2xl font-bold text-green-800 dark:text-green-600">
+            <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3C8 3 4 7 4 12s4 9 8 9 8-4 8-9-4-9-8-9z" />
+            </svg>
+            Kropigo
+          </div>
+          <NotificationBell />
         </div>
 
         <div className="flex flex-row md:flex-col justify-around md:justify-start w-full gap-2">

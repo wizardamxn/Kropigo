@@ -6,6 +6,7 @@ import { clearUser } from '@/store/slices/authSlice';
 import { useLogoutMutation } from '@/store/endpoints/authApi';
 import { useRouter } from 'next/navigation';
 import { RoleGuard } from '@/components/auth/RoleGuard';
+import { disconnectSocket } from '@/lib/socket';
 
 export default function BuyerProfilePage() {
   const { user } = useAuth();
@@ -19,7 +20,7 @@ export default function BuyerProfilePage() {
     } catch (err) {
       console.error('Logout request failed, proceeding with local clearing', err);
     } finally {
-      // Ensure the token is cleared from sessionStorage per architectural requirements
+      disconnectSocket();
       sessionStorage.removeItem('accessToken');
       dispatch(clearUser());
       router.replace('/login');
@@ -59,7 +60,7 @@ export default function BuyerProfilePage() {
               </p>
 
               {user?.isVerified ? (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400 font-sans text-xs font-medium border border-green-200 dark:border-green-800/50">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400 font-sans text-xs font-medium border border-blue-200 dark:border-blue-800/50">
                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
                   Verified Buyer
                 </span>

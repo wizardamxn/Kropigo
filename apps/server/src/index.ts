@@ -3,53 +3,102 @@ import { setServers } from "node:dns/promises";
 
 setServers(["1.1.1.1", "8.8.8.8"]);
 import express, { Request, Response } from 'express';
+import { createServer } from 'http';
+import { Server } from 'socket.io';
 import cors from 'cors';
 import helmet from 'helmet';
 import { env } from './config/env';
 import { errorHandler } from './middleware/errorMiddleware';
 import cookieParser from 'cookie-parser';
 import hpp from 'hpp';
+import jwt from 'jsonwebtoken';
 import authRoutes from './routes/authRoutes';
 
 const app = express();
+const httpServer = createServer(app);
 
-// 1. Global Middleware
+// ─── Socket.io Setup ──────────────────────────────────────────────────────────
+export const io = new Server(httpServer, {
+  cors: {
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      if (origin === env.CLIENT_URL) return callback(null, true);
+      if (env.NODE_ENV === 'development' && origin.startsWith('http://localhost')) return callback(null, true);
+      callback(new Error('Not allowed by CORS'));
+    },
+    credentials: true,
+  },
+});
+
+// Socket authentication middleware — reads the httpOnly cookie
+io.use((socket, next) => {
+  try {
+    // Try to get token from cookies (httpOnly cookie sent by the browser)
+    const rawCookies = socket.handshake.headers.cookie || '';
+    const cookieMap: Record<string, string> = {};
+    rawCookies.split(';').forEach((c) => {
+      const [k, ...v] = c.trim().split('=');
+      if (k) cookieMap[k.trim()] = decodeURIComponent(v.join('='));
+    });
+    const token = cookieMap['token'] || socket.handshake.auth.token;
+
+    if (!token) return next(new Error('Authentication required'));
+
+    const decoded = jwt.verify(token, env.JWT_SECRET) as { userId: string; role: string };
+    socket.data.userId = decoded.userId;
+    socket.data.role = decoded.role;
+    next();
+  } catch (err) {
+    next(new Error('Invalid token'));
+  }
+});
+
+// Socket connection handler + rooms
+io.on('connection', (socket) => {
+  const userId = socket.data.userId;
+  const role = socket.data.role;
+
+  // Each user joins their own personal room by userId
+  socket.join(userId);
+
+  // Admins additionally join the shared admin room
+  if (role === 'admin') {
+    socket.join('admin_room');
+  }
+
+  console.log(`Socket connected: ${userId} | role: ${role}`);
+
+  socket.on('disconnect', () => {
+    console.log(`Socket disconnected: ${userId}`);
+  });
+});
+
+// ─── Express Middleware ───────────────────────────────────────────────────────
 app.use(helmet());
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
-    
-    // Allow the exact CLIENT_URL (which has no trailing slash now)
-    if (origin === env.CLIENT_URL) {
-      return callback(null, true);
-    }
-    
-    // Allow localhost during development
-    if (env.NODE_ENV === 'development' && origin.startsWith('http://localhost')) {
-      return callback(null, true);
-    }
-    
+    if (origin === env.CLIENT_URL) return callback(null, true);
+    if (env.NODE_ENV === 'development' && origin.startsWith('http://localhost')) return callback(null, true);
     callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
 }));
 app.use(express.json());
 app.use(cookieParser());
-
-// Prevent HTTP parameter pollution
 app.use(hpp());
 
 import mongoose from 'mongoose';
 
-// 2. Database Connection
+// ─── Database ─────────────────────────────────────────────────────────────────
 mongoose.connect(env.MONGODB_URI)
   .then(() => console.log('📦 Connected to MongoDB'))
   .catch((err) => console.error('MongoDB connection error:', err));
 
-// 3. Mount Routes
+// ─── Routes ───────────────────────────────────────────────────────────────────
 app.use('/api/v1/auth', authRoutes);
-app.use('/webhook', authRoutes)
+app.use('/webhook', authRoutes);
+
 import userRoutes from './routes/userRoutes';
 app.use('/api/v1/user', userRoutes);
 
@@ -68,22 +117,28 @@ app.use('/api/v1/crops', cropRoutes);
 import interestRoutes from './routes/interest.routes';
 app.use('/api/v1/interests', interestRoutes);
 
-// 4. Register Cron Jobs
+import orderRoutes from './routes/order.routes';
+app.use('/api/v1/orders', orderRoutes);
+
+import notificationRoutes from './routes/notification.routes';
+app.use('/api/v1/notifications', notificationRoutes);
+
+// ─── Cron Jobs ────────────────────────────────────────────────────────────────
 import { registerJobs } from './jobs/cronJobs';
 registerJobs();
 
-// Health Check
+// ─── Health Check ─────────────────────────────────────────────────────────────
 app.get('/health', (req: Request, res: Response) => {
   res.json({ 
     status: 'ok', 
     timestamp: new Date().toISOString(),
-    timezone: process.env.TZ 
+    timezone: process.env.TZ,
   });
 });
 
-// 5. Global Error Handler (must be the last middleware)
+// ─── Global Error Handler ─────────────────────────────────────────────────────
 app.use(errorHandler);
 
-app.listen(env.PORT, () => {
+httpServer.listen(env.PORT, () => {
   console.log(`🚀 Server running in ${env.NODE_ENV} mode on port ${env.PORT}`);
 });
