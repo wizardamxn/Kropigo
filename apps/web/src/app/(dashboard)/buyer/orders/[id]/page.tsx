@@ -91,7 +91,7 @@ export default function BuyerOrderViewPage() {
           <div>
             <p className="text-xs text-stone-500 dark:text-stone-400 uppercase tracking-wider font-sans mb-1">Agreed Rate</p>
             <p className="font-sans text-lg font-medium text-stone-800 dark:text-stone-100">
-              ₹{order.agreedPrice?.toLocaleString('en-IN') || order.price?.toLocaleString('en-IN')} <span className="text-sm text-stone-500">/ {crop?.unit || 'unit'}</span>
+              ₹{order.agreedPrice?.toLocaleString('en-IN')} <span className="text-sm text-stone-500">/ {crop?.unit || 'unit'}</span>
             </p>
           </div>
 
