@@ -10,7 +10,15 @@ let socket: Socket | null = null;
  */
 export const getSocket = (): Socket => {
   if (!socket) {
-    socket = socketIo(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000', {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+    let socketUrl = apiUrl;
+    try {
+      socketUrl = new URL(apiUrl).origin;
+    } catch (e) {
+      console.warn('Failed to parse NEXT_PUBLIC_API_URL for socket origin');
+    }
+
+    socket = socketIo(socketUrl, {
       withCredentials: true,
       transports: ['websocket', 'polling'],
       autoConnect: true,
