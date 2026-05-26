@@ -104,6 +104,7 @@ export const getListings = async (
       maxPrice,
       status,
       sellerId,
+      sort,
       page = 1,
       limit = 10,
     } = req.query;
@@ -122,10 +123,19 @@ export const getListings = async (
       if (maxPrice) query.askingPrice.$lte = Number(maxPrice);
     }
 
+    let sortOption: any = { createdAt: -1 };
+    if (sort === "price_asc") {
+      sortOption = { askingPrice: 1, createdAt: -1 };
+    } else if (sort === "price_desc") {
+      sortOption = { askingPrice: -1, createdAt: -1 };
+    } else if (sort === "newest") {
+      sortOption = { createdAt: -1 };
+    }
+
     const listings = await Listing.find(query)
       .populate("cropId", "name category unit")
       .populate("sellerId", "name location isVerified averageRating")
-      .sort({ createdAt: -1 })
+      .sort(sortOption)
       .skip((Number(page) - 1) * Number(limit))
       .limit(Number(limit));
 

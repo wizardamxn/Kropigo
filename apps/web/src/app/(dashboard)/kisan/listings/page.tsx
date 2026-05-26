@@ -2,13 +2,14 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { useGetListingsQuery, useDeleteListingMutation } from '@/store/endpoints/listingsApi';
 
 const STATUS_OPTIONS = ['', 'draft', 'open', 'interest_received', 'sale_confirmed', 'cancelled', 'expired', 'closed'];
 
 const formatStatus = (status: string) => {
-  if (!status) return 'All';
+  if (!status) return 'All Statuses';
   return status.replace('_', ' ').replace(/\b\w/g, (char) => char.toUpperCase());
 };
 
@@ -33,6 +34,7 @@ const getStatusBadge = (status: string) => {
 
 export default function KisanListings() {
   const { user } = useAuth();
+  const router = useRouter();
   const [status, setStatus] = useState('');
   const [page, setPage] = useState(1);
 
@@ -77,20 +79,20 @@ export default function KisanListings() {
   }
 
   return (
-    <div className="space-y-6 md:space-y-8 animate-in fade-in duration-500">
+    <div className="space-y-6 md:space-y-8 animate-in fade-in duration-500 w-full overflow-hidden">
 
       {/* Header & Controls */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="font-serif text-3xl md:text-4xl text-stone-800 dark:text-stone-100 font-medium tracking-tight">
             My Listings
           </h1>
-          <p className="font-sans text-stone-600 dark:text-stone-400 mt-1">
-            Manage your crop availability and prices.
+          <p className="font-sans text-sm text-stone-600 dark:text-stone-400 mt-1">
+            Manage your crop availability, metrics, and pricing.
           </p>
         </div>
 
-        <div className="flex flex-col sm:flex-row items-stretch gap-3">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
           <div className="relative">
             <select
               value={status}
@@ -108,7 +110,7 @@ export default function KisanListings() {
 
           <Link
             href="/kisan/listings/create"
-            className="h-12 px-6 rounded-xl bg-green-800 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white font-sans font-medium transition-colors flex items-center justify-center gap-2 shadow-sm whitespace-nowrap"
+            className="h-12 px-5 rounded-xl bg-green-800 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white font-sans font-medium transition-colors flex items-center justify-center gap-2 shadow-sm whitespace-nowrap"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
             New Listing
@@ -116,7 +118,7 @@ export default function KisanListings() {
         </div>
       </div>
 
-      {/* Main Content Area */}
+      {/* Main Content Area Container */}
       <div className={`transition-opacity duration-300 ${isFetching ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
         {listings.length === 0 ? (
           <div className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 p-12 text-center flex flex-col items-center justify-center gap-4">
@@ -125,7 +127,7 @@ export default function KisanListings() {
             </div>
             <div>
               <p className="font-serif text-xl text-stone-800 dark:text-stone-100 mb-1">No listings found</p>
-              <p className="font-sans text-stone-500 dark:text-stone-400">
+              <p className="font-sans text-sm text-stone-500 dark:text-stone-400">
                 {status ? `You don't have any listings with the status "${formatStatus(status)}".` : "You haven't created any crop listings yet."}
               </p>
             </div>
@@ -134,116 +136,115 @@ export default function KisanListings() {
           <>
             {/* Desktop Table View */}
             <div className="hidden md:block bg-white dark:bg-stone-900 rounded-2xl shadow-sm border border-stone-200 dark:border-stone-800 overflow-hidden">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="bg-stone-50 dark:bg-stone-950/50 font-sans text-sm text-stone-500 dark:text-stone-400 uppercase tracking-wider border-b border-stone-200 dark:border-stone-800">
-                    <th className="px-6 py-4 font-medium">Crop</th>
-                    <th className="px-6 py-4 font-medium">Qty</th>
-                    <th className="px-6 py-4 font-medium">Price</th>
-                    <th className="px-6 py-4 font-medium">Status</th>
-                    <th className="px-6 py-4 font-medium text-center">Interests</th>
-                    <th className="px-6 py-4 font-medium text-center">Views</th>
-                    <th className="px-6 py-4 font-medium">Date</th>
-                    <th className="px-6 py-4 font-medium text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-stone-100 dark:divide-stone-800">
-                  {listings.map((l) => {
-                    const thumbUrl = l.mediaUrls?.[0];
-                    return (
-                      <tr key={l._id} className="hover:bg-stone-50/50 dark:hover:bg-stone-800/50 transition-colors">
-                        {/* Crop column — thumbnail + name */}
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-3">
-                            {thumbUrl ? (
-                              <img
-                                src={thumbUrl}
-                                alt={l.cropId?.name ?? ''}
-                                className="w-54 h-24 rounded-lg object-cover flex-shrink-0 border border-stone-200 dark:border-stone-700"
-                              />
-                            ) : (
-                              <div className="w-10 h-10 rounded-lg bg-stone-100 dark:bg-stone-800 flex items-center justify-center flex-shrink-0 border border-stone-200 dark:border-stone-700">
-                                <svg className="w-5 h-5 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                </svg>
-                              </div>
-                            )}
-                            <span className="font-sans text-stone-800 dark:text-stone-200 font-medium">
-                              {l.cropId?.name ?? l.cropId}
-                            </span>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 font-sans text-stone-600 dark:text-stone-300">
-                          {l.quantity} <span className="text-stone-400 text-sm">{l.unit}</span>
-                        </td>
-                        <td className="px-6 py-4 font-sans text-stone-800 dark:text-stone-200 font-medium">
-                          ₹{l.askingPrice.toLocaleString('en-IN')}
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${getStatusBadge(l.status)}`}>
-                            {formatStatus(l.status)}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 text-center">
-                          {l.interestCount > 0 ? (
-                            <span className="relative inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800/50">
-                              {l.interestCount}
-                              {l.hasUnreadInterests && (
-                                <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
-                                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>
-                                </span>
+              <div className="overflow-x-auto w-full">
+                <table className="w-full text-left border-collapse table-auto min-w-[800px]">
+                  <thead>
+                    <tr className="bg-stone-50 dark:bg-stone-950/50 font-sans text-xs font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wider border-b border-stone-200 dark:border-stone-800">
+                      <th className="px-6 py-4">Crop</th>
+                      <th className="px-6 py-4">Qty</th>
+                      <th className="px-6 py-4">Price</th>
+                      <th className="px-6 py-4">Status</th>
+                      <th className="px-6 py-4 text-center">Interests</th>
+                      <th className="px-6 py-4 text-center">Views</th>
+                      <th className="px-6 py-4">Date</th>
+                      <th className="px-6 py-4 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-stone-100 dark:divide-stone-800 font-sans text-sm">
+                    {listings.map((l) => {
+                      const thumbUrl = l.mediaUrls?.[0];
+                      return (
+                        <tr key={l._id} className="hover:bg-stone-50/50 dark:hover:bg-stone-800/50 transition-colors">
+                          {/* Crop Column (Optimized crisp thumbnail sizing) */}
+                          <td className="px-6 py-3.5">
+                            <div className="flex items-center gap-3">
+                              {thumbUrl ? (
+                                <img
+                                  src={thumbUrl}
+                                  alt={l.cropId?.name ?? ''}
+                                  className="w-12 h-12 rounded-xl object-cover flex-shrink-0 border border-stone-200 dark:border-stone-800 shadow-sm"
+                                />
+                              ) : (
+                                <div className="w-12 h-12 rounded-xl bg-stone-100 dark:bg-stone-800 flex items-center justify-center flex-shrink-0 border border-stone-200 dark:border-stone-800">
+                                  <svg className="w-5 h-5 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                  </svg>
+                                </div>
                               )}
+                              <span className="text-stone-800 dark:text-stone-200 font-medium truncate max-w-[160px]">
+                                {l.cropId?.name ?? l.cropId}
+                              </span>
+                            </div>
+                          </td>
+                          <td className="px-6 py-3.5 text-stone-600 dark:text-stone-300 font-medium">
+                            {l.quantity} <span className="text-stone-400 text-xs font-normal">{l.unit}</span>
+                          </td>
+                          <td className="px-6 py-3.5 text-stone-800 dark:text-stone-200 font-semibold">
+                            ₹{l.askingPrice.toLocaleString('en-IN')}
+                          </td>
+                          <td className="px-6 py-3.5">
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusBadge(l.status)}`}>
+                              {formatStatus(l.status)}
                             </span>
-                          ) : (
-                            <span className="text-stone-400">—</span>
-                          )}
-                        </td>
-                        <td className="px-6 py-4 text-center font-sans text-stone-500 dark:text-stone-400">
-                          {l.viewCount || 0}
-                        </td>
-                        <td className="px-6 py-4 font-sans text-sm text-stone-500 dark:text-stone-400">
-                          {new Date(l.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
-                        </td>
-                        <td className="px-6 py-4 text-right">
-                          <div className="flex items-center justify-end gap-1">
-                            {/* View Details */}
-                            <Link
-                              href={`/kisan/listings/${l._id}/view`}
-                              className="p-2 text-stone-500 hover:text-blue-600 dark:text-stone-400 dark:hover:text-blue-400 transition-colors rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20"
-                              aria-label="View Listing"
-                            >
-                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                              </svg>
-                            </Link>
-                            {/* Edit */}
-                            <Link
-                              href={`/kisan/listings/${l._id}`}
-                              className="p-2 text-stone-500 hover:text-green-700 dark:text-stone-400 dark:hover:text-green-500 transition-colors rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20"
-                              aria-label="Edit Listing"
-                            >
-                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
-                            </Link>
-                            {/* Delete */}
-                            {['draft', 'open'].includes(l.status) && (
-                              <button
-                                onClick={() => handleDelete(l._id)}
-                                disabled={isDeleting}
-                                className="p-2 text-stone-500 hover:text-red-600 dark:text-stone-400 dark:hover:text-red-400 transition-colors rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-50"
-                                aria-label="Delete Listing"
-                              >
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                              </button>
+                          </td>
+                          <td className="px-6 py-3.5 text-center">
+                            {l.interestCount > 0 ? (
+                              <span className="relative inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800/40 shadow-sm">
+                                {l.interestCount}
+                                {l.hasUnreadInterests && (
+                                  <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2">
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                                  </span>
+                                )}
+                              </span>
+                            ) : (
+                              <span className="text-stone-400 dark:text-stone-600">—</span>
                             )}
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+                          </td>
+                          <td className="px-6 py-3.5 text-center text-stone-500 dark:text-stone-400">
+                            {l.viewCount || 0}
+                          </td>
+                          <td className="px-6 py-3.5 text-stone-500 dark:text-stone-400 text-xs">
+                            {new Date(l.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                          </td>
+                          <td className="px-6 py-3.5 text-right">
+                            <div className="flex items-center justify-end gap-1.5">
+                              <Link
+                                href={`/kisan/listings/${l._id}/view`}
+                                className="p-2 text-stone-500 hover:text-green-800 dark:text-stone-400 dark:hover:text-green-500 transition-colors rounded-xl hover:bg-stone-50 dark:hover:bg-stone-800/50"
+                                aria-label="View Details"
+                              >
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                </svg>
+                              </Link>
+                              <Link
+                                href={`/kisan/listings/${l._id}`}
+                                className="p-2 text-stone-500 hover:text-green-800 dark:text-stone-400 dark:hover:text-green-500 transition-colors rounded-xl hover:bg-stone-50 dark:hover:bg-stone-800/50"
+                                aria-label="Edit Listing"
+                              >
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                              </Link>
+                              {['draft', 'open'].includes(l.status) && (
+                                <button
+                                  onClick={() => handleDelete(l._id)}
+                                  disabled={isDeleting}
+                                  className="p-2 text-stone-500 hover:text-red-600 dark:text-stone-400 dark:hover:text-red-400 transition-colors rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-50"
+                                  aria-label="Delete Listing"
+                                >
+                                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             </div>
 
             {/* Mobile Card View */}
@@ -251,11 +252,14 @@ export default function KisanListings() {
               {listings.map((l) => {
                 const thumbUrl = l.mediaUrls?.[0];
                 return (
-                  <div key={l._id} className="bg-white dark:bg-stone-900 rounded-2xl shadow-sm border border-stone-200 dark:border-stone-800 overflow-hidden flex flex-col gap-0">
-
-                    {/* Image banner */}
+                  <div
+                    key={l._id}
+                    onClick={() => router.push(`/kisan/listings/${l._id}/view`)}
+                    className="bg-white dark:bg-stone-900 rounded-2xl shadow-sm border border-stone-200 dark:border-stone-800 overflow-hidden flex flex-col cursor-pointer hover:shadow-md hover:border-stone-300 dark:hover:border-stone-700 active:scale-[0.99] transition-all duration-200"
+                  >
+                    {/* Compact Image Banner */}
                     {thumbUrl ? (
-                      <div className="w-full h-40 overflow-hidden">
+                      <div className="w-full h-32 overflow-hidden border-b border-stone-100 dark:border-stone-800">
                         <img
                           src={thumbUrl}
                           alt={l.cropId?.name ?? ''}
@@ -263,8 +267,8 @@ export default function KisanListings() {
                         />
                       </div>
                     ) : (
-                      <div className="w-full h-32 bg-stone-100 dark:bg-stone-800 flex items-center justify-center">
-                        <svg className="w-10 h-10 text-stone-300 dark:text-stone-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <div className="w-full h-24 bg-stone-100 dark:bg-stone-800/50 flex items-center justify-center border-b border-stone-100 dark:border-stone-800">
+                        <svg className="w-8 h-8 text-stone-300 dark:text-stone-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
                       </div>
@@ -273,8 +277,8 @@ export default function KisanListings() {
                     <div className="p-4 flex flex-col gap-4">
                       <div className="flex justify-between items-start">
                         <div>
-                          <h3 className="font-serif text-xl font-medium text-stone-800 dark:text-stone-100">{l.cropId?.name ?? l.cropId}</h3>
-                          <p className="font-sans text-sm text-stone-500 dark:text-stone-400 mt-0.5">
+                          <h3 className="font-serif text-lg font-medium text-stone-800 dark:text-stone-100">{l.cropId?.name ?? l.cropId}</h3>
+                          <p className="font-sans text-xs text-stone-500 dark:text-stone-400 mt-0.5">
                             {new Date(l.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                           </p>
                         </div>
@@ -285,23 +289,23 @@ export default function KisanListings() {
 
                       <div className="grid grid-cols-2 gap-3 bg-stone-50 dark:bg-stone-950/50 p-3 rounded-xl border border-stone-100 dark:border-stone-800">
                         <div className="flex flex-col">
-                          <span className="text-xs text-stone-500 dark:text-stone-400 uppercase tracking-wider mb-1">Quantity</span>
-                          <span className="font-sans text-stone-800 dark:text-stone-200">{l.quantity} {l.unit}</span>
+                          <span className="text-[10px] text-stone-500 dark:text-stone-400 uppercase tracking-wider mb-0.5">Quantity</span>
+                          <span className="font-sans text-sm font-medium text-stone-800 dark:text-stone-200">{l.quantity} {l.unit}</span>
                         </div>
                         <div className="flex flex-col">
-                          <span className="text-xs text-stone-500 dark:text-stone-400 uppercase tracking-wider mb-1">Asking Price</span>
-                          <span className="font-sans font-medium text-green-800 dark:text-green-500">₹{l.askingPrice.toLocaleString('en-IN')}</span>
+                          <span className="text-[10px] text-stone-500 dark:text-stone-400 uppercase tracking-wider mb-0.5">Asking Price</span>
+                          <span className="font-sans text-sm font-semibold text-green-800 dark:text-green-500">₹{l.askingPrice.toLocaleString('en-IN')}</span>
                         </div>
                       </div>
 
-                      <div className="flex justify-between items-center pt-2 border-t border-stone-100 dark:border-stone-800">
+                      <div className="flex justify-between items-center pt-2.5 border-t border-stone-100 dark:border-stone-800">
                         <div className="flex items-center gap-3">
-                          <div className="flex items-center gap-1.5 text-stone-500 dark:text-stone-400 text-sm">
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                          <div className="flex items-center gap-1 text-stone-500 dark:text-stone-400 text-xs font-medium">
+                            <svg className="w-4 h-4 opacity-75" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                             {l.viewCount || 0}
                           </div>
                           {l.interestCount > 0 && (
-                            <span className="relative inline-flex items-center px-2 py-0.5 rounded bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400 border border-amber-100 dark:border-amber-800/30 text-xs font-semibold">
+                            <span className="relative inline-flex items-center px-2 py-0.5 rounded bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800/40 text-[11px] font-semibold">
                               {l.interestCount} bids
                               {l.hasUnreadInterests && (
                                 <span className="absolute -top-0.5 -right-0.5 flex h-1.5 w-1.5">
@@ -312,26 +316,33 @@ export default function KisanListings() {
                             </span>
                           )}
                         </div>
+                        
                         <div className="flex gap-2">
                           <Link
                             href={`/kisan/listings/${l._id}/view`}
-                            className="h-10 px-4 flex items-center justify-center gap-1.5 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 font-medium text-sm hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors"
+                            onClick={(e) => e.stopPropagation()}
+                            className="h-9 px-3 flex items-center justify-center rounded-lg bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 font-medium text-xs hover:bg-stone-200 dark:hover:bg-stone-700 transition-colors"
                           >
                             View
                           </Link>
                           <Link
                             href={`/kisan/listings/${l._id}`}
-                            className="h-10 px-4 flex items-center justify-center rounded-lg bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 font-medium text-sm hover:bg-stone-200 dark:hover:bg-stone-700 transition-colors"
+                            onClick={(e) => e.stopPropagation()}
+                            className="h-9 px-3 flex items-center justify-center rounded-lg bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 font-medium text-xs hover:bg-stone-200 dark:hover:bg-stone-700 transition-colors"
                           >
                             Edit
                           </Link>
                           {['draft', 'open'].includes(l.status) && (
                             <button
-                              onClick={() => handleDelete(l._id)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDelete(l._id);
+                              }}
                               disabled={isDeleting}
-                              className="h-10 px-3 flex items-center justify-center rounded-lg bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors disabled:opacity-50"
+                              className="h-9 w-9 flex items-center justify-center rounded-lg bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors disabled:opacity-50"
+                              aria-label="Delete listing"
                             >
-                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                             </button>
                           )}
                         </div>
@@ -342,7 +353,7 @@ export default function KisanListings() {
               })}
             </div>
 
-            {/* Pagination */}
+            {/* Pagination Panel Section */}
             {meta && meta.totalPages > 1 && (
               <div className="flex items-center justify-between bg-white dark:bg-stone-900 p-4 rounded-xl shadow-sm border border-stone-200 dark:border-stone-800">
                 <button
@@ -354,7 +365,7 @@ export default function KisanListings() {
                   Prev
                 </button>
 
-                <span className="font-sans text-sm text-stone-600 dark:text-stone-400">
+                <span className="font-sans text-xs text-stone-600 dark:text-stone-400">
                   Page <span className="font-medium text-stone-800 dark:text-stone-100">{meta.page}</span> of {meta.totalPages}
                 </span>
 

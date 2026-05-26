@@ -321,10 +321,15 @@ export default function ListingViewPage() {
               const isRejected = interest.status === 'rejected';
               const isWithdrawn = interest.status === 'withdrawn';
 
+              const clickable = isAccepted && interest.orderId;
+
               return (
                 <div
                   key={interest._id}
+                  onClick={clickable ? () => router.push(`/kisan/orders/${interest.orderId}`) : undefined}
                   className={`p-5 rounded-2xl border transition-all ${
+                    clickable ? 'cursor-pointer hover:shadow-md hover:border-green-300 dark:hover:border-green-700 active:scale-[0.99]' : ''
+                  } ${
                     isAccepted
                       ? 'bg-green-50/50 dark:bg-green-950/10 border-green-200 dark:border-green-800/50 shadow-sm'
                       : isRejected || isWithdrawn
@@ -429,6 +434,7 @@ export default function ListingViewPage() {
                       {interest.orderId && (
                         <Link
                           href={`/kisan/orders/${interest.orderId}`}
+                          onClick={(e) => e.stopPropagation()}
                           className="flex items-center gap-1.5 px-3 py-1.5 bg-green-100 dark:bg-green-900/50 hover:bg-green-200 dark:hover:bg-green-800 text-green-800 dark:text-green-300 rounded-lg font-medium transition-colors text-xs whitespace-nowrap self-start sm:self-auto"
                         >
                           View Order

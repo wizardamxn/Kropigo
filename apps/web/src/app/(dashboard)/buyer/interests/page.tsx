@@ -1,11 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { RoleGuard } from '@/components/auth/RoleGuard';
 import { useGetMyInterestsQuery } from '@/store/endpoints/interestsApi';
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
+// ─── HELPERS ─────────────────────────────────────────────────────────────────
 
 const fmtPrice = (n: number) => '₹' + n.toLocaleString('en-IN');
 
@@ -19,179 +19,174 @@ const fmtRelative = (dateStr: string) => {
   return `${mins}m ago`;
 };
 
-// ─── Status config ────────────────────────────────────────────────────────────
+// ─── STATUS CONFIGURATION ────────────────────────────────────────────────────
 
 type Status = 'pending' | 'accepted' | 'rejected' | 'withdrawn';
 
 const STATUS_TABS: { value: '' | Status; label: string }[] = [
-  { value: '', label: 'All' },
+  { value: '', label: 'All Offers' },
   { value: 'pending', label: 'Pending' },
   { value: 'accepted', label: 'Accepted' },
-  { value: 'rejected', label: 'Rejected' },
+  { value: 'rejected', label: 'Declined' },
   { value: 'withdrawn', label: 'Withdrawn' },
 ];
 
-const statusConfig: Record<Status, { badge: string; dot: string; label: string }> = {
+const statusConfig: Record<Status, { badge: string; label: string }> = {
   pending: {
-    badge: 'bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-400 border-amber-200 dark:border-amber-800/50',
-    dot: 'bg-amber-500',
-    label: 'Pending',
+    badge: 'bg-amber-50 dark:bg-amber-950/20 text-amber-800 dark:text-amber-400 border-amber-200/60 dark:border-amber-800/40',
+    label: 'Pending Approval',
   },
   accepted: {
-    badge: 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400 border-green-200 dark:border-green-800/50',
-    dot: 'bg-green-500',
-    label: 'Accepted',
+    badge: 'bg-green-50 dark:bg-green-950/20 text-green-800 dark:text-green-400 border-green-200/60 dark:border-green-800/40',
+    label: 'Offer Accepted',
   },
   rejected: {
-    badge: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800/50',
-    dot: 'bg-red-500',
-    label: 'Rejected',
+    badge: 'bg-red-50 dark:bg-red-950/20 text-red-700 dark:text-red-400 border-red-200/60 dark:border-red-800/40',
+    label: 'Declined',
   },
   withdrawn: {
     badge: 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400 border-stone-200 dark:border-stone-700',
-    dot: 'bg-stone-400',
     label: 'Withdrawn',
   },
 };
 
-// ─── Interest Card ────────────────────────────────────────────────────────────
+// ─── RE-ENGINEERED INTEREST CARD ─────────────────────────────────────────────
 
 function InterestCard({ interest }: { interest: any }) {
   const listing = interest.listingId;
   const crop = listing?.cropId;
   const thumb = listing?.mediaUrls?.[0];
   const cfg = statusConfig[interest.status as Status] ?? statusConfig.pending;
-  const totalValue = interest.quantity
-    ? interest.price * interest.quantity
-    : null;
+  const totalValue = interest.quantity ? interest.price * interest.quantity : null;
 
   return (
-    <div className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 overflow-hidden hover:shadow-md transition-shadow duration-200">
-      <div className="flex items-stretch gap-0">
-        {/* Thumbnail */}
-        <div className="w-24 h-auto flex-shrink-0 bg-stone-100 dark:bg-stone-800 relative overflow-hidden">
-          {thumb ? (
-            <img src={thumb} alt={crop?.name ?? ''} className="w-full h-full object-cover" />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-stone-300 dark:text-stone-600 min-h-[88px]">
-              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-            </div>
-          )}
+    <div className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 p-4 sm:p-5 flex flex-col gap-4 shadow-sm hover:shadow-md transition-shadow duration-200">
+      
+      {/* Top Section: Identity + Status */}
+      <div className="flex items-start justify-between gap-3 w-full">
+        <div className="flex items-center gap-3 min-w-0">
+          {/* Compact, Uniform Thumbnail Box */}
+          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-stone-100 dark:bg-stone-950 border border-stone-200/60 dark:border-stone-800 flex-shrink-0 overflow-hidden">
+            {thumb ? (
+              <img src={thumb} alt="" className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-stone-400">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              </div>
+            )}
+          </div>
+          
+          <div className="min-w-0">
+            <h3 className="font-serif text-base sm:text-lg font-semibold text-stone-800 dark:text-stone-100 truncate leading-tight">
+              {crop?.name ?? '—'}
+            </h3>
+            {crop?.category && (
+              <span className="inline-block text-xs font-sans text-stone-400 dark:text-stone-500 font-medium uppercase tracking-wider mt-0.5">
+                {crop.category}
+              </span>
+            )}
+          </div>
         </div>
 
-        {/* Content */}
-        <div className="flex-1 p-4 flex flex-col gap-2 min-w-0">
-          <div className="flex items-start justify-between gap-2">
-            <div className="min-w-0">
-              <h3 className="font-serif text-base font-medium text-stone-800 dark:text-stone-100 truncate">
-                {crop?.name ?? '—'}
-              </h3>
-              {crop?.category && (
-                <span className="text-xs text-stone-400 dark:text-stone-500 font-sans capitalize">{crop.category}</span>
-              )}
-            </div>
+        {/* Crisp text-only status badge (No animation dots) */}
+        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border whitespace-nowrap shadow-sm h-7 ${cfg.badge}`}>
+          {cfg.label}
+        </span>
+      </div>
 
-            {/* Status badge */}
-            <span className={`flex-shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${cfg.badge}`}>
-              <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot} ${interest.status === 'pending' ? 'animate-pulse' : ''}`} />
-              {cfg.label}
-            </span>
-          </div>
+      {/* Grid Layout: Completely replaces formatting layout wraps */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 bg-stone-50 dark:bg-stone-950/40 p-3 rounded-xl border border-stone-100 dark:border-stone-800/60">
+        <div>
+          <span className="block text-[10px] uppercase font-sans font-semibold tracking-wider text-stone-400 dark:text-stone-500 mb-0.5">Offered Price</span>
+          <span className="font-sans text-sm font-bold text-stone-800 dark:text-stone-200">
+            {fmtPrice(interest.price)}<span className="text-stone-400 font-normal text-xs">/{listing?.unit}</span>
+          </span>
+        </div>
+        
+        <div>
+          <span className="block text-[10px] uppercase font-sans font-semibold tracking-wider text-stone-400 dark:text-stone-500 mb-0.5">Volume Requested</span>
+          <span className="font-sans text-sm font-medium text-stone-700 dark:text-stone-300">
+            {interest.quantity ? `${interest.quantity} ${listing?.unit}` : 'Full Batch'}
+          </span>
+        </div>
 
-          {/* Price & Qty row */}
-          <div className="flex items-center gap-3 flex-wrap text-sm font-sans">
-            <span className="font-semibold text-stone-800 dark:text-stone-100">
-              {fmtPrice(interest.price)}
-              <span className="text-stone-400 dark:text-stone-500 font-normal text-xs ml-0.5">/ {listing?.unit}</span>
-            </span>
-            {interest.quantity && (
-              <>
-                <span className="text-stone-300 dark:text-stone-700">·</span>
-                <span className="text-stone-600 dark:text-stone-300">{interest.quantity} {listing?.unit}</span>
-              </>
-            )}
-            {totalValue && (
-              <>
-                <span className="text-stone-300 dark:text-stone-700">·</span>
-                <span className="text-amber-700 dark:text-amber-500 font-semibold">
-                  Total: {fmtPrice(totalValue)}
-                </span>
-              </>
-            )}
-          </div>
-
-          {/* Bottom row */}
-          <div className="flex items-center justify-between gap-2 mt-auto pt-1">
-            <span className="text-xs text-stone-400 dark:text-stone-500 font-sans">
-              {interest.status === 'accepted'
-                ? `Accepted ${fmtRelative(interest.updatedAt)}`
-                : interest.status === 'rejected'
-                ? `Declined ${fmtRelative(interest.updatedAt)}`
-                : `Submitted ${fmtRelative(interest.createdAt)}`}
-            </span>
-
-            <div className="flex items-center gap-4">
-              {interest.status === 'accepted' && (
-                <div className="flex items-center gap-3">
-                  <span className="text-green-600 dark:text-green-500 font-medium font-sans text-sm flex items-center gap-1">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                    Deal Confirm Ho Gayi
-                  </span>
-                  <Link
-                    href={interest.orderId ? `/buyer/orders/${interest.orderId}` : '#'}
-                    className="flex items-center gap-1.5 h-8 px-3 text-xs font-medium bg-stone-100 hover:bg-stone-200 dark:bg-stone-800 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-300 rounded-md font-sans transition-colors"
-                  >
-                    Order Track Karein
-                  </Link>
-                </div>
-              )}
-              {listing?._id && (
-                <Link
-                  href={`/buyer/marketplace/${typeof listing === 'string' ? listing : listing._id}`}
-                  className="flex items-center gap-1 text-xs font-medium text-amber-700 dark:text-amber-500 hover:underline font-sans flex-shrink-0"
-                >
-                  View Listing
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                  </svg>
-                </Link>
-              )}
-            </div>
-          </div>
+        <div className="col-span-2 sm:col-span-1 border-t sm:border-t-0 sm:border-l border-stone-200/60 dark:border-stone-800/60 pt-2 sm:pt-0 sm:pl-3">
+          <span className="block text-[10px] uppercase font-sans font-semibold tracking-wider text-stone-400 dark:text-stone-500 mb-0.5">Estimated Value</span>
+          <span className="font-sans text-sm font-bold text-green-800 dark:text-green-500">
+            {totalValue ? fmtPrice(totalValue) : '—'}
+          </span>
         </div>
       </div>
+
+      {/* Bottom Control Actions Row */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-stone-100 dark:border-stone-800/60 w-full">
+        <span className="text-xs text-stone-400 dark:text-stone-500 font-sans font-medium">
+          {interest.status === 'accepted'
+            ? `Accepted ${fmtRelative(interest.updatedAt)}`
+            : interest.status === 'rejected'
+            ? `Declined ${fmtRelative(interest.updatedAt)}`
+            : `Submitted ${fmtRelative(interest.createdAt)}`}
+        </span>
+
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+          {interest.status === 'accepted' && (
+            <Link
+              href={interest.orderId ? `/buyer/orders/${interest.orderId}` : '#'}
+              className="h-10 px-4 text-xs font-semibold bg-green-800 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white rounded-xl font-sans flex items-center justify-center gap-1.5 transition-colors shadow-sm order-1 sm:order-2"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+              Track Logistics Order
+            </Link>
+          )}
+          {listing?._id && (
+            <Link
+              href={`/buyer/marketplace/${typeof listing === 'string' ? listing : listing._id}`}
+              className="h-10 px-4 text-xs font-semibold bg-stone-100 hover:bg-stone-200 dark:bg-stone-800 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-300 rounded-xl font-sans flex items-center justify-center gap-1 transition-colors border border-stone-200/40 dark:border-stone-700 order-2 sm:order-1"
+            >
+              View Listing Source
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+              </svg>
+            </Link>
+          )}
+        </div>
+      </div>
+
     </div>
   );
 }
 
-// ─── Skeleton ─────────────────────────────────────────────────────────────────
+// ─── SKELETON COMPONENT ──────────────────────────────────────────────────────
 
 function CardSkeleton() {
   return (
-    <div className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 overflow-hidden animate-pulse flex h-24">
-      <div className="w-24 bg-stone-200 dark:bg-stone-800 flex-shrink-0" />
-      <div className="flex-1 p-4 space-y-2">
-        <div className="h-4 bg-stone-200 dark:bg-stone-800 rounded w-1/2" />
-        <div className="h-3 bg-stone-200 dark:bg-stone-800 rounded w-1/3" />
-        <div className="h-3 bg-stone-200 dark:bg-stone-800 rounded w-2/3" />
+    <div className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 p-4 space-y-4 animate-pulse">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3 w-1/2">
+          <div className="w-12 h-12 bg-stone-200 dark:bg-stone-800 rounded-xl flex-shrink-0" />
+          <div className="space-y-1.5 w-full">
+            <div className="h-4 bg-stone-200 dark:bg-stone-800 rounded w-3/4" />
+            <div className="h-3 bg-stone-200 dark:bg-stone-800 rounded w-1/2" />
+          </div>
+        </div>
+        <div className="h-7 bg-stone-200 dark:bg-stone-800 rounded-full w-24" />
       </div>
+      <div className="h-14 bg-stone-50 dark:bg-stone-950/40 rounded-xl w-full" />
     </div>
   );
 }
 
-// ─── Empty State ──────────────────────────────────────────────────────────────
-
 const EMPTY_MESSAGES: Record<string, { title: string; sub: string }> = {
-  '': { title: 'No interests yet', sub: "You haven't expressed interest in any listings yet." },
-  pending: { title: 'No pending interests', sub: 'Interests you submit will appear here while awaiting seller response.' },
-  accepted: { title: 'No accepted offers', sub: 'Accepted interests will appear here once a kisan accepts your offer.' },
-  rejected: { title: 'No rejected offers', sub: 'Declined interests will appear here.' },
-  withdrawn: { title: 'No withdrawn interests', sub: 'Withdrawn interests will appear here.' },
+  '': { title: 'No Interests Placed', sub: "You haven't expressed interest or submitted pricing proposals on any marketplace crops yet." },
+  pending: { title: 'No Pending Offers', sub: 'Offers you submit will appear here while awaiting review from the grower.' },
+  accepted: { title: 'No Accepted Deals', sub: 'Approved listings will register here once a producer accepts your purchasing terms.' },
+  rejected: { title: 'No Declined Offers', sub: 'Declined interest offers and counter-proposals will populate here.' },
+  withdrawn: { title: 'No Withdrawn Interests', sub: 'Interests you explicitly retracted or canceled are archived here.' },
 };
 
-// ─── Main Page ────────────────────────────────────────────────────────────────
+// ─── MAIN HUB CONTROLLER ─────────────────────────────────────────────────────
 
 export default function MyInterestsPage() {
   const [activeTab, setActiveTab] = useState<'' | Status>('');
@@ -207,66 +202,72 @@ export default function MyInterestsPage() {
 
   return (
     <RoleGuard allowedRoles={['buyer']}>
-      <div className="max-w-3xl mx-auto px-4 py-6 md:px-8 space-y-6">
+      <div className="max-w-3xl mx-auto space-y-6 md:space-y-8 animate-in fade-in duration-500 w-full overflow-hidden">
 
-        {/* ── Header ──────────────────────────────────────────────── */}
+        {/* Header Block */}
         <div>
           <h1 className="font-serif text-3xl md:text-4xl text-stone-800 dark:text-stone-100 font-medium tracking-tight">
             My Interests
           </h1>
-          <p className="font-sans text-stone-500 dark:text-stone-400 mt-1 text-sm">
-            Track all the crop offers you've submitted to kisans.
+          <p className="font-sans text-stone-600 dark:text-stone-400 mt-1 text-sm md:text-base">
+            Track and manage all purchase offers submitted directly to agricultural producers.
           </p>
         </div>
 
-        {/* ── Status Tabs ─────────────────────────────────────────── */}
-        <div className="flex overflow-x-auto gap-1 pb-0.5 -mx-0.5 px-0.5">
-          {STATUS_TABS.map((tab) => (
-            <button
-              key={tab.value}
-              id={`tab-${tab.value || 'all'}`}
-              onClick={() => { setActiveTab(tab.value); setPage(1); }}
-              className={`flex-shrink-0 h-9 px-4 rounded-lg text-sm font-medium transition-all font-sans ${
-                activeTab === tab.value
-                  ? 'bg-amber-600 text-white shadow-sm'
-                  : 'text-stone-600 dark:text-stone-400 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 hover:bg-stone-50 dark:hover:bg-stone-800'
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
+        {/* Tab Selection Filter System */}
+        <div className="flex overflow-x-auto gap-2 pb-2 scrollbar-none -mx-4 px-4 sm:mx-0 sm:px-0">
+          {STATUS_TABS.map((tab) => {
+            const isTabActive = activeTab === tab.value;
+            return (
+              <button
+                key={tab.value}
+                id={`tab-${tab.value || 'all'}`}
+                onClick={() => { setActiveTab(tab.value); setPage(1); }}
+                className={`flex-shrink-0 h-12 px-5 rounded-xl text-sm font-semibold font-sans transition-all active:scale-95 border whitespace-nowrap ${
+                  isTabActive
+                    ? 'bg-green-800 border-green-800 text-white shadow-sm dark:bg-green-700 dark:border-green-700'
+                    : 'text-stone-600 dark:text-stone-400 bg-white dark:bg-stone-900 border-stone-200 dark:border-stone-800 hover:bg-stone-50 dark:hover:bg-stone-800'
+                }`}
+              >
+                {tab.label}
+              </button>
+            );
+          })}
         </div>
 
-        {/* ── Content ─────────────────────────────────────────────── */}
+        {/* Main Content Render Gate */}
         {isError ? (
-          <div className="py-20 text-center space-y-4">
-            <p className="text-red-600 dark:text-red-400 font-sans">Failed to load your interests.</p>
+          <div className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 py-16 text-center space-y-4 shadow-sm">
+            <svg className="w-12 h-12 mx-auto text-red-500 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            <p className="text-stone-600 dark:text-stone-400 font-sans font-medium">Failed to load your interests data.</p>
             <button
               onClick={() => window.location.reload()}
-              className="h-10 px-6 rounded-xl bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 text-sm font-medium hover:bg-stone-200 dark:hover:bg-stone-700 transition-colors"
+              className="h-11 px-6 bg-stone-100 dark:bg-stone-800 text-stone-800 dark:text-stone-200 rounded-xl text-sm font-medium hover:bg-stone-200 dark:hover:bg-stone-700 transition-colors shadow-sm"
             >
               Retry
             </button>
           </div>
         ) : (
-          <div className={`space-y-3 transition-opacity duration-200 ${isFetching && !isLoading ? 'opacity-60' : ''}`}>
+          <div className={`space-y-4 transition-opacity duration-300 ${isFetching && !isLoading ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
             {isLoading ? (
-              Array.from({ length: 5 }).map((_, i) => <CardSkeleton key={i} />)
+              Array.from({ length: 4 }).map((_, i) => <CardSkeleton key={i} />)
             ) : interests.length === 0 ? (
-              <div className="py-20 flex flex-col items-center gap-4 text-center">
-                <div className="w-16 h-16 rounded-full bg-amber-50 dark:bg-amber-900/20 flex items-center justify-center">
-                  <svg className="w-8 h-8 text-amber-400 dark:text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 py-16 text-center flex flex-col items-center justify-center gap-4 shadow-sm px-4">
+                <div className="w-16 h-16 rounded-full bg-stone-50 dark:bg-stone-950 flex items-center justify-center text-stone-400">
+                  <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                   </svg>
                 </div>
                 <div>
-                  <p className="font-serif text-xl text-stone-800 dark:text-stone-100">{emptyMsg.title}</p>
-                  <p className="text-sm text-stone-500 dark:text-stone-400 font-sans mt-1 max-w-xs">{emptyMsg.sub}</p>
+                  <p className="font-serif text-xl font-semibold text-stone-800 dark:text-stone-100">{emptyMsg.title}</p>
+                  <p className="text-sm text-stone-500 dark:text-stone-400 font-sans mt-1 max-w-xs mx-auto leading-relaxed">{emptyMsg.sub}</p>
                 </div>
                 {activeTab === '' && (
                   <Link
                     href="/buyer/marketplace"
-                    className="h-10 px-6 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-sm font-medium transition-colors"
+                    className="h-12 px-6 rounded-xl bg-green-800 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white text-sm font-semibold transition-colors flex items-center justify-center shadow-sm w-full sm:w-auto mt-2"
                   >
                     Browse Marketplace
                   </Link>
@@ -280,26 +281,28 @@ export default function MyInterestsPage() {
           </div>
         )}
 
-        {/* ── Pagination ───────────────────────────────────────────── */}
+        {/* Pagination Row Block */}
         {meta && meta.totalPages > 1 && (
-          <div className="flex items-center justify-between bg-white dark:bg-stone-900 rounded-xl border border-stone-200 dark:border-stone-800 px-5 py-3 shadow-sm">
+          <div className="flex items-center justify-between bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 px-5 py-3.5 shadow-sm mt-4">
             <button
               id="interests-prev-btn"
               disabled={page === 1 || isFetching}
               onClick={() => setPage((p) => p - 1)}
-              className="flex items-center gap-2 h-9 px-4 rounded-lg text-sm font-medium text-stone-700 dark:text-stone-300 bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="flex items-center gap-2 h-10 px-4 rounded-xl text-sm font-medium text-stone-700 dark:text-stone-300 bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-95 shadow-sm"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
               Prev
             </button>
-            <span className="text-sm text-stone-600 dark:text-stone-400 font-sans">
+            
+            <span className="font-sans text-xs sm:text-sm text-stone-600 dark:text-stone-400">
               Page <span className="font-semibold text-stone-800 dark:text-stone-100">{meta.page}</span> of {meta.totalPages}
             </span>
+            
             <button
               id="interests-next-btn"
               disabled={page >= meta.totalPages || isFetching}
               onClick={() => setPage((p) => p + 1)}
-              className="flex items-center gap-2 h-9 px-4 rounded-lg text-sm font-medium text-stone-700 dark:text-stone-300 bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="flex items-center gap-2 h-10 px-4 rounded-xl text-sm font-medium text-stone-700 dark:text-stone-300 bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-95 shadow-sm"
             >
               Next
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>

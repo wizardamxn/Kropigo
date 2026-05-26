@@ -18,17 +18,16 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 const STATUS_STYLES: Record<string, string> = {
-  sale_confirmed: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 border-amber-200 dark:border-amber-800/50',
-  admin_notified: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 border-blue-200 dark:border-blue-800/50',
-  qc_scheduled: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400 border-purple-200 dark:border-purple-800/50',
-  qc_passed: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 border-green-200 dark:border-green-800/50',
-  qc_failed: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 border-red-200 dark:border-red-800/50',
-  pickup_scheduled: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-400 border-indigo-200 dark:border-indigo-800/50',
-  in_transit: 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400 border-orange-200 dark:border-orange-800/50',
-  delivered: 'bg-green-200 text-green-900 dark:bg-green-900/50 dark:text-green-300 border-green-300 dark:border-green-700',
+  sale_confirmed: 'bg-stone-100 text-stone-700 dark:bg-stone-800 dark:text-stone-300 border-stone-200 dark:border-stone-700',
+  admin_notified: 'bg-blue-50 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400 border-blue-100 dark:border-blue-900/30',
+  qc_scheduled: 'bg-purple-50 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400 border-purple-100 dark:border-purple-900/30',
+  qc_passed: 'bg-green-50 text-green-800 dark:bg-green-900/20 dark:text-green-400 border-green-100 dark:border-green-900/30',
+  qc_failed: 'bg-red-50 text-red-800 dark:bg-red-900/20 dark:text-red-400 border-red-100 dark:border-red-900/30',
+  pickup_scheduled: 'bg-indigo-50 text-indigo-800 dark:bg-indigo-900/20 dark:text-indigo-400 border-indigo-100 dark:border-indigo-900/30',
+  in_transit: 'bg-orange-50 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400 border-orange-100 dark:border-orange-900/30',
+  delivered: 'bg-green-100 text-green-900 dark:bg-green-900/40 dark:text-green-300 border-green-200/50 dark:border-green-800/40',
 };
 
-// Order progress steps in sequence
 const PROGRESS_STEPS = [
   'sale_confirmed',
   'admin_notified',
@@ -42,26 +41,34 @@ const PROGRESS_STEPS = [
 function OrderProgressBar({ status }: { status: string }) {
   if (status === 'qc_failed') {
     return (
-      <div className="flex items-center gap-2 text-red-600 dark:text-red-400 text-sm font-sans">
-        <span className="w-2 h-2 rounded-full bg-red-500 inline-block" />
-        QC Failed — Our team will contact you
+      <div className="flex items-center gap-2 text-red-600 dark:text-red-400 text-xs font-sans font-medium bg-red-50 dark:bg-red-950/20 p-3 rounded-xl border border-red-100 dark:border-red-900/30">
+        <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+        Quality Check Failed — Our operations management team will contact you directly.
       </div>
     );
   }
+
   const currentStep = PROGRESS_STEPS.indexOf(status);
+  
   return (
-    <div className="flex items-center gap-1 w-full">
-      {PROGRESS_STEPS.map((step, idx) => (
-        <div
-          key={step}
-          className={`flex-1 h-1.5 rounded-full transition-colors ${
-            idx <= currentStep
-              ? 'bg-amber-500 dark:bg-amber-400'
-              : 'bg-stone-200 dark:bg-stone-700'
-          }`}
-          title={STATUS_LABELS[step]}
-        />
-      ))}
+    <div className="space-y-2 w-full">
+      <div className="flex items-center gap-1 w-full">
+        {PROGRESS_STEPS.map((step, idx) => (
+          <div
+            key={step}
+            className={`flex-1 h-2 rounded-full transition-all duration-300 ${
+              idx <= currentStep
+                ? 'bg-green-800 dark:bg-green-600 shadow-sm'
+                : 'bg-stone-200 dark:bg-stone-800'
+            }`}
+            title={STATUS_LABELS[step]}
+          />
+        ))}
+      </div>
+      <div className="flex justify-between items-center text-[10px] font-sans text-stone-400 font-medium uppercase tracking-wider px-1">
+        <span>Order Placed</span>
+        <span>Out for Delivery</span>
+      </div>
     </div>
   );
 }
@@ -71,7 +78,7 @@ export default function BuyerOrdersPage() {
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState('');
 
-  const { data, isLoading } = useGetOrdersQuery({
+  const { data, isLoading, isFetching } = useGetOrdersQuery({
     page,
     limit: 15,
     status: statusFilter || undefined,
@@ -81,120 +88,138 @@ export default function BuyerOrdersPage() {
 
   return (
     <RoleGuard allowedRoles={['buyer']}>
-      <div className="space-y-8 animate-in fade-in duration-500">
+      <div className="max-w-3xl mx-auto space-y-6 md:space-y-8 animate-in fade-in duration-500 w-full overflow-hidden">
 
-        {/* Header */}
-        <header>
+        {/* Page Title Header */}
+        <div>
           <h1 className="font-serif text-3xl md:text-4xl text-stone-800 dark:text-stone-100 font-medium tracking-tight">
             My Orders
           </h1>
-          <p className="font-sans text-stone-600 dark:text-stone-400 mt-2">
-            Track every confirmed deal from QC to delivery.
+          <p className="font-sans text-stone-600 dark:text-stone-400 mt-1 text-sm md:text-base">
+            Track and audit every confirmed crop purchase pipeline from verification to safe delivery.
           </p>
-        </header>
-
-        {/* Status Filters */}
-        <div className="flex gap-2 flex-wrap">
-          {['', ...Object.keys(STATUS_LABELS)].map((status) => (
-            <button
-              key={status}
-              onClick={() => { setStatusFilter(status); setPage(1); }}
-              className={`px-3 py-1.5 rounded-full text-sm font-sans font-medium transition-colors ${
-                statusFilter === status
-                  ? 'bg-amber-700 dark:bg-amber-800 text-white'
-                  : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400 hover:bg-stone-200 dark:hover:bg-stone-700'
-              }`}
-            >
-              {status === '' ? 'All Orders' : STATUS_LABELS[status]}
-            </button>
-          ))}
         </div>
 
-        {/* Orders List */}
+        {/* Scrollable Status Filter Track */}
+        <div className="flex overflow-x-auto gap-2 pb-2 scrollbar-none -mx-4 px-4 sm:mx-0 sm:px-0">
+          <button
+            onClick={() => { setStatusFilter(''); setPage(1); }}
+            className={`flex-shrink-0 h-12 px-5 rounded-xl text-sm font-semibold font-sans transition-all border whitespace-nowrap active:scale-95 ${
+              statusFilter === ''
+                ? 'bg-green-800 border-green-800 text-white shadow-sm dark:bg-green-700 dark:border-green-700'
+                : 'text-stone-600 dark:text-stone-400 bg-white dark:bg-stone-900 border-stone-200 dark:border-stone-800 hover:bg-stone-50 dark:hover:bg-stone-800'
+            }`}
+          >
+            All Orders
+          </button>
+          {Object.keys(STATUS_LABELS).map((status) => {
+            const isTabActive = statusFilter === status;
+            return (
+              <button
+                key={status}
+                onClick={() => { setStatusFilter(status); setPage(1); }}
+                className={`flex-shrink-0 h-12 px-5 rounded-xl text-sm font-semibold font-sans transition-all border whitespace-nowrap active:scale-95 ${
+                  isTabActive
+                    ? 'bg-green-800 border-green-800 text-white shadow-sm dark:bg-green-700 dark:border-green-700'
+                    : 'text-stone-600 dark:text-stone-400 bg-white dark:bg-stone-900 border-stone-200 dark:border-stone-800 hover:bg-stone-50 dark:hover:bg-stone-800'
+                }`}
+              >
+                {STATUS_LABELS[status]}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Master Response Delivery Canvas */}
         {isLoading ? (
-          <div className="animate-pulse space-y-4">
-            {[1, 2, 3, 4].map((i) => <div key={i} className="h-32 bg-stone-200 dark:bg-stone-800 rounded-2xl" />)}
+          <div className="space-y-4 animate-pulse">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-44 bg-stone-200 dark:bg-stone-800 rounded-2xl w-full" />
+            ))}
           </div>
         ) : orders.length === 0 ? (
-          <div className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 p-16 flex flex-col items-center text-center gap-4 shadow-sm">
-            <div className="w-16 h-16 bg-stone-100 dark:bg-stone-800 rounded-full flex items-center justify-center">
-              <svg className="w-8 h-8 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+          <div className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 p-16 flex flex-col items-center justify-center text-center gap-4 shadow-sm px-4">
+            <div className="w-16 h-16 bg-stone-50 dark:bg-stone-950 flex items-center justify-center text-stone-400 rounded-full border border-stone-100 dark:border-stone-800">
+              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
               </svg>
             </div>
             <div>
-              <p className="font-serif text-xl text-stone-700 dark:text-stone-300">No orders yet</p>
-              <p className="font-sans text-stone-500 dark:text-stone-400 text-sm mt-1">
-                Submit an interest on a listing and wait for the kisan to accept.
+              <p className="font-serif text-xl font-semibold text-stone-800 dark:text-stone-100">No matching orders found</p>
+              <p className="font-sans text-sm text-stone-500 dark:text-stone-400 mt-1 max-w-xs mx-auto leading-relaxed">
+                Orders appear here once a producer approves your purchase interest terms.
               </p>
             </div>
-            <Link href="/buyer/marketplace" className="mt-2 px-5 py-2.5 bg-amber-700 hover:bg-amber-600 text-white rounded-xl font-sans text-sm font-medium transition-colors">
-              Browse Marketplace
+            <Link href="/buyer/marketplace" className="mt-2 h-12 px-6 rounded-xl bg-green-800 hover:bg-green-700 text-white font-sans text-sm font-semibold transition-all shadow-sm flex items-center justify-center w-full sm:w-auto">
+              Browse Crop Marketplace
             </Link>
           </div>
         ) : (
           <>
-            <div className="space-y-4">
+            <div className={`space-y-4 transition-opacity duration-300 ${isFetching ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
               {orders.map((order) => (
                 <div
                   key={order._id}
                   onClick={() => router.push(`/buyer/orders/${order._id}`)}
-                  className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 p-5 shadow-sm cursor-pointer hover:shadow-md hover:-translate-y-0.5 transition-all"
+                  className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 p-5 shadow-sm cursor-pointer hover:shadow-md transition-all duration-200 transform hover:-translate-y-0.5 flex flex-col gap-4"
                 >
-                  <div className="flex justify-between items-start gap-4 mb-4">
+                  <div className="flex justify-between items-start gap-4">
                     <div>
-                      <p className="font-serif text-xl text-stone-800 dark:text-stone-100">
+                      <h3 className="font-serif text-lg sm:text-xl font-semibold text-stone-800 dark:text-stone-100 leading-tight">
                         {(order.listingId as any)?.cropId?.name ?? '—'}
-                      </p>
-                      <p className="font-mono text-xs text-stone-400 mt-0.5">#{order._id.slice(-6).toUpperCase()}</p>
+                      </h3>
+                      <p className="font-mono text-xs text-stone-400 dark:text-stone-500 mt-1 font-medium">Order ID: #{order._id.slice(-6).toUpperCase()}</p>
                     </div>
-                    <div className="flex flex-col items-end gap-2">
-                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${STATUS_STYLES[order.status] ?? ''}`}>
+                    
+                    <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold border tracking-wide uppercase shadow-sm ${STATUS_STYLES[order.status] ?? 'bg-stone-100 text-stone-700'}`}>
                         {STATUS_LABELS[order.status] ?? order.status}
                       </span>
-                      <p className="font-sans text-sm font-semibold text-stone-700 dark:text-stone-200">
+                      <p className="font-sans text-base font-bold text-stone-800 dark:text-stone-200">
                         ₹{order.totalAmount?.toLocaleString('en-IN')}
                       </p>
                     </div>
                   </div>
 
-                  {/* Progress Bar */}
+                  {/* Operational Timeline Progress Stream */}
                   <OrderProgressBar status={order.status} />
 
-                  <div className="flex justify-between items-center mt-3">
-                    <p className="font-sans text-xs text-stone-400">
-                      {order.quantity} {order.unit} · {new Date(order.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  <div className="flex justify-between items-center pt-2 border-t border-stone-100 dark:border-stone-800/60 mt-1">
+                    <p className="font-sans text-xs text-stone-500 dark:text-stone-400 font-medium">
+                      Bulk Load: <span className="text-stone-800 dark:text-stone-200 font-semibold">{order.quantity} {order.unit}</span> • {new Date(order.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                     </p>
-                    <p className="font-sans text-xs text-amber-700 dark:text-amber-500 font-medium flex items-center gap-1">
-                      View details <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                    <p className="font-sans text-xs font-semibold text-green-800 dark:text-green-500 flex items-center gap-1.5 hover:underline">
+                      Review Details 
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
                     </p>
                   </div>
                 </div>
               ))}
             </div>
 
-            {/* Pagination */}
-            <div className="flex justify-between items-center">
-              <p className="font-sans text-sm text-stone-500 dark:text-stone-400">
-                {data?.pagination.total} total order{data?.pagination.total !== 1 ? 's' : ''}
+            {/* Pagination Controls Section */}
+            <div className="flex flex-col sm:flex-row items-center justify-between bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 px-5 py-3.5 shadow-sm gap-4">
+              <p className="font-sans text-xs sm:text-sm text-stone-500 dark:text-stone-400 font-medium">
+                Showing {orders.length} of <span className="font-semibold text-stone-800 dark:text-stone-100">{data?.pagination.total}</span> total pipeline records
               </p>
-              <div className="flex items-center gap-2">
+              
+              <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
                 <button
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  disabled={page === 1}
-                  className="px-4 py-2 text-sm font-sans border border-stone-200 dark:border-stone-700 rounded-xl bg-white dark:bg-stone-900 text-stone-600 dark:text-stone-400 disabled:opacity-40 hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors"
+                  onClick={(e) => { e.stopPropagation(); setPage((p) => Math.max(1, p - 1)); }}
+                  disabled={page === 1 || isFetching}
+                  className="h-10 px-4 rounded-xl text-xs font-semibold font-sans border border-stone-200 dark:border-stone-700 bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 disabled:opacity-40 hover:bg-stone-200 dark:hover:bg-stone-700 transition-all active:scale-95 shadow-sm"
                 >
-                  ← Prev
+                  Prev
                 </button>
-                <span className="px-3 py-2 text-sm font-sans text-stone-500 dark:text-stone-400">
+                <span className="text-xs font-sans font-semibold text-stone-500 dark:text-stone-400 min-w-[36px] text-center">
                   {page} / {data?.pagination.pages ?? 1}
                 </span>
                 <button
-                  onClick={() => setPage((p) => p + 1)}
-                  disabled={page === (data?.pagination.pages ?? 1)}
-                  className="px-4 py-2 text-sm font-sans border border-stone-200 dark:border-stone-700 rounded-xl bg-white dark:bg-stone-900 text-stone-600 dark:text-stone-400 disabled:opacity-40 hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors"
+                  onClick={(e) => { e.stopPropagation(); setPage((p) => p + 1); }}
+                  disabled={page === (data?.pagination.pages ?? 1) || isFetching}
+                  className="h-10 px-4 rounded-xl text-xs font-semibold font-sans border border-stone-200 dark:border-stone-700 bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 disabled:opacity-40 hover:bg-stone-200 dark:hover:bg-stone-700 transition-all active:scale-95 shadow-sm"
                 >
-                  Next →
+                  Next
                 </button>
               </div>
             </div>

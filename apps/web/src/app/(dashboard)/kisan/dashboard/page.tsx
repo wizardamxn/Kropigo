@@ -87,10 +87,10 @@ export default function KisanDashboard() {
       {/* Summary Cards Grid */}
       <section>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <StatCard title="Total Listings" value={listings.length} icon="M4 6h16M4 10h16M4 14h16M4 18h16" />
-          <StatCard title="Active (Open)" value={open} icon="M5 13l4 4L19 7" color="green" />
-          <StatCard title="Drafts" value={draft} icon="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" color="stone" />
-          <StatCard title="Sold / Closed" value={sold} icon="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" color="blue" />
+          <StatCard title="Total Listings" value={listings.length} icon="M4 6h16M4 10h16M4 14h16M4 18h16" href="/kisan/listings" />
+          <StatCard title="Active (Open)" value={open} icon="M5 13l4 4L19 7" color="green" href="/kisan/listings" />
+          <StatCard title="Drafts" value={draft} icon="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" color="stone" href="/kisan/listings" />
+          <StatCard title="Sold / Closed" value={sold} icon="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" color="blue" href="/kisan/listings" />
         </div>
       </section>
 
@@ -98,7 +98,7 @@ export default function KisanDashboard() {
       <section className="bg-stone-50 dark:bg-stone-900/50 p-6 rounded-2xl border border-stone-200 dark:border-stone-800 space-y-4">
         <h2 className="font-serif text-xl text-stone-800 dark:text-stone-100 font-medium">Earnings Summary</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="bg-white dark:bg-stone-900 p-5 rounded-xl border border-stone-100 dark:border-stone-800 flex items-center justify-between shadow-sm">
+          <Link href="/kisan/orders" className="bg-white dark:bg-stone-900 p-5 rounded-xl border border-stone-100 dark:border-stone-800 flex items-center justify-between shadow-sm hover:shadow-md hover:border-stone-200 dark:hover:border-stone-700 active:scale-[0.99] transition-all duration-200 cursor-pointer">
             <div>
               <p className="font-sans text-sm text-stone-500 dark:text-stone-400 font-medium mb-1">Confirmed Sales</p>
               <p className="font-serif text-3xl font-bold text-green-800 dark:text-green-500">₹{confirmedSales.toLocaleString('en-IN')}</p>
@@ -106,8 +106,8 @@ export default function KisanDashboard() {
             <div className="w-12 h-12 bg-green-100 dark:bg-green-950/30 text-green-800 dark:text-green-500 rounded-xl flex items-center justify-center">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
             </div>
-          </div>
-          <div className="bg-white dark:bg-stone-900 p-5 rounded-xl border border-stone-100 dark:border-stone-800 flex items-center justify-between shadow-sm">
+          </Link>
+          <Link href="/kisan/orders" className="bg-white dark:bg-stone-900 p-5 rounded-xl border border-stone-100 dark:border-stone-800 flex items-center justify-between shadow-sm hover:shadow-md hover:border-stone-200 dark:hover:border-stone-700 active:scale-[0.99] transition-all duration-200 cursor-pointer">
             <div>
               <p className="font-sans text-sm text-stone-500 dark:text-stone-400 font-medium mb-1">Pending Payouts</p>
               <p className="font-serif text-3xl font-bold text-amber-600 dark:text-amber-500">₹{pendingPayouts.toLocaleString('en-IN')}</p>
@@ -115,7 +115,7 @@ export default function KisanDashboard() {
             <div className="w-12 h-12 bg-amber-100 dark:bg-amber-950/30 text-amber-600 dark:text-amber-500 rounded-xl flex items-center justify-center">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
             </div>
-          </div>
+          </Link>
         </div>
       </section>
 
@@ -203,15 +203,17 @@ export default function KisanDashboard() {
             </div>
 
             {/* Mobile Card View (Hidden on Desktop) */}
-            <div className="md:hidden flex flex-col divide-y divide-stone-100 dark:divide-stone-800">
+            <div className="md:hidden flex flex-col gap-4 divide-y divide-stone-100 dark:divide-stone-800">
               {listings.slice(0, 5).map((l) => (
-                <div key={l._id} className="p-4 flex flex-col gap-3">
+                <Link
+                  key={l._id}
+                  href={`/kisan/listings/${l._id}/view`}
+                  className="p-4 flex flex-col gap-3 hover:bg-stone-50/40 dark:hover:bg-stone-800/10 active:scale-[0.99] transition-all duration-200 block text-left"
+                >
                   <div className="flex justify-between items-start">
                     <div>
                       <h3 className="font-sans text-lg font-medium text-stone-800 dark:text-stone-100">
-                        <Link href={`/kisan/listings/${l._id}/view`} className="hover:underline">
-                          {l.cropId?.name ?? l.cropId}
-                        </Link>
+                        {l.cropId?.name ?? l.cropId}
                       </h3>
                       <p className="font-sans text-sm text-stone-500 dark:text-stone-400">
                         {new Date(l.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
@@ -245,7 +247,7 @@ export default function KisanDashboard() {
                       <span className="font-sans font-medium text-green-800 dark:text-green-500">₹{l.askingPrice.toLocaleString('en-IN')}</span>
                     </div>
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
           </>
@@ -256,15 +258,15 @@ export default function KisanDashboard() {
 }
 
 // Reusable Sub-component for the top statistics grid
-function StatCard({ title, value, icon, color = 'green' }: { title: string, value: number, icon: string, color?: 'green' | 'stone' | 'blue' }) {
+function StatCard({ title, value, icon, color = 'green', href }: { title: string, value: number, icon: string, color?: 'green' | 'stone' | 'blue', href?: string }) {
   const colorMap = {
     green: 'bg-green-50 text-green-800 dark:bg-green-900/20 dark:text-green-500',
     stone: 'bg-stone-100 text-stone-700 dark:bg-stone-800/50 dark:text-stone-400',
     blue: 'bg-blue-50 text-blue-800 dark:bg-blue-900/20 dark:text-blue-500'
   };
 
-  return (
-    <div className="bg-white dark:bg-stone-900 p-5 rounded-2xl shadow-sm border border-stone-200 dark:border-stone-800 flex flex-col gap-3">
+  const content = (
+    <>
       <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${colorMap[color]}`}>
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={icon} />
@@ -274,6 +276,22 @@ function StatCard({ title, value, icon, color = 'green' }: { title: string, valu
         <p className="font-sans text-sm text-stone-500 dark:text-stone-400 font-medium mb-1">{title}</p>
         <p className="font-serif text-3xl text-stone-800 dark:text-stone-100">{value}</p>
       </div>
+    </>
+  );
+
+  const className = "bg-white dark:bg-stone-900 p-5 rounded-2xl shadow-sm border border-stone-200 dark:border-stone-800 flex flex-col gap-3 hover:shadow-md hover:border-stone-300 dark:hover:border-stone-700 active:scale-[0.98] transition-all duration-200 text-left w-full cursor-pointer";
+
+  if (href) {
+    return (
+      <Link href={href} className={className}>
+        {content}
+      </Link>
+    );
+  }
+
+  return (
+    <div className="bg-white dark:bg-stone-900 p-5 rounded-2xl shadow-sm border border-stone-200 dark:border-stone-800 flex flex-col gap-3">
+      {content}
     </div>
   );
 }

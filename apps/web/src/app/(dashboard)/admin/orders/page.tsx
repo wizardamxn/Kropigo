@@ -90,54 +90,56 @@ export default function AdminOrdersPage() {
           <>
             {/* Desktop Table */}
             <div className="hidden md:block bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 overflow-hidden shadow-sm">
-              <table className="w-full text-left">
-                <thead className="bg-stone-50 dark:bg-stone-950/50 border-b border-stone-200 dark:border-stone-800">
-                  <tr className="font-sans text-xs text-stone-500 dark:text-stone-400 uppercase tracking-wider">
-                    <th className="px-5 py-4 font-medium">ID</th>
-                    <th className="px-5 py-4 font-medium">Crop</th>
-                    <th className="px-5 py-4 font-medium">Kisan</th>
-                    <th className="px-5 py-4 font-medium">Buyer</th>
-                    <th className="px-5 py-4 font-medium text-right">Total</th>
-                    <th className="px-5 py-4 font-medium text-center">Status</th>
-                    <th className="px-5 py-4 font-medium">Date</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-stone-100 dark:divide-stone-800">
-                  {orders.map((order) => (
-                    <tr
-                      key={order._id}
-                      onClick={() => router.push(`/admin/orders/${order._id}`)}
-                      className="hover:bg-stone-50/80 dark:hover:bg-stone-800/50 cursor-pointer transition-colors"
-                    >
-                      <td className="px-5 py-4 font-mono text-xs text-stone-400">
-                        #{order._id.slice(-6).toUpperCase()}
-                      </td>
-                      <td className="px-5 py-4 font-sans font-medium text-stone-800 dark:text-stone-100">
-                        {(order.listingId as any)?.cropId?.name ?? '—'}
-                      </td>
-                      <td className="px-5 py-4">
-                        <p className="font-sans text-sm text-stone-700 dark:text-stone-200">{(order.sellerId as any)?.name ?? '—'}</p>
-                        <p className="font-sans text-xs text-stone-400 dark:text-stone-500">{(order.sellerId as any)?.phone}</p>
-                      </td>
-                      <td className="px-5 py-4">
-                        <p className="font-sans text-sm text-stone-700 dark:text-stone-200">{(order.buyerId as any)?.name ?? '—'}</p>
-                        <p className="font-sans text-xs text-stone-400 dark:text-stone-500">{(order.buyerId as any)?.phone}</p>
-                      </td>
-                      <td className="px-5 py-4 font-sans font-medium text-stone-800 dark:text-stone-100 text-right">
-                        ₹{order.totalAmount?.toLocaleString('en-IN')}
-                      </td>
-                      <td className="px-5 py-4 text-center">
-                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${STATUS_STYLES[order.status] ?? 'bg-stone-100 text-stone-700 border-stone-200'}`}>
-                          {STATUS_LABELS[order.status] ?? order.status}
-                        </span>
-                      </td>
-                      <td className="px-5 py-4 font-sans text-sm text-stone-400">
-                        {new Date(order.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
-                      </td>
+              <div className="overflow-x-auto w-full">
+                <table className="w-full text-left min-w-[800px]">
+                  <thead className="bg-stone-50 dark:bg-stone-950/50 border-b border-stone-200 dark:border-stone-800">
+                    <tr className="font-sans text-xs text-stone-500 dark:text-stone-400 uppercase tracking-wider">
+                      <th className="px-5 py-4 font-medium">ID</th>
+                      <th className="px-5 py-4 font-medium">Crop</th>
+                      <th className="px-5 py-4 font-medium">Kisan</th>
+                      <th className="px-5 py-4 font-medium">Buyer</th>
+                      <th className="px-5 py-4 font-medium text-right">Total</th>
+                      <th className="px-5 py-4 font-medium text-center">Status</th>
+                      <th className="px-5 py-4 font-medium">Date</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-stone-100 dark:divide-stone-800">
+                    {orders.map((order) => (
+                      <tr
+                        key={order._id}
+                        onClick={() => router.push(`/admin/orders/${order._id}`)}
+                        className="hover:bg-stone-50/80 dark:hover:bg-stone-800/50 cursor-pointer transition-colors"
+                      >
+                        <td className="px-5 py-4 font-mono text-xs text-stone-400">
+                          #{order._id.slice(-6).toUpperCase()}
+                        </td>
+                        <td className="px-5 py-4 font-sans font-medium text-stone-800 dark:text-stone-100">
+                          {(order.listingId as any)?.cropId?.name ?? '—'}
+                        </td>
+                        <td className="px-5 py-4">
+                          <p className="font-sans text-sm text-stone-700 dark:text-stone-200">{(order.sellerId as any)?.name ?? '—'}</p>
+                          <p className="font-sans text-xs text-stone-400 dark:text-stone-500">{(order.sellerId as any)?.phone}</p>
+                        </td>
+                        <td className="px-5 py-4">
+                          <p className="font-sans text-sm text-stone-700 dark:text-stone-200">{(order.buyerId as any)?.name ?? '—'}</p>
+                          <p className="font-sans text-xs text-stone-400 dark:text-stone-500">{(order.buyerId as any)?.phone}</p>
+                        </td>
+                        <td className="px-5 py-4 font-sans font-medium text-stone-800 dark:text-stone-100 text-right">
+                          ₹{order.totalAmount?.toLocaleString('en-IN')}
+                        </td>
+                        <td className="px-5 py-4 text-center">
+                          <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${STATUS_STYLES[order.status] ?? 'bg-stone-100 text-stone-700 border-stone-200'}`}>
+                            {STATUS_LABELS[order.status] ?? order.status}
+                          </span>
+                        </td>
+                        <td className="px-5 py-4 font-sans text-sm text-stone-400">
+                          {new Date(order.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
 
             {/* Mobile Cards */}
