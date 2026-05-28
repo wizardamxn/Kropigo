@@ -9,6 +9,14 @@ export interface IUser extends Document {
   role: UserRole;
   profilePhoto?: string;
   location?: string;
+  farmerIdPhoto?: string;
+  aadharCardPhoto?: string;
+  bankPassbookPhoto?: string;
+  bankDetails?: {
+    accountNumber?: string;
+    ifscCode?: string;
+    bankName?: string;
+  };
   isVerified: boolean;
   verifiedAt?: Date;
   averageRating: number;
@@ -50,6 +58,20 @@ const userSchema = new Schema<IUser>(
     },
     location: {
       type: String,
+    },
+    farmerIdPhoto: {
+      type: String,
+    },
+    aadharCardPhoto: {
+      type: String,
+    },
+    bankPassbookPhoto: {
+      type: String,
+    },
+    bankDetails: {
+      accountNumber: { type: String },
+      ifscCode: { type: String },
+      bankName: { type: String },
     },
     isVerified: {
       type: Boolean,

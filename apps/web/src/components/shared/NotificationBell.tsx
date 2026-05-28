@@ -4,10 +4,11 @@ import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { RootState } from '@/store';
 import { markAllRead, markOneRead, Notification } from '@/store/notificationSlice';
 import { SOCKET_EVENTS } from '@/lib/socketEvents';
-import { useGetNotificationsQuery, useMarkAllReadMutation } from '@/store/endpoints/notificationApi';
+import { useGetNotificationsQuery, useMarkAllReadMutation, useMarkNotificationReadMutation } from '@/store/endpoints/notificationApi';
 import { addNotification } from '@/store/notificationSlice';
 
 // Premium context-aware SVG icons replacing the raw emojis
@@ -78,6 +79,7 @@ export const NotificationBell = () => {
   const [coords, setCoords] = useState<{ top: number; left: number; width: number; maxHeight: number } | null>(null);
 
   const [triggerMarkAll] = useMarkAllReadMutation();
+  const [triggerMarkRead] = useMarkNotificationReadMutation();
 
   const { data: apiNotifications } = useGetNotificationsQuery({ 
     page: 1, 
@@ -165,9 +167,14 @@ export const NotificationBell = () => {
     }
   };
 
-  const handleItemClick = (notification: Notification) => {
+  const handleItemClick = async (notification: Notification) => {
     dispatch(markOneRead(notification.id));
     setIsOpen(false);
+    try {
+      await triggerMarkRead(notification.id).unwrap();
+    } catch (err) {
+      console.error('Failed to mark notification read:', err);
+    }
     const path = getNavigationPath(notification);
     if (path) router.push(path);
   };
@@ -269,6 +276,13 @@ export const NotificationBell = () => {
               ))
             )}
           </div>
+          <Link
+            href="/notifications"
+            onClick={() => setIsOpen(false)}
+            className="block text-center text-xs font-semibold py-2.5 bg-stone-50 hover:bg-stone-100 dark:bg-stone-900/60 dark:hover:bg-stone-800 text-stone-600 dark:text-stone-400 border-t border-stone-100 dark:border-stone-800/80 transition-colors font-sans"
+          >
+            View All Notifications
+          </Link>
         </div>,
         document.body
       )}

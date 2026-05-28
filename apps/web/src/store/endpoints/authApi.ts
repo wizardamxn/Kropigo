@@ -33,7 +33,20 @@ export const authApi = baseApi.injectEndpoints({
     }),
     updateProfile: builder.mutation<
       { data: any; message: string },
-      { name: string; role: string; location?: string; profilePhoto?: string }
+      { 
+        name: string; 
+        role: string; 
+        location?: string; 
+        profilePhoto?: string;
+        farmerIdPhoto?: string;
+        aadharCardPhoto?: string;
+        bankPassbookPhoto?: string;
+        bankDetails?: {
+          accountNumber: string;
+          ifscCode: string;
+          bankName: string;
+        };
+      }
     >({
       query: (body) => ({
         url: '/user/profile',

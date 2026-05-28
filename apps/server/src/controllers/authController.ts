@@ -46,6 +46,10 @@ const buildUserResponse = (user: any) => ({
   role: user.role,
   location: user.location,
   profilePhoto: user.profilePhoto,
+  farmerIdPhoto: user.farmerIdPhoto,
+  aadharCardPhoto: user.aadharCardPhoto,
+  bankPassbookPhoto: user.bankPassbookPhoto,
+  bankDetails: user.bankDetails,
   isVerified: user.isVerified,
   isActive: user.isActive,
 });

@@ -65,7 +65,7 @@ const compressIfImage = async (file: File): Promise<File> => {
     : new File([compressed], file.name, { type: file.type, lastModified: Date.now() });
 };
 
-const uploadMediaFile = async (
+export const uploadMediaFile = async (
   file: File,
   getCloudinarySignature: GetCloudinarySignature
 ): Promise<string> => {

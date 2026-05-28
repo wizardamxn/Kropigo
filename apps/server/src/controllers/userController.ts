@@ -9,14 +9,22 @@ const profileSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
   role: z.enum(['kisan', 'buyer', 'driver', 'admin']),
   location: z.string().optional(),
-  profilePhoto: z.string().url().optional(), // In a real scenario, handle file upload first and pass URL
+  profilePhoto: z.union([z.string().url(), z.literal('')]).optional(), // In a real scenario, handle file upload first and pass URL
+  farmerIdPhoto: z.union([z.string().url(), z.literal('')]).optional(),
+  aadharCardPhoto: z.union([z.string().url(), z.literal('')]).optional(),
+  bankPassbookPhoto: z.union([z.string().url(), z.literal('')]).optional(),
+  bankDetails: z.object({
+    accountNumber: z.string().optional(),
+    ifscCode: z.string().optional(),
+    bankName: z.string().optional()
+  }).optional(),
 });
 
 export const updateProfile: RequestHandler = asyncHandler(async (req: Request, res: Response) => {
   const userId = req.user?.userId;
   if (!userId) throw new ApiError(401, 'Unauthorized');
 
-  const { name, role, location, profilePhoto } = profileSchema.parse(req.body);
+  const { name, role, location, profilePhoto, farmerIdPhoto, aadharCardPhoto, bankPassbookPhoto, bankDetails } = profileSchema.parse(req.body);
 
   const user = await User.findById(userId);
   if (!user) throw new ApiError(404, 'User not found');
@@ -28,8 +36,12 @@ export const updateProfile: RequestHandler = asyncHandler(async (req: Request, r
 
   user.name = name;
   user.role = role as any;
-  if (location) user.location = location;
-  if (profilePhoto) user.profilePhoto = profilePhoto;
+  if (location !== undefined) user.location = location;
+  if (profilePhoto !== undefined) user.profilePhoto = profilePhoto;
+  if (farmerIdPhoto !== undefined) user.farmerIdPhoto = farmerIdPhoto;
+  if (aadharCardPhoto !== undefined) user.aadharCardPhoto = aadharCardPhoto;
+  if (bankPassbookPhoto !== undefined) user.bankPassbookPhoto = bankPassbookPhoto;
+  if (bankDetails !== undefined) user.bankDetails = bankDetails;
 
   await user.save();
 

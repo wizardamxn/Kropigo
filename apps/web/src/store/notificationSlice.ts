@@ -24,14 +24,24 @@ const notificationSlice = createSlice({
   initialState,
   reducers: {
     addNotification: (state, action: PayloadAction<Notification>) => {
-      // Check if already exists by id
-      const exists = state.notifications.some(n => n.id === action.payload.id)
-      if (!exists) {
-        state.notifications.unshift(action.payload)
+      const existingIndex = state.notifications.findIndex(n => n.id === action.payload.id);
+      if (existingIndex > -1) {
+        const oldIsRead = state.notifications[existingIndex].isRead;
+        state.notifications[existingIndex] = action.payload;
+        if (oldIsRead !== action.payload.isRead) {
+          if (action.payload.isRead) {
+            state.unreadCount = Math.max(0, state.unreadCount - 1);
+          } else {
+            state.unreadCount += 1;
+          }
+        }
+      } else {
+        state.notifications.push(action.payload);
         if (!action.payload.isRead) {
-          state.unreadCount += 1
+          state.unreadCount += 1;
         }
       }
+      state.notifications.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
     },
     markAllRead: (state) => {
       state.notifications.forEach((n) => { n.isRead = true; });

@@ -16,9 +16,9 @@ export const notificationApi = baseApi.injectEndpoints({
     getNotifications: builder.query<{
       data: INotification[]
       pagination: { total: number; page: number; pages: number }
-    }, { page?: number; unreadOnly?: boolean }>({
-      query: ({ page = 1, unreadOnly = false } = {}) => ({
-        url: `/notifications?page=${page}&unreadOnly=${unreadOnly}`,
+    }, { page?: number; unreadOnly?: boolean; limit?: number }>({
+      query: ({ page = 1, unreadOnly = false, limit = 20 } = {}) => ({
+        url: `/notifications?page=${page}&unreadOnly=${unreadOnly}&limit=${limit}`,
         method: 'GET'
       }),
       providesTags: ['Notifications']

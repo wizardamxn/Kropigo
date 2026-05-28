@@ -9,6 +9,14 @@ export interface AuthUser {
   role: UserRole;
   location?: string;
   profilePhoto?: string;
+  farmerIdPhoto?: string;
+  aadharCardPhoto?: string;
+  bankPassbookPhoto?: string;
+  bankDetails?: {
+    accountNumber: string;
+    ifscCode: string;
+    bankName: string;
+  };
   isVerified: boolean;
   isActive: boolean;
 }
