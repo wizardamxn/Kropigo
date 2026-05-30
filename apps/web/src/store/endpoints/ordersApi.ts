@@ -40,10 +40,28 @@ export const ordersApi = baseApi.injectEndpoints({
       query: (id) => `/orders/${id}`,
       providesTags: (result, error, id) => [{ type: 'Order', id }]
     }),
+
+    updateOrderStatus: builder.mutation<
+      { success: boolean; message: string; data: IOrder },
+      { orderId: string; status: string; note?: string }
+    >({
+      query: ({ orderId, status, note }) => ({
+        url: `/orders/${orderId}/status`,
+        method: 'PATCH',
+        body: { status, note }
+      }),
+      // Invalidate this specific order and the list so both refetch after update
+      invalidatesTags: (result, error, { orderId }) => [
+        { type: 'Order', id: orderId },
+        'Order'
+      ]
+    }),
   }),
 });
 
 export const {
   useGetOrdersQuery,
   useGetOrderByIdQuery,
+  useUpdateOrderStatusMutation,
 } = ordersApi;
+

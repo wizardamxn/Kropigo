@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { getSocket } from '@/lib/socket';
 import { addNotification } from '@/store/notificationSlice';
 import { notificationApi } from '@/store/endpoints/notificationApi';
+import { ordersApi } from '@/store/endpoints/ordersApi';
 import { SOCKET_EVENTS } from '@/lib/socketEvents';
 import { RootState } from '@/store';
 import { v4 as uuidv4 } from 'uuid';
@@ -49,13 +50,22 @@ export const useNotifications = () => {
       dispatch(addNotification({
         id: data.notificationId || uuidv4(),
         type: SOCKET_EVENTS.ORDER_STATUS_UPDATED,
-        message: `Order update: ${data.status ?? data.cropName}`,
+        message: data.message || `Order status updated: ${data.status ?? data.cropName}`,
         payload: data,
         isRead: false,
         timestamp: new Date().toISOString(),
       }));
+
+      // Invalidate the specific order so any open order detail page refetches
+      dispatch(ordersApi.util.invalidateTags([
+        { type: 'Order', id: data.orderId },
+        'Order'
+      ]));
+
+      // Also invalidate notifications cache
       dispatch(notificationApi.util.invalidateTags(['Notifications', 'NotificationCount']));
     });
+
 
     // Kisan: new offer received on listing
     socket.on(SOCKET_EVENTS.NEW_OFFER_RECEIVED, (data) => {
