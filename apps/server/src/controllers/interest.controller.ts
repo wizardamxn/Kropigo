@@ -26,7 +26,7 @@ export const getMyInterests = async (
     const interests = await Interest.find(query)
       .populate({
         path: 'listingId',
-        select: 'mediaUrls askingPrice unit quantity status expiresAt',
+        select: 'mediaUrls unit quantity status expiresAt',
         populate: [
           { path: 'cropId', select: 'name category' },
           { path: 'sellerId', select: 'name location isVerified' },

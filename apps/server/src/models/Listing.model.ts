@@ -7,7 +7,6 @@ export interface IListing extends Document {
   quantity: number;
   variety?: string;
   unit: CropUnit;
-  askingPrice: number;
   description?: string;
   mediaUrls: string[];
   status: ListingStatus;
@@ -51,11 +50,6 @@ const listingSchema = new Schema<IListing>(
       type: String,
       enum: ['kg', 'quintal', 'ton'],
       required: true,
-    },
-    askingPrice: {
-      type: Number,
-      required: true,
-      min: 0,
     },
     description: {
       type: String,

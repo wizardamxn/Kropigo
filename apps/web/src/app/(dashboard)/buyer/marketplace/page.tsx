@@ -33,8 +33,6 @@ interface Filters {
   cropId: string;
   state: string;
   district: string;
-  minPrice: string;
-  maxPrice: string;
   sort: string;
 }
 
@@ -43,8 +41,6 @@ const EMPTY_FILTERS: Filters = {
   cropId: '',
   state: '',
   district: '',
-  minPrice: '',
-  maxPrice: '',
   sort: 'newest',
 };
 
@@ -94,13 +90,6 @@ function CropCard({ listing }: { listing: any }) {
         <h3 className="font-serif text-lg font-semibold text-stone-800 dark:text-stone-100 leading-tight line-clamp-1">
           {crop?.name ?? '—'} {listing.variety ? `(${listing.variety})` : ''}
         </h3>
-
-        <div className="flex items-baseline gap-1">
-          <span className="font-serif text-xl font-bold text-green-800 dark:text-green-500">
-            {formatPrice(listing.askingPrice)}
-          </span>
-          <span className="text-xs text-stone-500 dark:text-stone-400">/ {listing.unit}</span>
-        </div>
 
         <div className="flex items-center gap-2 text-xs text-stone-600 dark:text-stone-400 font-medium">
           <svg className="w-4 h-4 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -173,8 +162,6 @@ export default function MarketplacePage() {
     if (appliedFilters.cropId) p.cropId = appliedFilters.cropId;
     if (appliedFilters.state) p.state = appliedFilters.state;
     if (appliedFilters.district) p.district = appliedFilters.district;
-    if (appliedFilters.minPrice) p.minPrice = appliedFilters.minPrice;
-    if (appliedFilters.maxPrice) p.maxPrice = appliedFilters.maxPrice;
     if (appliedFilters.sort) p.sort = appliedFilters.sort;
     return p;
   }, [appliedFilters, page]);
@@ -232,8 +219,6 @@ export default function MarketplacePage() {
     }
     if (appliedFilters.state) chips.push({ label: appliedFilters.state, clear: () => removeSpecificFilter('state') });
     if (appliedFilters.district) chips.push({ label: appliedFilters.district, clear: () => removeSpecificFilter('district') });
-    if (appliedFilters.minPrice) chips.push({ label: `Min ₹${appliedFilters.minPrice}`, clear: () => removeSpecificFilter('minPrice') });
-    if (appliedFilters.maxPrice) chips.push({ label: `Max ₹${appliedFilters.maxPrice}`, clear: () => removeSpecificFilter('maxPrice') });
     return chips;
   }, [appliedFilters, crops]);
 
@@ -320,26 +305,6 @@ export default function MarketplacePage() {
               className={`${inputStyles} w-34`}
             />
 
-            <div className="flex items-center gap-1.5">
-              <input
-                type="number"
-                value={localFilters.minPrice}
-                onChange={(e) => handleUpdateLocalFilter('minPrice', e.target.value)}
-                placeholder="Min ₹"
-                min="0"
-                className={`${inputStyles} w-28`}
-              />
-              <span className="text-stone-400 text-sm font-medium">–</span>
-              <input
-                type="number"
-                value={localFilters.maxPrice}
-                onChange={(e) => handleUpdateLocalFilter('maxPrice', e.target.value)}
-                placeholder="Max ₹"
-                min="0"
-                className={`${inputStyles} w-28`}
-              />
-            </div>
-
             <div className="relative ml-auto">
               <select
                 value={localFilters.sort}
@@ -347,8 +312,6 @@ export default function MarketplacePage() {
                 className={`${selectStyles} h-10`}
               >
                 <option value="newest">Newest first</option>
-                <option value="price_asc">Price: Low → High</option>
-                <option value="price_desc">Price: High → Low</option>
               </select>
               <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3.5 text-stone-400">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
@@ -399,20 +362,6 @@ export default function MarketplacePage() {
                 placeholder="District"
                 className={inputStyles}
               />
-              <input
-                type="number"
-                value={localFilters.minPrice}
-                onChange={(e) => handleUpdateLocalFilter('minPrice', e.target.value)}
-                placeholder="Min Price (₹)"
-                className={inputStyles}
-              />
-              <input
-                type="number"
-                value={localFilters.maxPrice}
-                onChange={(e) => handleUpdateLocalFilter('maxPrice', e.target.value)}
-                placeholder="Max Price (₹)"
-                className={inputStyles}
-              />
               
               <div className="relative col-span-2">
                 <select
@@ -421,8 +370,6 @@ export default function MarketplacePage() {
                   className={`${selectStyles} w-full`}
                 >
                   <option value="newest">Newest first</option>
-                  <option value="price_asc">Price: Low → High</option>
-                  <option value="price_desc">Price: High → Low</option>
                 </select>
                 <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3.5 text-stone-400">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>

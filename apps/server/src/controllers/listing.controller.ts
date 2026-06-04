@@ -26,7 +26,6 @@ export const createListing = async (
       quantity,
       variety,
       unit,
-      askingPrice,
       description,
       farmAddress,
       farmState,
@@ -57,7 +56,6 @@ export const createListing = async (
       quantity,
       variety,
       unit,
-      askingPrice,
       description,
       mediaUrls,
       farmAddress,
@@ -65,7 +63,7 @@ export const createListing = async (
       farmDistrict,
       farmCoordinates:
         lat && lng ? { lat: Number(lat), lng: Number(lng) } : undefined,
-      status: "open", // Defaults to open or draft depending on frontend
+      status: "open",
     });
 
     // Fetch current Mandi rate for reference
@@ -117,20 +115,7 @@ export const getListings = async (
     if (status) query.status = status;
     else if (!sellerId) query.status = { $in: ["open", "interest_received"] }; // Public sees both open and listings with interests
 
-    if (minPrice || maxPrice) {
-      query.askingPrice = {};
-      if (minPrice) query.askingPrice.$gte = Number(minPrice);
-      if (maxPrice) query.askingPrice.$lte = Number(maxPrice);
-    }
-
     let sortOption: any = { createdAt: -1 };
-    if (sort === "price_asc") {
-      sortOption = { askingPrice: 1, createdAt: -1 };
-    } else if (sort === "price_desc") {
-      sortOption = { askingPrice: -1, createdAt: -1 };
-    } else if (sort === "newest") {
-      sortOption = { createdAt: -1 };
-    }
 
     const listings = await Listing.find(query)
       .populate("cropId", "name category unit")
@@ -258,7 +243,6 @@ export const updateListing = async (
       "quantity",
       "variety",
       "unit",
-      "askingPrice",
       "description",
       "farmAddress",
       "farmState",

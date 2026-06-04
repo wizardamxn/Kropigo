@@ -23,7 +23,6 @@ export default function MVPTestPage() {
         cropId: selectedCrop,
         quantity: '100',
         unit: 'kg',
-        askingPrice: '5000',
         farmAddress: '123 Farm Road',
         farmState: 'Punjab',
         farmDistrict: 'Ludhiana',
@@ -90,7 +89,7 @@ export default function MVPTestPage() {
               listingsData.data.map((l: any) => (
                 <div key={l._id} className="p-4 border rounded bg-gray-50">
                   <p><strong>Crop:</strong> {l.cropId?.name}</p>
-                  <p><strong>Price:</strong> ₹{l.askingPrice} / {l.unit}</p>
+                  <p><strong>Quantity:</strong> {l.quantity} {l.unit}</p>
                   <p><strong>Location:</strong> {l.farmDistrict}, {l.farmState}</p>
                   <p><strong>Status:</strong> {l.status}</p>
                 </div>

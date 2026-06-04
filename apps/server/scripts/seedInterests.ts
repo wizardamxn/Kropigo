@@ -40,7 +40,7 @@ async function run() {
     }
 
     // 2. Get or create a Buyer user
-    let buyer1 = await User.findOne({ email: 'buyer1@kropigo.com' });
+    let buyer1: any = await User.findOne({ email: 'buyer1@kropigo.com' });
     if (!buyer1) {
       buyer1 = await User.create({
         email: 'buyer1@kropigo.com',
@@ -53,7 +53,7 @@ async function run() {
       console.log('Created buyer 1:', buyer1.name);
     }
 
-    let buyer2 = await User.findOne({ email: 'buyer2@kropigo.com' });
+    let buyer2: any = await User.findOne({ email: 'buyer2@kropigo.com' });
     if (!buyer2) {
       buyer2 = await User.create({
         email: 'buyer2@kropigo.com',
@@ -84,7 +84,6 @@ async function run() {
       sellerId: kisan._id,
       quantity: 50,
       unit: 'quintal',
-      askingPrice: 1200,
       description: 'Fresh organic tomatoes, harvested yesterday. Ready for pick-up.',
       mediaUrls: ['https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=600&auto=format&fit=crop'],
       status: 'interest_received',
@@ -100,7 +99,6 @@ async function run() {
       sellerId: kisan._id,
       quantity: 200,
       unit: 'quintal',
-      askingPrice: 2100,
       description: 'Sharbati premium wheat. Well stored in dry silos.',
       mediaUrls: ['https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=600&auto=format&fit=crop'],
       status: 'open',
@@ -116,7 +114,6 @@ async function run() {
       sellerId: kisan._id,
       quantity: 150,
       unit: 'quintal',
-      askingPrice: 2050,
       description: 'Standard wheat. Harvested last month.',
       status: 'sale_confirmed',
       farmAddress: 'Plot 4, Near Canal, Karnal',

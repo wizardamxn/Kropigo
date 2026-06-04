@@ -63,13 +63,7 @@ export default function KisanDashboard() {
   const sold = listings.filter((l) => ['sale_confirmed', 'closed'].includes(l.status)).length;
   const draft = listings.filter((l) => l.status === 'draft').length;
 
-  const confirmedSales = listings
-    .filter((l) => ['sale_confirmed', 'closed'].includes(l.status))
-    .reduce((sum, l) => sum + (l.askingPrice * l.quantity), 0);
-
-  const pendingPayouts = listings
-    .filter((l) => l.status === 'sale_confirmed')
-    .reduce((sum, l) => sum + (l.askingPrice * l.quantity), 0);
+  const interestListings = listings.filter((l) => (l.interestCount ?? 0) > 0).length;
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
@@ -94,29 +88,13 @@ export default function KisanDashboard() {
         </div>
       </section>
 
-      {/* Earnings Summary Section */}
-      <section className="bg-stone-50 dark:bg-stone-900/50 p-6 rounded-2xl border border-stone-200 dark:border-stone-800 space-y-4">
-        <h2 className="font-serif text-xl text-stone-800 dark:text-stone-100 font-medium">Earnings Summary</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Link href="/kisan/orders" className="bg-white dark:bg-stone-900 p-5 rounded-xl border border-stone-100 dark:border-stone-800 flex items-center justify-between shadow-sm hover:shadow-md hover:border-stone-200 dark:hover:border-stone-700 active:scale-[0.99] transition-all duration-200 cursor-pointer">
-            <div>
-              <p className="font-sans text-sm text-stone-500 dark:text-stone-400 font-medium mb-1">Confirmed Sales</p>
-              <p className="font-serif text-3xl font-bold text-green-800 dark:text-green-500">₹{confirmedSales.toLocaleString('en-IN')}</p>
-            </div>
-            <div className="w-12 h-12 bg-green-100 dark:bg-green-950/30 text-green-800 dark:text-green-500 rounded-xl flex items-center justify-center">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-            </div>
-          </Link>
-          <Link href="/kisan/orders" className="bg-white dark:bg-stone-900 p-5 rounded-xl border border-stone-100 dark:border-stone-800 flex items-center justify-between shadow-sm hover:shadow-md hover:border-stone-200 dark:hover:border-stone-700 active:scale-[0.99] transition-all duration-200 cursor-pointer">
-            <div>
-              <p className="font-sans text-sm text-stone-500 dark:text-stone-400 font-medium mb-1">Pending Payouts</p>
-              <p className="font-serif text-3xl font-bold text-amber-600 dark:text-amber-500">₹{pendingPayouts.toLocaleString('en-IN')}</p>
-            </div>
-            <div className="w-12 h-12 bg-amber-100 dark:bg-amber-950/30 text-amber-600 dark:text-amber-500 rounded-xl flex items-center justify-center">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-            </div>
-          </Link>
-        </div>
+      {/* Activity Summary */}
+      <section className="bg-stone-50 dark:bg-stone-900/50 p-6 rounded-2xl border border-stone-200 dark:border-stone-800 space-y-2">
+        <h2 className="font-serif text-xl text-stone-800 dark:text-stone-100 font-medium">Activity</h2>
+        <p className="font-sans text-sm text-stone-500 dark:text-stone-400">
+          <span className="font-semibold text-amber-700 dark:text-amber-400 text-base">{interestListings}</span> of your listings have received buyer interest.
+          Visit <Link href="/kisan/listings" className="underline text-green-800 dark:text-green-500">My Listings</Link> to review and act on offers.
+        </p>
       </section>
 
       {/* Recent Listings Section */}
@@ -153,7 +131,6 @@ export default function KisanDashboard() {
                   <tr className="bg-stone-50 dark:bg-stone-950/50 font-sans text-sm text-stone-500 dark:text-stone-400 uppercase tracking-wider">
                     <th className="px-6 py-4 font-medium">Crop</th>
                     <th className="px-6 py-4 font-medium">Quantity</th>
-                    <th className="px-6 py-4 font-medium">Asking Price</th>
                     <th className="px-6 py-4 font-medium">Status</th>
                     <th className="px-6 py-4 font-medium text-center">Interests</th>
                     <th className="px-6 py-4 font-medium">Date Created</th>
@@ -169,9 +146,6 @@ export default function KisanDashboard() {
                       </td>
                       <td className="px-6 py-4 font-sans text-stone-600 dark:text-stone-300">
                         {l.quantity} <span className="text-stone-400 text-sm">{l.unit}</span>
-                      </td>
-                      <td className="px-6 py-4 font-sans text-stone-800 dark:text-stone-200 font-medium">
-                        ₹{l.askingPrice.toLocaleString('en-IN')}
                       </td>
                       <td className="px-6 py-4">
                         <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${getStatusBadge(l.status)}`}>
@@ -227,24 +201,6 @@ export default function KisanDashboard() {
                     <div className="flex flex-col">
                       <span className="text-xs text-stone-500 dark:text-stone-400 uppercase tracking-wider">Quantity</span>
                       <span className="font-sans text-stone-800 dark:text-stone-200">{l.quantity} {l.unit}</span>
-                    </div>
-                    {l.interestCount > 0 && (
-                      <div className="flex flex-col items-center">
-                        <span className="text-xs text-stone-500 dark:text-stone-400 uppercase tracking-wider">Bids</span>
-                        <span className="relative inline-flex items-center px-2 py-0.5 rounded bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400 border border-amber-100 dark:border-amber-800/30 text-xs font-semibold">
-                          {l.interestCount}
-                          {l.hasUnreadInterests && (
-                            <span className="absolute -top-0.5 -right-0.5 flex h-1.5 w-1.5">
-                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500"></span>
-                            </span>
-                          )}
-                        </span>
-                      </div>
-                    )}
-                    <div className="flex flex-col items-end">
-                      <span className="text-xs text-stone-500 dark:text-stone-400 uppercase tracking-wider">Price</span>
-                      <span className="font-sans font-medium text-green-800 dark:text-green-500">₹{l.askingPrice.toLocaleString('en-IN')}</span>
                     </div>
                   </div>
                 </Link>

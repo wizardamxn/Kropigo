@@ -28,7 +28,6 @@ import { Modal } from '@/components/ui/modal';
 
       quantity: number
       unit: 'kg' | 'quintal' | 'ton'
-      askingPrice: number           // per unit, in INR
       description?: string
 
       farmAddress: string
@@ -205,33 +204,23 @@ export default function ListingViewPage() {
         </div>
       </section>
 
-      {/* ── PRICING & QUANTITY ────────────────────────────────────── */}
+      {/* ── QUANTITY ──────────────────────────────────────────────── */}
       {/*
-        data.data.askingPrice  — number (INR per unit)
         data.data.quantity     — number
         data.data.unit         — 'kg' | 'quintal' | 'ton'
       */}
       <section className="bg-stone-50 dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 p-5 space-y-4">
         <h2 className="font-sans text-xs font-semibold uppercase tracking-wider text-stone-400 dark:text-stone-500">
-          Pricing & Quantity
+          Quantity
         </h2>
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <p className="text-xs text-stone-500 dark:text-stone-400 font-sans mb-1">Asking Price</p>
-            <p className="font-serif text-2xl text-stone-800 dark:text-stone-100">
-              ₹{listing.askingPrice.toLocaleString('en-IN')}
-              <span className="text-base text-stone-500 dark:text-stone-400 font-sans font-normal ml-1">/ {listing.unit}</span>
-            </p>
-          </div>
-          <div>
-            <p className="text-xs text-stone-500 dark:text-stone-400 font-sans mb-1">Available Quantity</p>
-            <p className="font-serif text-2xl text-stone-800 dark:text-stone-100">
-              {listing.quantity}
-              <span className="text-base text-stone-500 dark:text-stone-400 font-sans font-normal ml-1">{listing.unit}</span>
-            </p>
-          </div>
+        <div>
+          <p className="font-serif text-2xl text-stone-800 dark:text-stone-100">
+            {listing.quantity}
+            <span className="text-base text-stone-500 dark:text-stone-400 font-sans font-normal ml-1">{listing.unit}</span>
+          </p>
         </div>
       </section>
+
 
       {/* ── DESCRIPTION ──────────────────────────────────────────── */}
       {/* data.data.description — optional free-text string */}

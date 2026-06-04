@@ -46,7 +46,7 @@ const interestStatusConfig: Record<string, { bg: string; border: string; text: s
 
 // ─── MANDI RATE TABLE COMPONENT ───────────────────────────────────────────────
 
-function MandiRateTable({ cropId, askingPrice, unit }: { cropId: string; askingPrice: number; unit: string }) {
+function MandiRateTable({ cropId, unit }: { cropId: string; unit: string }) {
   const { data, isLoading } = useGetMandiRatesQuery(cropId);
   const rates: any[] = (data?.data ?? []).slice(0, 5);
 
@@ -67,35 +67,8 @@ function MandiRateTable({ cropId, askingPrice, unit }: { cropId: string; askingP
     );
   }
 
-  const latestModal = rates[0]?.modalPrice;
-  const delta = latestModal ? askingPrice - latestModal : null;
-
   return (
     <div className="space-y-3">
-      {/* Delta Badge Metric Analyzer */}
-      {delta !== null && (
-        <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium border ${
-          delta > 0
-            ? 'bg-red-50 dark:bg-red-950/20 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800/40'
-            : delta < 0
-            ? 'bg-green-50 dark:bg-green-950/20 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800/40'
-            : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400 border-stone-200 dark:border-stone-700'
-        }`}>
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            {delta > 0
-              ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-              : delta < 0
-              ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 17h8m0 0v-8m0 8l-8-8-4 4-6-6" />
-              : <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14" />}
-          </svg>
-          <span>
-            Asking price is{' '}
-            <strong className="font-semibold">{fmtPrice(Math.abs(delta))}</strong>{' '}
-            {delta > 0 ? 'above' : delta < 0 ? 'below' : 'equal to'} latest modal rate
-          </span>
-        </div>
-      )}
-
       {/* Structured Table Responsive View */}
       <div className="overflow-x-auto rounded-xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900">
         <table className="w-full text-sm font-sans text-left border-collapse">
@@ -394,7 +367,7 @@ function InterestPanel({ listing }: { listing: any }) {
                   type="number"
                   value={price}
                   onChange={(e) => setPrice(e.target.value)}
-                  placeholder={String(listing.askingPrice)}
+                  placeholder="Enter your offer price"
                   min="1"
                   required
                   className="w-full h-12 pl-9 pr-4 rounded-xl border border-stone-300 dark:border-stone-700 bg-stone-50 dark:bg-stone-950 text-stone-800 dark:text-stone-100 text-sm focus:outline-none focus:ring-2 focus:ring-green-800 dark:focus:ring-green-700 transition-all shadow-sm"
@@ -595,27 +568,15 @@ export default function ListingDetailPage() {
         </div>
       </section>
 
-      {/* Pricing & Metric Ledger Specification Info */}
+      {/* Quantity Section */}
       <section className="bg-stone-50 dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 p-5 md:p-6 shadow-sm">
         <h2 className="text-xs font-bold uppercase tracking-wider text-stone-400 dark:text-stone-500 font-sans mb-4">
-          Pricing & Metrics Grid Summary
+          Available Quantity
         </h2>
-        <div className="grid grid-cols-2 gap-5 divide-x divide-stone-200 dark:divide-stone-800">
-          <div>
-            <p className="text-xs font-medium text-stone-500 dark:text-stone-400 font-sans mb-1 uppercase tracking-wider">Asking Unit Cost</p>
-            <p className="font-serif text-2xl md:text-3xl font-bold text-green-800 dark:text-green-500">
-              {fmtPrice(listing.askingPrice)}
-              <span className="text-sm text-stone-400 dark:text-stone-500 font-sans font-normal ml-1">/ {listing.unit}</span>
-            </p>
-          </div>
-          <div className="pl-5">
-            <p className="text-xs font-medium text-stone-500 dark:text-stone-400 font-sans mb-1 uppercase tracking-wider">Available Bulk Weight</p>
-            <p className="font-serif text-2xl md:text-3xl font-bold text-stone-800 dark:text-stone-100">
-              {listing.quantity}
-              <span className="text-sm text-stone-400 dark:text-stone-500 font-sans font-normal ml-1.5">{listing.unit}</span>
-            </p>
-          </div>
-        </div>
+        <p className="font-serif text-2xl md:text-3xl font-bold text-stone-800 dark:text-stone-100">
+          {listing.quantity}
+          <span className="text-sm text-stone-400 dark:text-stone-500 font-sans font-normal ml-1.5">{listing.unit}</span>
+        </p>
       </section>
 
       {/* Optional Free-Text Narrative Description Section */}
@@ -680,7 +641,6 @@ export default function ListingDetailPage() {
           </div>
           <MandiRateTable
             cropId={crop._id}
-            askingPrice={listing.askingPrice}
             unit={listing.unit}
           />
         </section>

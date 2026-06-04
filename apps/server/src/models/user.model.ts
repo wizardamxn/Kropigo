@@ -9,6 +9,8 @@ export interface IUser extends Document {
   role: UserRole;
   profilePhoto?: string;
   location?: string;
+  fathersName?: string;
+  marka?: string;
   farmerIdPhoto?: string;
   aadharCardPhoto?: string;
   bankPassbookPhoto?: string;
@@ -58,6 +60,14 @@ const userSchema = new Schema<IUser>(
     },
     location: {
       type: String,
+    },
+    fathersName: {
+      type: String,
+      maxlength: 200,
+    },
+    marka: {
+      type: String,
+      maxlength: 5,
     },
     farmerIdPhoto: {
       type: String,

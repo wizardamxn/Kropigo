@@ -69,8 +69,7 @@ export default function ListingDetail() {
   const latestRate = mandiData?.data?.[0];
 
   const [quantity, setQuantity] = useState("");
-  const [unit, setUnit] = useState("quintal");
-  const [askingPrice, setAskingPrice] = useState("");
+  const [unit, setUnit] = useState("");
   const [description, setDescription] = useState("");
   const [farmAddress, setFarmAddress] = useState("");
   const [farmState, setFarmState] = useState("");
@@ -85,7 +84,6 @@ export default function ListingDetail() {
     if (!listing) return;
     setQuantity(String(listing.quantity));
     setUnit(listing.unit);
-    setAskingPrice(String(listing.askingPrice));
     setDescription(listing.description ?? "");
     setFarmAddress(listing.farmAddress);
     setFarmState(listing.farmState);
@@ -161,7 +159,6 @@ export default function ListingDetail() {
         body: {
           quantity,
           unit,
-          askingPrice,
           description,
           farmAddress,
           farmState,
@@ -409,19 +406,6 @@ export default function ListingDetail() {
           </h2>
 
           <div className="flex flex-col sm:flex-row gap-5">
-            <div className="flex-1">
-              <label className={labelBaseClass}>Quantity *</label>
-              <input
-                type="number"
-                min="0"
-                step="any"
-                value={quantity}
-                onChange={(e) => setQuantity(e.target.value)}
-                required
-                disabled={!canEdit}
-                className={inputBaseClass}
-              />
-            </div>
             <div className="sm:w-1/3">
               <label className={labelBaseClass}>Unit *</label>
               <select
@@ -437,30 +421,29 @@ export default function ListingDetail() {
                 ))}
               </select>
             </div>
-          </div>
-
-          <div>
-            <label className={labelBaseClass}>
-              Asking Price (per {unit}) *
-            </label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <span
-                  className={`font-sans font-medium ${canEdit ? "text-stone-500" : "text-stone-400 dark:text-stone-500"}`}
-                >
-                  ₹
-                </span>
-              </div>
+            <div className="flex-1">
+              <label className={labelBaseClass}>Quantity *</label>
               <input
                 type="number"
                 min="0"
-                value={askingPrice}
-                onChange={(e) => setAskingPrice(e.target.value)}
+                step="any"
+                value={quantity}
+                onChange={(e) => setQuantity(e.target.value)}
                 required
                 disabled={!canEdit}
-                className={`${inputBaseClass} pl-8`}
+                className={inputBaseClass}
               />
             </div>
+          </div>
+
+
+          <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/50 rounded-xl p-3 flex gap-2">
+            <svg className="w-5 h-5 text-amber-600 dark:text-amber-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p className="font-sans text-sm text-amber-800 dark:text-amber-300">
+              Pricing is managed by our team. Buyers submit their own offers which you can accept or reject.
+            </p>
           </div>
 
           <div>

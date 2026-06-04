@@ -37,6 +37,8 @@ export const authApi = baseApi.injectEndpoints({
         name: string; 
         role: string; 
         location?: string; 
+        fathersName?: string;
+        marka?: string;
         profilePhoto?: string;
         farmerIdPhoto?: string;
         aadharCardPhoto?: string;

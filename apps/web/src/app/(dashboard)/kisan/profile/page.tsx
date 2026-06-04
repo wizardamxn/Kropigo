@@ -138,6 +138,8 @@ export default function KisanProfile() {
 
   const [name, setName] = useState('');
   const [location, setLocation] = useState('');
+  const [fathersName, setFathersName] = useState('');
+  const [marka, setMarka] = useState('');
   const [profilePhoto, setProfilePhoto] = useState('');
   const [farmerIdPhoto, setFarmerIdPhoto] = useState('');
   const [aadharCardPhoto, setAadharCardPhoto] = useState('');
@@ -161,6 +163,8 @@ export default function KisanProfile() {
     if (!user) return;
     setName(user.name ?? '');
     setLocation(user.location ?? '');
+    setFathersName(user.fathersName ?? '');
+    setMarka(user.marka ?? '');
     setProfilePhoto(user.profilePhoto ?? '');
     setFarmerIdPhoto(user.farmerIdPhoto ?? '');
     setAadharCardPhoto(user.aadharCardPhoto ?? '');
@@ -208,6 +212,8 @@ export default function KisanProfile() {
         name, 
         role: user!.role, 
         location, 
+        fathersName: fathersName || undefined,
+        marka: marka || undefined,
         profilePhoto,
         farmerIdPhoto,
         aadharCardPhoto,
@@ -218,6 +224,8 @@ export default function KisanProfile() {
       dispatch(updateUser({ 
         name, 
         location, 
+        fathersName,
+        marka,
         profilePhoto,
         farmerIdPhoto,
         aadharCardPhoto,
@@ -324,6 +332,18 @@ export default function KisanProfile() {
                 <span className="block text-xs font-semibold uppercase tracking-wider text-stone-400 dark:text-stone-500 mb-0.5">Mobile Phone</span>
                 <span className="block font-medium text-stone-800 dark:text-stone-200">{user?.phone}</span>
               </div>
+              {user?.fathersName && (
+                <div>
+                  <span className="block text-xs font-semibold uppercase tracking-wider text-stone-400 dark:text-stone-500 mb-0.5">Father's Name</span>
+                  <span className="block font-medium text-stone-800 dark:text-stone-200">{user.fathersName}</span>
+                </div>
+              )}
+              {user?.marka && (
+                <div>
+                  <span className="block text-xs font-semibold uppercase tracking-wider text-stone-400 dark:text-stone-500 mb-0.5">Marka</span>
+                  <span className="block font-medium text-stone-800 dark:text-stone-200 uppercase tracking-wider font-semibold">{user.marka}</span>
+                </div>
+              )}
             </div>
           </section>
 
@@ -363,6 +383,35 @@ export default function KisanProfile() {
                 />
               </div>
 
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div>
+                  <label className={labelBaseClass} htmlFor="fathers-name-input">Father's Name (Optional)</label>
+                  <input 
+                    id="fathers-name-input" 
+                    type="text" 
+                    value={fathersName} 
+                    onChange={(e) => setFathersName(e.target.value)} 
+                    placeholder="Enter father's name"
+                    className={inputBaseClass}
+                  />
+                </div>
+                <div>
+                  <label className={labelBaseClass} htmlFor="marka-input">Marka (Max 5 Letters)</label>
+                  <input 
+                    id="marka-input" 
+                    type="text" 
+                    maxLength={5} 
+                    value={marka} 
+                    onChange={(e) => setMarka(e.target.value.toUpperCase())} 
+                    placeholder="e.g. A1B2"
+                    className={`${inputBaseClass} uppercase font-semibold`}
+                  />
+                  <div className="text-right mt-1 text-xs text-stone-500 dark:text-stone-400 font-sans">
+                    {marka.length}/5 letters
+                  </div>
+                </div>
+              </div>
+
               <div>
                 <label className={labelBaseClass} htmlFor="location-input">Primary Operations Hub / Village Location</label>
                 <input 
@@ -392,7 +441,7 @@ export default function KisanProfile() {
                 
                 <div className="space-y-4">
                   <ImageCrudField
-                    label="Government Issued Farmer ID / Kisan Credit Card Document"
+                    label="Farmer ID Image"
                     value={farmerIdPhoto}
                     onUpload={(e) => handleFileUpload(e, setFarmerIdPhoto, farmerIdPhoto)}
                     isUploading={isUploading}
@@ -401,7 +450,7 @@ export default function KisanProfile() {
                   />
 
                   <ImageCrudField
-                    label="National Identity Verification Document Card"
+                    label="Aadhar Card Image"
                     value={aadharCardPhoto}
                     onUpload={(e) => handleFileUpload(e, setAadharCardPhoto, aadharCardPhoto)}
                     isUploading={isUploading}
@@ -410,7 +459,7 @@ export default function KisanProfile() {
                   />
 
                   <ImageCrudField
-                    label="Official Bank Passbook Front Page File Copy"
+                    label="Bank Passbook Image"
                     value={bankPassbookPhoto}
                     onUpload={(e) => handleFileUpload(e, setBankPassbookPhoto, bankPassbookPhoto)}
                     isUploading={isUploading}

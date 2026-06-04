@@ -22,9 +22,8 @@ export default function CreateListing() {
 
   const [cropId, setCropId] = useState("");
   const [variety, setVariety] = useState("");
+  const [unit, setUnit] = useState("");
   const [quantity, setQuantity] = useState("");
-  const [unit, setUnit] = useState("quintal");
-  const [askingPrice, setAskingPrice] = useState("");
   const [description, setDescription] = useState("");
   const [farmAddress, setFarmAddress] = useState("");
   const [farmState, setFarmState] = useState("");
@@ -163,7 +162,6 @@ export default function CreateListing() {
         variety: variety || undefined,
         quantity,
         unit,
-        askingPrice,
         description,
         farmAddress,
         farmState,
@@ -256,7 +254,22 @@ export default function CreateListing() {
             />
           </div>
 
+
           <div className="flex flex-col sm:flex-row gap-5">
+            <div className="sm:w-1/3">
+              <label className={labelBaseClass}>Unit *</label>
+              <select
+                value={unit}
+                onChange={(e) => setUnit(e.target.value)}
+                required
+                className={`${inputBaseClass} appearance-none cursor-pointer`}
+              >
+                <option value="" disabled>Select unit...</option>
+                {UNITS.map((u) => (
+                  <option key={u} value={u}>{u.toUpperCase()}</option>
+                ))}
+              </select>
+            </div>
             <div className="flex-1">
               <label className={labelBaseClass}>Quantity *</label>
               <input
@@ -266,21 +279,10 @@ export default function CreateListing() {
                 value={quantity}
                 onChange={(e) => setQuantity(e.target.value)}
                 required
-                placeholder="e.g. 50"
-                className={inputBaseClass}
+                placeholder={unit ? `e.g. 50 ${unit}` : "Select unit first"}
+                disabled={!unit}
+                className={`${inputBaseClass} ${!unit ? 'opacity-60 cursor-not-allowed' : ''}`}
               />
-            </div>
-            <div className="sm:w-1/3">
-              <label className={labelBaseClass}>Unit *</label>
-              <select
-                value={unit}
-                onChange={(e) => setUnit(e.target.value)}
-                className={`${inputBaseClass} appearance-none cursor-pointer`}
-              >
-                {UNITS.map((u) => (
-                  <option key={u} value={u}>{u.toUpperCase()}</option>
-                ))}
-              </select>
             </div>
           </div>
         </section>
@@ -309,28 +311,19 @@ export default function CreateListing() {
           </div>
         )}
 
-        {/* Section 2: Pricing & Description */}
+        {/* Section 2: Description */}
         <section className="bg-stone-50 dark:bg-stone-900 rounded-2xl p-5 md:p-8 border border-stone-200 dark:border-stone-800 shadow-sm space-y-5">
           <h2 className="font-serif text-2xl text-stone-800 dark:text-stone-100 border-b border-stone-200 dark:border-stone-800 pb-3">
-            Pricing & Details
+            Additional Details
           </h2>
 
-          <div>
-            <label className={labelBaseClass}>Your Asking Price (per {unit}) *</label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <span className="text-stone-500 font-sans font-medium">₹</span>
-              </div>
-              <input
-                type="number"
-                min="0"
-                value={askingPrice}
-                onChange={(e) => setAskingPrice(e.target.value)}
-                required
-                placeholder="Enter amount"
-                className={`${inputBaseClass} pl-8`}
-              />
-            </div>
+          <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/50 rounded-xl p-3 flex gap-2">
+            <svg className="w-5 h-5 text-amber-600 dark:text-amber-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p className="font-sans text-sm text-amber-800 dark:text-amber-300">
+              Pricing is determined by our team based on current market rates. Buyers will make offers that you can accept or reject.
+            </p>
           </div>
 
           <div>

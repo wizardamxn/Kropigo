@@ -5,7 +5,6 @@ export type ListingPayload = {
   variety?: string;
   quantity: string;
   unit: string;
-  askingPrice: string;
   description?: string;
   farmAddress: string;
   farmState: string;

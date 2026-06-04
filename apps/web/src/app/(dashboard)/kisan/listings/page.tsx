@@ -88,7 +88,7 @@ export default function KisanListings() {
             My Listings
           </h1>
           <p className="font-sans text-sm text-stone-600 dark:text-stone-400 mt-1">
-            Manage your crop availability, metrics, and pricing.
+          Manage your crop listings and track buyer activity.
           </p>
         </div>
 
@@ -142,7 +142,6 @@ export default function KisanListings() {
                     <tr className="bg-stone-50 dark:bg-stone-950/50 font-sans text-xs font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wider border-b border-stone-200 dark:border-stone-800">
                       <th className="px-6 py-4">Crop</th>
                       <th className="px-6 py-4">Qty</th>
-                      <th className="px-6 py-4">Price</th>
                       <th className="px-6 py-4">Status</th>
                       <th className="px-6 py-4 text-center">Interests</th>
                       <th className="px-6 py-4 text-center">Views</th>
@@ -155,7 +154,6 @@ export default function KisanListings() {
                       const thumbUrl = l.mediaUrls?.[0];
                       return (
                         <tr key={l._id} className="hover:bg-stone-50/50 dark:hover:bg-stone-800/50 transition-colors">
-                          {/* Crop Column (Optimized crisp thumbnail sizing) */}
                           <td className="px-6 py-3.5">
                             <div className="flex items-center gap-3">
                               {thumbUrl ? (
@@ -178,9 +176,6 @@ export default function KisanListings() {
                           </td>
                           <td className="px-6 py-3.5 text-stone-600 dark:text-stone-300 font-medium">
                             {l.quantity} <span className="text-stone-400 text-xs font-normal">{l.unit}</span>
-                          </td>
-                          <td className="px-6 py-3.5 text-stone-800 dark:text-stone-200 font-semibold">
-                            ₹{l.askingPrice.toLocaleString('en-IN')}
                           </td>
                           <td className="px-6 py-3.5">
                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusBadge(l.status)}`}>
@@ -257,7 +252,6 @@ export default function KisanListings() {
                     onClick={() => router.push(`/kisan/listings/${l._id}/view`)}
                     className="bg-white dark:bg-stone-900 rounded-2xl shadow-sm border border-stone-200 dark:border-stone-800 overflow-hidden flex flex-col cursor-pointer hover:shadow-md hover:border-stone-300 dark:hover:border-stone-700 active:scale-[0.99] transition-all duration-200"
                   >
-                    {/* Compact Image Banner */}
                     {thumbUrl ? (
                       <div className="w-full h-32 overflow-hidden border-b border-stone-100 dark:border-stone-800">
                         <img
@@ -287,14 +281,10 @@ export default function KisanListings() {
                         </span>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-3 bg-stone-50 dark:bg-stone-950/50 p-3 rounded-xl border border-stone-100 dark:border-stone-800">
+                      <div className="grid grid-cols-1 gap-3 bg-stone-50 dark:bg-stone-950/50 p-3 rounded-xl border border-stone-100 dark:border-stone-800">
                         <div className="flex flex-col">
                           <span className="text-[10px] text-stone-500 dark:text-stone-400 uppercase tracking-wider mb-0.5">Quantity</span>
                           <span className="font-sans text-sm font-medium text-stone-800 dark:text-stone-200">{l.quantity} {l.unit}</span>
-                        </div>
-                        <div className="flex flex-col">
-                          <span className="text-[10px] text-stone-500 dark:text-stone-400 uppercase tracking-wider mb-0.5">Asking Price</span>
-                          <span className="font-sans text-sm font-semibold text-green-800 dark:text-green-500">₹{l.askingPrice.toLocaleString('en-IN')}</span>
                         </div>
                       </div>
 

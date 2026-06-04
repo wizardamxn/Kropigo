@@ -8,6 +8,8 @@ export interface AuthUser {
   name?: string;
   role: UserRole;
   location?: string;
+  fathersName?: string;
+  marka?: string;
   profilePhoto?: string;
   farmerIdPhoto?: string;
   aadharCardPhoto?: string;
