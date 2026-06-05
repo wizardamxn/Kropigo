@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { RoleGuard } from '@/components/auth/RoleGuard';
@@ -73,9 +74,10 @@ export default function KisanLayout({ children }: { children: React.ReactNode })
         
         {/* ─── MOBILE TOP NAVIGATION BAR (Hidden on Desktop) ─── */}
         <header className="md:hidden fixed top-0 left-0 right-0 h-16 bg-white dark:bg-stone-900 border-b border-stone-200 dark:border-stone-800 px-5 flex items-center justify-between z-40 shadow-sm transition-colors duration-300">
-          <span className="font-serif text-xl font-bold tracking-tight text-green-800 dark:text-green-500">
-            Kropigo
-          </span>
+          <div className="flex items-center gap-2.5">
+            <Image src="/KROPIGO_cropped.png" alt="KropiGo" width={34} height={34} className="rounded-xl shadow-sm ring-1 ring-black/6 dark:ring-white/10 object-cover shrink-0" />
+            <span className="font-serif text-xl font-bold tracking-tight text-stone-900 dark:text-stone-50">KropiGo</span>
+          </div>
           <div className="transform scale-95">
             <NotificationBell />
           </div>
@@ -85,10 +87,11 @@ export default function KisanLayout({ children }: { children: React.ReactNode })
         <nav className="fixed bottom-0 left-0 right-0 z-50 w-full bg-white dark:bg-stone-900 border-t border-stone-200 dark:border-stone-800 px-2 py-1.5 pb-safe flex flex-row items-center md:relative md:w-64 md:flex-col md:justify-start md:border-t-0 md:border-r md:p-6 md:h-screen md:sticky md:top-0 md:overflow-y-auto transition-colors duration-300">
           
           {/* Brand & Notification Center — Desktop Only */}
-          <div className="hidden md:flex items-center justify-between w-full mb-8 px-2">
-            <span className="font-serif text-2xl font-bold text-green-800 dark:text-green-500">
-              Kropigo
-            </span>
+          <div className="hidden md:flex items-start justify-between w-full mb-8 px-2">
+            <div className="flex flex-col items-start gap-2.5">
+              <Image src="/KROPIGO_cropped.png" alt="KropiGo" width={48} height={48} className="rounded-2xl shadow-md ring-1 ring-black/6 dark:ring-white/10 object-cover" />
+              <span className="font-serif text-2xl font-bold tracking-tight text-stone-900 dark:text-stone-50 leading-none">KropiGo</span>
+            </div>
             <NotificationBell />
           </div>
 

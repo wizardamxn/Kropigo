@@ -82,8 +82,8 @@ export const getOrderById = async (req: Request, res: Response) => {
         select: 'cropId mediaUrls farmAddress farmDistrict farmState',
         populate: { path: 'cropId', select: 'name category unit' }
       })
-      .populate('buyerId', 'name phone email location isVerified profilePhoto')
-      .populate('sellerId', 'name phone email location isVerified profilePhoto')
+      .populate('buyerId', 'name phone email location isVerified profilePhoto fathersName marka bankDetails farmerIdPhoto aadharCardPhoto bankPassbookPhoto averageRating totalRatings isActive createdAt')
+      .populate('sellerId', 'name phone email location isVerified profilePhoto fathersName marka bankDetails farmerIdPhoto aadharCardPhoto bankPassbookPhoto averageRating totalRatings isActive createdAt')
       .populate('interestId', 'price quantity notes');
 
     if (!order) {

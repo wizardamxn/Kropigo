@@ -2,7 +2,7 @@ import imageCompression from 'browser-image-compression';
 import type { CloudinarySignature } from '@/store/endpoints/mediaApi';
 
 const MAX_MEDIA_FILES = 6;
-const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
+const MAX_FILE_SIZE_BYTES = 100 * 1024 * 1024;
 const ALLOWED_MIME_TYPES = new Set([
   'image/jpeg',
   'image/png',
@@ -43,7 +43,7 @@ export const validateMediaFiles = (files: File[] | FileList, existingCount = 0):
     }
 
     if (file.size > MAX_FILE_SIZE_BYTES) {
-      throw new Error('Each media file must be 10MB or smaller.');
+      throw new Error('Each media file must be 100MB or smaller.');
     }
   });
 

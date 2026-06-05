@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
@@ -44,12 +45,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
         {/* ─── MOBILE TOP NAVIGATION BAR (Fixed layout boundary for Notifications) ─── */}
         <header className="md:hidden fixed top-0 left-0 right-0 h-16 bg-white dark:bg-stone-900 border-b border-stone-200 dark:border-stone-800 px-5 flex items-center justify-between z-40 shadow-sm transition-colors duration-300">
-          <span className="font-serif text-xl font-bold tracking-tight text-red-800 dark:text-red-500 flex items-center gap-2">
-            <svg className="w-5 h-5 text-red-700 dark:text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 3C8 3 4 7 4 12s4 9 8 9 8-4 8-9-4-9-8-9z" />
-            </svg>
-            Kropigo <span className="text-xs font-sans font-semibold uppercase tracking-wider px-2 py-0.5 rounded bg-stone-100 dark:bg-stone-800 text-stone-500">Ops</span>
-          </span>
+          <div className="flex items-center gap-2.5">
+            <Image src="/KROPIGO_cropped.png" alt="KropiGo" width={34} height={34} className="rounded-xl shadow-sm ring-1 ring-black/6 dark:ring-white/10 object-cover shrink-0" />
+            <div className="flex flex-col gap-0.5">
+              <span className="font-serif text-xl font-bold tracking-tight text-stone-900 dark:text-stone-50 leading-none">KropiGo</span>
+              <span className="text-[10px] font-sans font-semibold uppercase tracking-widest text-stone-400 dark:text-stone-500">Ops Panel</span>
+            </div>
+          </div>
           <div className="transform scale-95">
             <NotificationBell />
           </div>
@@ -59,12 +61,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <nav className="fixed bottom-0 left-0 right-0 z-50 w-full bg-white dark:bg-stone-900 border-t border-stone-200 dark:border-stone-800 px-2 py-1.5 pb-safe flex flex-row items-center md:relative md:w-64 md:flex-col md:justify-start md:border-t-0 md:border-r md:p-6 md:h-screen md:sticky md:top-0 md:overflow-y-auto transition-colors duration-300">
 
           {/* Brand Header & Control Hub — Desktop Only */}
-          <div className="hidden md:flex items-center justify-between w-full mb-8 px-2">
-            <div className="flex items-center gap-2 font-serif text-2xl font-bold text-red-800 dark:text-red-500">
-              <svg className="w-6 h-6 text-red-700 dark:text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 3C8 3 4 7 4 12s4 9 8 9 8-4 8-9-4-9-8-9z" />
-              </svg>
-              Kropigo
+          <div className="hidden md:flex items-start justify-between w-full mb-8 px-2">
+            <div className="flex flex-col items-start gap-2.5">
+              <Image src="/KROPIGO_cropped.png" alt="KropiGo" width={48} height={48} className="rounded-2xl shadow-md ring-1 ring-black/6 dark:ring-white/10 object-cover" />
+              <div className="flex flex-col gap-0.5">
+                <span className="font-serif text-2xl font-bold tracking-tight text-stone-900 dark:text-stone-50 leading-none">KropiGo</span>
+                <span className="text-[10px] font-sans font-semibold uppercase tracking-widest text-stone-400 dark:text-stone-500">Ops Panel</span>
+              </div>
             </div>
             <NotificationBell />
           </div>
