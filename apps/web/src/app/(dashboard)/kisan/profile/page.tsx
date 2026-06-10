@@ -9,6 +9,7 @@ import { useAppDispatch } from '@/store/hooks';
 import { clearUser, updateUser } from '@/store/slices/authSlice';
 import { disconnectSocket } from '@/lib/socket';
 import { uploadMediaFile } from '@/lib/cloudinaryUpload';
+import { useTranslations } from 'next-intl';
 
 const ImageCrudField = ({
   label,
@@ -25,6 +26,7 @@ const ImageCrudField = ({
   onRemove: () => void;
   onView: () => void;
 }) => {
+  const t = useTranslations('kisanProfile');
   return (
     <div className="flex flex-col sm:flex-row items-center justify-between p-4 bg-stone-50 dark:bg-stone-900/40 rounded-2xl border border-stone-200 dark:border-stone-800 gap-4 transition-all w-full">
       {/* Left side: Preview thumbnail & status info */}
@@ -52,15 +54,15 @@ const ImageCrudField = ({
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                Uploading to secure storage...
+                {t('uploadingStorage')}
               </span>
             ) : value ? (
               <span className="text-green-700 dark:text-green-500 font-semibold flex items-center gap-1">
                 <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
-                Document Attached
+                {t('docAttached')}
               </span>
             ) : (
-              <span className="text-stone-450 dark:text-stone-500">No file attached</span>
+              <span className="text-stone-450 dark:text-stone-500">{t('noFile')}</span>
             )}
           </div>
         </div>
@@ -80,7 +82,7 @@ const ImageCrudField = ({
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
               </svg>
-              View File
+              {t('viewFile')}
             </button>
 
             {/* Change File Option */}
@@ -88,7 +90,7 @@ const ImageCrudField = ({
               <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 7.89H18.2" />
               </svg>
-              Replace
+              {t('replace')}
               <input
                 type="file"
                 accept="image/*"
@@ -107,7 +109,7 @@ const ImageCrudField = ({
               <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
               </svg>
-              Remove
+              {t('remove')}
             </button>
           </>
         ) : (
@@ -116,7 +118,7 @@ const ImageCrudField = ({
             <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
             </svg>
-            Upload Document
+            {t('uploadDoc')}
             <input
               type="file"
               accept="image/*"
@@ -135,6 +137,7 @@ export default function KisanProfile() {
   const { user } = useAuth();
   const dispatch = useAppDispatch();
   const router = useRouter();
+  const t = useTranslations('kisanProfile');
 
   const [name, setName] = useState('');
   const [location, setLocation] = useState('');
@@ -271,10 +274,10 @@ export default function KisanProfile() {
       {/* Title Header */}
       <div>
         <h1 className="font-serif text-3xl md:text-4xl text-stone-800 dark:text-stone-100 font-medium tracking-tight">
-          Profile Settings
+          {t('title')}
         </h1>
         <p className="font-sans text-stone-600 dark:text-stone-400 mt-2 text-base md:text-lg">
-          Manage your agricultural account credentials, identity metrics, and session tokens.
+          {t('subtitle')}
         </p>
       </div>
 
@@ -309,38 +312,38 @@ export default function KisanProfile() {
             </div>
             
             <h2 className="font-serif text-2xl font-medium text-stone-800 dark:text-stone-100 truncate w-full px-2">{name || 'Farmer User'}</h2>
-            <p className="font-sans text-xs font-semibold tracking-wider text-stone-400 dark:text-stone-500 uppercase mt-0.5 mb-4">Account: {user?.role || 'Kisan'}</p>
+            <p className="font-sans text-xs font-semibold tracking-wider text-stone-400 dark:text-stone-500 uppercase mt-0.5 mb-4">{t('account', { role: user?.role || 'Kisan' })}</p>
             
             {user?.isVerified ? (
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-50 dark:bg-green-950/20 text-green-800 dark:text-green-400 font-sans text-xs font-semibold border border-green-200/60 dark:border-green-800/40 shadow-sm">
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
-                Verified Producer
+                {t('verifiedProducer')}
               </span>
             ) : (
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 dark:bg-amber-950/20 text-amber-800 dark:text-amber-400 font-sans text-xs font-semibold border border-amber-200/60 dark:border-amber-800/40 shadow-sm">
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                Pending Verification
+                {t('pendingVerification')}
               </span>
             )}
 
             <div className="w-full mt-6 space-y-4 text-left border-t border-stone-100 dark:border-stone-800 pt-6 font-sans text-sm">
               <div>
-                <span className="block text-xs font-semibold uppercase tracking-wider text-stone-400 dark:text-stone-500 mb-0.5">Registered Email</span>
+                <span className="block text-xs font-semibold uppercase tracking-wider text-stone-400 dark:text-stone-500 mb-0.5">{t('registeredEmail')}</span>
                 <span className="block font-medium text-stone-800 dark:text-stone-200 break-all">{user?.email}</span>
               </div>
               <div>
-                <span className="block text-xs font-semibold uppercase tracking-wider text-stone-400 dark:text-stone-500 mb-0.5">Mobile Phone</span>
+                <span className="block text-xs font-semibold uppercase tracking-wider text-stone-400 dark:text-stone-500 mb-0.5">{t('mobilePhone')}</span>
                 <span className="block font-medium text-stone-800 dark:text-stone-200">{user?.phone}</span>
               </div>
               {user?.fathersName && (
                 <div>
-                  <span className="block text-xs font-semibold uppercase tracking-wider text-stone-400 dark:text-stone-500 mb-0.5">Father's Name</span>
+                  <span className="block text-xs font-semibold uppercase tracking-wider text-stone-400 dark:text-stone-500 mb-0.5">{t('fathersName')}</span>
                   <span className="block font-medium text-stone-800 dark:text-stone-200">{user.fathersName}</span>
                 </div>
               )}
               {user?.marka && (
                 <div>
-                  <span className="block text-xs font-semibold uppercase tracking-wider text-stone-400 dark:text-stone-500 mb-0.5">Marka</span>
+                  <span className="block text-xs font-semibold uppercase tracking-wider text-stone-400 dark:text-stone-500 mb-0.5">{t('marka')}</span>
                   <span className="block font-medium text-stone-800 dark:text-stone-200 uppercase tracking-wider font-semibold">{user.marka}</span>
                 </div>
               )}
@@ -349,14 +352,14 @@ export default function KisanProfile() {
 
           {/* Session Token Control Box Section */}
           <section className="bg-stone-50 dark:bg-stone-900/40 rounded-2xl p-6 border border-stone-200 dark:border-stone-800 shadow-sm flex flex-col gap-4">
-            <h3 className="font-sans font-semibold text-stone-850 dark:text-stone-200 text-sm uppercase tracking-wider">Session Management</h3>
+            <h3 className="font-sans font-semibold text-stone-850 dark:text-stone-200 text-sm uppercase tracking-wider">{t('sessionManagement')}</h3>
             <button 
               onClick={handleLogout} 
               disabled={isLoggingOut}
               className="h-12 w-full rounded-xl bg-white dark:bg-stone-800 border-2 border-stone-200 dark:border-stone-700 hover:border-red-200 dark:hover:border-red-900/40 hover:bg-red-50 dark:hover:bg-red-950/20 text-red-600 dark:text-red-400 font-sans font-semibold text-sm transition-all shadow-sm active:scale-95 flex items-center justify-center gap-2"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
-              {isLoggingOut ? 'Terminating Sync...' : 'Sign Out Securely'}
+              {isLoggingOut ? t('terminatingSync') : t('signOutSecurely')}
             </button>
           </section>
         </div>
@@ -365,12 +368,12 @@ export default function KisanProfile() {
         <div className="lg:col-span-2">
           <section className="bg-white dark:bg-stone-900 rounded-2xl p-6 md:p-8 border border-stone-200 dark:border-stone-800 shadow-sm">
             <h2 className="font-serif text-2xl text-stone-850 dark:text-stone-100 border-b border-stone-100 dark:border-stone-800/60 pb-4 mb-6">
-              Edit Account Configuration
+              {t('editAccountConfig')}
             </h2>
             
             <form onSubmit={handleSave} className="space-y-6">
               <div>
-                <label className={labelBaseClass} htmlFor="name-input">Full Display Name *</label>
+                <label className={labelBaseClass} htmlFor="name-input">{t('fullName')}</label>
                 <input 
                   id="name-input" 
                   type="text" 
@@ -378,113 +381,113 @@ export default function KisanProfile() {
                   value={name} 
                   onChange={(e) => setName(e.target.value)} 
                   required 
-                  placeholder="Enter full legal name"
+                  placeholder={t('fullNamePlaceholder')}
                   className={inputBaseClass}
                 />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div>
-                  <label className={labelBaseClass} htmlFor="fathers-name-input">Father's Name (Optional)</label>
+                  <label className={labelBaseClass} htmlFor="fathers-name-input">{t('fathersNameLabel')}</label>
                   <input 
                     id="fathers-name-input" 
                     type="text" 
                     value={fathersName} 
                     onChange={(e) => setFathersName(e.target.value)} 
-                    placeholder="Enter father's name"
+                    placeholder={t('fathersNamePlaceholder')}
                     className={inputBaseClass}
                   />
                 </div>
                 <div>
-                  <label className={labelBaseClass} htmlFor="marka-input">Marka (Max 5 Letters)</label>
+                  <label className={labelBaseClass} htmlFor="marka-input">{t('markaLabel')}</label>
                   <input 
                     id="marka-input" 
                     type="text" 
                     maxLength={5} 
                     value={marka} 
                     onChange={(e) => setMarka(e.target.value.toUpperCase())} 
-                    placeholder="e.g. A1B2"
+                    placeholder={t('markaPlaceholder')}
                     className={`${inputBaseClass} uppercase font-semibold`}
                   />
                   <div className="text-right mt-1 text-xs text-stone-500 dark:text-stone-400 font-sans">
-                    {marka.length}/5 letters
+                    {t('markaLength', { length: marka.length })}
                   </div>
                 </div>
               </div>
 
               <div>
-                <label className={labelBaseClass} htmlFor="location-input">Primary Operations Hub / Village Location</label>
+                <label className={labelBaseClass} htmlFor="location-input">{t('locationLabel')}</label>
                 <input 
                   id="location-input" 
                   type="text" 
                   value={location} 
                   onChange={(e) => setLocation(e.target.value)} 
-                  placeholder="e.g. Jabalpur, Madhya Pradesh"
+                  placeholder={t('locationPlaceholder')}
                   className={inputBaseClass}
                 />
-                <p className="text-xs text-stone-500 mt-1.5 ml-1">Helps wholesale logistics providers calculate transport staging distances.</p>
+                <p className="text-xs text-stone-500 mt-1.5 ml-1">{t('locationHelp')}</p>
               </div>
 
               <ImageCrudField
-                label="Profile Avatar Picture"
+                label={t('profileAvatar')}
                 value={profilePhoto}
                 onUpload={(e) => handleFileUpload(e, setProfilePhoto, profilePhoto)}
                 isUploading={isUploading}
                 onRemove={() => handleRemovePhoto(profilePhoto, setProfilePhoto)}
-                onView={() => { setPreviewUrl(profilePhoto); setPreviewLabel('Profile Picture'); }}
+                onView={() => { setPreviewUrl(profilePhoto); setPreviewLabel(t('profileAvatar')); }}
               />
 
               {/* Identity Verification Sub-Forms Surfaces */}
               <div className="pt-6 mt-6 border-t border-stone-100 dark:border-stone-800">
-                <h3 className="font-serif text-xl text-stone-850 dark:text-stone-100 mb-2">Legal Identification Verification Documents</h3>
-                <p className="font-sans text-xs text-stone-500 mb-4 pl-1">Required to acquire the "Verified Producer" tier clearance credential.</p>
+                <h3 className="font-serif text-xl text-stone-850 dark:text-stone-100 mb-2">{t('legalVerification')}</h3>
+                <p className="font-sans text-xs text-stone-500 mb-4 pl-1">{t('legalVerificationHelp')}</p>
                 
                 <div className="space-y-4">
                   <ImageCrudField
-                    label="Farmer ID Image"
+                    label={t('farmerIdImage')}
                     value={farmerIdPhoto}
                     onUpload={(e) => handleFileUpload(e, setFarmerIdPhoto, farmerIdPhoto)}
                     isUploading={isUploading}
                     onRemove={() => handleRemovePhoto(farmerIdPhoto, setFarmerIdPhoto)}
-                    onView={() => { setPreviewUrl(farmerIdPhoto); setPreviewLabel('Farmer ID Document'); }}
+                    onView={() => { setPreviewUrl(farmerIdPhoto); setPreviewLabel(t('farmerIdImage')); }}
                   />
 
                   <ImageCrudField
-                    label="Aadhar Card Image"
+                    label={t('aadharImage')}
                     value={aadharCardPhoto}
                     onUpload={(e) => handleFileUpload(e, setAadharCardPhoto, aadharCardPhoto)}
                     isUploading={isUploading}
                     onRemove={() => handleRemovePhoto(aadharCardPhoto, setAadharCardPhoto)}
-                    onView={() => { setPreviewUrl(aadharCardPhoto); setPreviewLabel('National Identity Card'); }}
+                    onView={() => { setPreviewUrl(aadharCardPhoto); setPreviewLabel(t('aadharImage')); }}
                   />
 
                   <ImageCrudField
-                    label="Bank Passbook Image"
+                    label={t('bankPassbookImage')}
                     value={bankPassbookPhoto}
                     onUpload={(e) => handleFileUpload(e, setBankPassbookPhoto, bankPassbookPhoto)}
                     isUploading={isUploading}
                     onRemove={() => handleRemovePhoto(bankPassbookPhoto, setBankPassbookPhoto)}
-                    onView={() => { setPreviewUrl(bankPassbookPhoto); setPreviewLabel('Bank Passbook Copy'); }}
+                    onView={() => { setPreviewUrl(bankPassbookPhoto); setPreviewLabel(t('bankPassbookImage')); }}
                   />
                 </div>
               </div>
 
               {/* Settlement Banking Credentials Parameters Configuration */}
               <div className="pt-6 mt-6 border-t border-stone-100 dark:border-stone-800">
-                <h3 className="font-serif text-xl text-stone-850 dark:text-stone-100 mb-4">Financial Settlements Routing Ledger</h3>
+                <h3 className="font-serif text-xl text-stone-850 dark:text-stone-100 mb-4">{t('financialLedger')}</h3>
                 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="sm:col-span-2">
-                    <label className={labelBaseClass} htmlFor="bank-name-input">Banking Institution Corporation Name</label>
-                    <input id="bank-name-input" type="text" value={bankName} onChange={(e) => setBankName(e.target.value)} placeholder="e.g. State Bank of India" className={inputBaseClass} />
+                    <label className={labelBaseClass} htmlFor="bank-name-input">{t('bankName')}</label>
+                    <input id="bank-name-input" type="text" value={bankName} onChange={(e) => setBankName(e.target.value)} placeholder={t('bankNamePlaceholder')} className={inputBaseClass} />
                   </div>
                   <div>
-                    <label className={labelBaseClass} htmlFor="account-num-input">Account Number</label>
-                    <input id="account-num-input" type="text" value={accountNumber} onChange={(e) => setAccountNumber(e.target.value)} placeholder="Enter financial allocation index" className={inputBaseClass} />
+                    <label className={labelBaseClass} htmlFor="account-num-input">{t('accountNumber')}</label>
+                    <input id="account-num-input" type="text" value={accountNumber} onChange={(e) => setAccountNumber(e.target.value)} placeholder={t('accountNumberPlaceholder')} className={inputBaseClass} />
                   </div>
                   <div>
-                    <label className={labelBaseClass} htmlFor="ifsc-input">IFSC Code Routing Marker</label>
-                    <input id="ifsc-input" type="text" value={ifscCode} onChange={(e) => setIfscCode(e.target.value)} placeholder="e.g. SBIN0001234" className={inputBaseClass} />
+                    <label className={labelBaseClass} htmlFor="ifsc-input">{t('ifscCode')}</label>
+                    <input id="ifsc-input" type="text" value={ifscCode} onChange={(e) => setIfscCode(e.target.value)} placeholder={t('ifscPlaceholder')} className={inputBaseClass} />
                   </div>
                 </div>
               </div>
@@ -502,10 +505,10 @@ export default function KisanProfile() {
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
-                      Updating profile information...
+                      {t('updatingProfile')}
                     </>
                   ) : (
-                    'Save Settings Changes'
+                    t('saveChanges')
                   )}
                 </button>
               </div>

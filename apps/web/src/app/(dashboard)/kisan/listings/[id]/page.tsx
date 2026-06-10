@@ -76,6 +76,7 @@ export default function ListingDetail() {
   const [farmDistrict, setFarmDistrict] = useState("");
   const [removedMediaUrls, setRemovedMediaUrls] = useState<string[]>([]);
   const [error, setError] = useState("");
+  const [uploadProgress, setUploadProgress] = useState<{ index: number; progress: number } | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [mediaPreviews, setMediaPreviews] = useState<MediaPreview[]>([]);
   const isSubmitting = isUpdating || isUploading;
@@ -139,6 +140,7 @@ export default function ListingDetail() {
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setUploadProgress(null);
     const uploadedMediaUrls: string[] = [];
 
     const remainingMedia = (listing?.mediaUrls ?? []).filter(
@@ -151,7 +153,10 @@ export default function ListingDetail() {
         fileInputRef.current?.files,
         () => getCloudinarySignature().unwrap(),
         remainingMedia.length,
-        (url) => uploadedMediaUrls.push(url)
+        (url) => uploadedMediaUrls.push(url),
+        (index, pct) => {
+          setUploadProgress({ index, progress: pct });
+        }
       );
 
       await updateListing({
@@ -185,6 +190,7 @@ export default function ListingDetail() {
       window.scrollTo({ top: 0, behavior: "smooth" });
     } finally {
       setIsUploading(false);
+      setUploadProgress(null);
     }
   };
 
@@ -713,6 +719,30 @@ export default function ListingDetail() {
               </div>
             )}
           </section>
+        )}
+
+        {uploadProgress && (
+          <div className="bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-2xl p-5 shadow-sm space-y-3 animate-in fade-in">
+            <div className="flex justify-between font-sans text-sm font-semibold text-stone-800 dark:text-stone-150">
+              <span className="flex items-center gap-2">
+                <svg className="animate-spin h-4 w-4 text-green-700 dark:text-green-500" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Processing file {uploadProgress.index + 1}...
+              </span>
+              <span>{uploadProgress.progress}%</span>
+            </div>
+            <div className="w-full bg-stone-200 dark:bg-stone-800 h-2.5 rounded-full overflow-hidden">
+              <div 
+                className="bg-green-700 dark:bg-green-600 h-full transition-all duration-150 rounded-full" 
+                style={{ width: `${uploadProgress.progress}%` }} 
+              />
+            </div>
+            <p className="text-xs text-stone-500 dark:text-stone-400 font-sans">
+              Optimizing media quality and compressing video frames to 720p. Please keep this tab active.
+            </p>
+          </div>
         )}
 
         {/* Action Buttons (Visible only if editable) */}

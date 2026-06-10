@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import { useTranslations } from 'next-intl';
 
 // Fix broken default Leaflet marker icons in webpack/Next.js
 const markerIcon = new L.Icon({
@@ -91,6 +92,7 @@ export default function LocationPickerMap({
   const [isSearching, setIsSearching] = useState(false);
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const searchRef = useRef<HTMLDivElement>(null);
+  const t = useTranslations('locationPicker');
 
   const hasPin = lat !== '' && lng !== '';
   const pinPosition: [number, number] | null = hasPin
@@ -128,7 +130,7 @@ export default function LocationPickerMap({
 
   const handleDetectLocation = async () => {
     if (!navigator.geolocation) {
-      setLocationError('Geolocation is not supported by your browser.');
+      setLocationError(t('geolocationUnsupported'));
       return;
     }
     setIsLocating(true);
@@ -147,8 +149,8 @@ export default function LocationPickerMap({
       const code = (err as GeolocationPositionError)?.code;
       setLocationError(
         code === 1
-          ? 'Location access denied. Please allow location permissions in your browser.'
-          : 'Could not determine your location. Please try again or search manually.'
+          ? t('locationDenied')
+          : t('locationError')
       );
     } finally {
       setIsLocating(false);
@@ -205,7 +207,7 @@ export default function LocationPickerMap({
     <div className="space-y-4">
       {/* Search box */}
       <div ref={searchRef} className="relative">
-        <label className={labelClass}>Search Location</label>
+        <label className={labelClass}>{t('searchLocation')}</label>
         <div className="relative">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
             {isSearching ? (
@@ -223,7 +225,7 @@ export default function LocationPickerMap({
             type="text"
             value={searchQuery}
             onChange={(e) => handleSearchChange(e.target.value)}
-            placeholder="Search for a village, town, or district..."
+            placeholder={t('searchPlaceholder')}
             disabled={disabled}
             className={`${inputClass} pl-10`}
           />
@@ -261,14 +263,14 @@ export default function LocationPickerMap({
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
             </svg>
-            Detecting location...
+            {t('detectingLocation')}
           </>
         ) : (
           <>
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3A8.994 8.994 0 0013 3.06V1h-2v2.06A8.994 8.994 0 003.06 11H1v2h2.06A8.994 8.994 0 0011 20.94V23h2v-2.06A8.994 8.994 0 0020.94 13H23v-2h-2.06z" />
             </svg>
-            Use My Current Location
+            {t('useCurrentLocation')}
           </>
         )}
       </button>
@@ -324,7 +326,7 @@ export default function LocationPickerMap({
                 : 'bg-white/70 dark:bg-stone-800/70 text-stone-500 dark:text-stone-400 hover:bg-white dark:hover:bg-stone-800'
             }`}
           >
-            Map
+            {t('map')}
           </button>
           <button
             type="button"
@@ -335,14 +337,14 @@ export default function LocationPickerMap({
                 : 'bg-white/70 dark:bg-stone-800/70 text-stone-500 dark:text-stone-400 hover:bg-white dark:hover:bg-stone-800'
             }`}
           >
-            Satellite
+            {t('satellite')}
           </button>
         </div>
 
         {/* Map hint overlay */}
         {!hasPin && (
           <div className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-black/60 text-white text-xs font-sans px-3 py-1.5 rounded-full pointer-events-none whitespace-nowrap z-400">
-            Click anywhere on the map to drop a pin
+            {t('clickToDropPin')}
           </div>
         )}
 
@@ -354,7 +356,7 @@ export default function LocationPickerMap({
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
               </svg>
-              Fetching address...
+              {t('fetchingAddress')}
             </div>
           </div>
         )}
@@ -362,45 +364,45 @@ export default function LocationPickerMap({
 
       {hasPin && (
         <p className="text-xs text-stone-500 dark:text-stone-400 font-sans text-center">
-          Pin at ({parseFloat(lat).toFixed(5)}, {parseFloat(lng).toFixed(5)}) — drag pin to adjust
+          {t('pinAt', { lat: parseFloat(lat).toFixed(5), lng: parseFloat(lng).toFixed(5) })}
         </p>
       )}
 
       {/* Address fields */}
       <div className="space-y-4 pt-1">
         <div>
-          <label className={labelClass}>Farm Address / Village *</label>
+          <label className={labelClass}>{t('farmAddress')}</label>
           <input
             type="text"
             value={farmAddress}
             onChange={(e) => onChange({ lat, lng, farmAddress: e.target.value, farmDistrict, farmState })}
             required
-            placeholder="e.g. Plot 42, Near Checkpost"
+            placeholder={t('farmAddressPlaceholder')}
             disabled={disabled}
             className={inputClass}
           />
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className={labelClass}>District *</label>
+            <label className={labelClass}>{t('district')}</label>
             <input
               type="text"
               value={farmDistrict}
               onChange={(e) => onChange({ lat, lng, farmAddress, farmDistrict: e.target.value, farmState })}
               required
-              placeholder="e.g. Jabalpur"
+              placeholder={t('districtPlaceholder')}
               disabled={disabled}
               className={inputClass}
             />
           </div>
           <div>
-            <label className={labelClass}>State *</label>
+            <label className={labelClass}>{t('state')}</label>
             <input
               type="text"
               value={farmState}
               onChange={(e) => onChange({ lat, lng, farmAddress, farmDistrict, farmState: e.target.value })}
               required
-              placeholder="e.g. Madhya Pradesh"
+              placeholder={t('statePlaceholder')}
               disabled={disabled}
               className={inputClass}
             />

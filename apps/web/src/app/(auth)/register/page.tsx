@@ -7,6 +7,8 @@ import { useRouter } from 'next/navigation';
 import { useRegisterMutation } from '@/store/endpoints/authApi';
 import Link from 'next/link';
 import { useTheme } from '@/components/providers/ThemeProvider';
+import { LanguageSwitcher } from '@/components/shared/LanguageSwitcher';
+import { useTranslations } from 'next-intl';
 
 export default function RegisterPage() {
   const [name, setName] = useState('');
@@ -20,6 +22,7 @@ export default function RegisterPage() {
   const dispatch = useAppDispatch();
   const router = useRouter();
   const [register, { isLoading: isRegistering }] = useRegisterMutation();
+  const tAuth = useTranslations('auth');
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,13 +46,13 @@ export default function RegisterPage() {
         router.push('/');
       }
     } catch (err: any) {
-      setError(err?.data?.message || 'Failed to register');
+      setError(err?.data?.message || tAuth('failedToRegister'));
     }
   };
 
   const roles = [
-    { value: 'kisan', label: 'Farmer' },
-    { value: 'buyer', label: 'Buyer' },
+    { value: 'kisan', label: tAuth('farmer') },
+    { value: 'buyer', label: tAuth('buyer') },
   ];
 
   return (
@@ -60,17 +63,20 @@ export default function RegisterPage() {
         <div className="font-serif text-2xl font-bold text-green-600 dark:text-green-600 pl-4 md:pl-8 drop-shadow-lg">
           Kropigo
         </div>
-        <button
-          onClick={toggleDarkMode}
-          className="p-2 mr-4 md:mr-8 rounded-full bg-white/50 dark:bg-black/20 hover:bg-white dark:hover:bg-stone-800 transition-all text-stone-800 dark:text-stone-100 shadow-sm backdrop-blur-sm"
-          aria-label="Toggle Dark Mode"
-        >
-          {isDark ? (
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
-          ) : (
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
-          )}
-        </button>
+        <div className="flex items-center gap-3 mr-4 md:mr-8">
+          <LanguageSwitcher />
+          <button
+            onClick={toggleDarkMode}
+            className="p-2 rounded-full bg-white/50 dark:bg-black/20 hover:bg-white dark:hover:bg-stone-800 transition-all text-stone-800 dark:text-stone-100 shadow-sm backdrop-blur-sm"
+            aria-label="Toggle Dark Mode"
+          >
+            {isDark ? (
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+            ) : (
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
+            )}
+          </button>
+        </div>
       </header>
 
       {/* Main Split Layout */}
@@ -85,9 +91,9 @@ export default function RegisterPage() {
             src="https://lh3.googleusercontent.com/aida-public/AB6AXuAK_Bvj9Fe1UF15IZG7FYg93hoEFFXofVh54H91rutY0g-nmAw7oAs3XZsCgeNlTVCrCR2tAiuFEVT2FmBhAAnE4Lkmop8kMJzSsmeXHnZgyPWR1k64qBcAW4dbzPKyITfnOTFIvJ5Ddt_MQXysPHAncldDzvbUqY2m94CBurjWIXFJyaX4u5cfCmFJ23KGbwvY9yprec_02Sc95MnJB_8FH7OusrTG04IM0gntHiOBr-Rl1vOhT0SxrvP9jB2V63XA0ZConH4aY3n1"
           />
           <div className="absolute bottom-30 left-12 z-20 max-w-lg text-stone-50">
-            <h2 className="font-serif text-5xl mb-4 font-medium drop-shadow-md">Rooted in Community</h2>
+            <h2 className="font-serif text-5xl mb-4 font-medium drop-shadow-md">{tAuth('rootedInCommunity')}</h2>
             <p className="font-sans text-lg text-stone-200 drop-shadow-md leading-relaxed">
-              Join a network of dedicated growers and mindful buyers building a sustainable local food ecosystem.
+              {tAuth('rootedInCommunitySubtitle')}
             </p>
           </div>
         </div>
@@ -98,10 +104,10 @@ export default function RegisterPage() {
             
             <div className="text-center flex flex-col gap-2">
               <h1 className="font-serif text-3xl text-stone-800 dark:text-stone-100">
-                Join the Marketplace
+                {tAuth('joinMarketplace')}
               </h1>
               <p className="font-sans text-stone-600 dark:text-stone-300">
-                Connect directly with local agriculture
+                {tAuth('joinMarketplaceSubtitle')}
               </p>
             </div>
 
@@ -138,7 +144,7 @@ export default function RegisterPage() {
               {/* Form Fields */}
               <div className="flex flex-col gap-1.5">
                 <label className="font-sans text-sm text-stone-800 dark:text-stone-300 ml-1" htmlFor="fullName">
-                  Full Name
+                  {tAuth('fullName')}
                 </label>
                 <input
                   id="fullName"
@@ -154,7 +160,7 @@ export default function RegisterPage() {
 
               <div className="flex flex-col gap-1.5">
                 <label className="font-sans text-sm text-stone-800 dark:text-stone-300 ml-1" htmlFor="email">
-                  Email
+                  {tAuth('email')}
                 </label>
                 <input
                   id="email"
@@ -170,7 +176,7 @@ export default function RegisterPage() {
 
               <div className="flex flex-col gap-1.5">
                 <label className="font-sans text-sm text-stone-800 dark:text-stone-300 ml-1" htmlFor="phone">
-                  Phone Number
+                  {tAuth('phone')}
                 </label>
                 <input
                   id="phone"
@@ -187,7 +193,7 @@ export default function RegisterPage() {
 
               <div className="flex flex-col gap-1.5">
                 <label className="font-sans text-sm text-stone-800 dark:text-stone-300 ml-1" htmlFor="password">
-                  Password
+                  {tAuth('password')}
                 </label>
                 <input
                   id="password"
@@ -207,18 +213,18 @@ export default function RegisterPage() {
                 disabled={isRegistering}
                 className="mt-2 h-12 w-full rounded-xl bg-green-800 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white font-sans font-medium transition-colors disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center shadow-sm"
               >
-                {isRegistering ? 'Creating Account...' : 'Create Account'}
+                {isRegistering ? tAuth('creatingAccount') : tAuth('createAccount')}
               </button>
             </form>
 
             <div className="text-center mt-2">
               <p className="font-sans text-sm text-stone-600 dark:text-stone-400">
-                Already have an account?{' '}
+                {tAuth('alreadyHaveAccount')}{' '}
                 <Link
                   href="/login"
                   className="text-green-800 dark:text-green-500 font-medium hover:underline"
                 >
-                  Sign In
+                  {tAuth('signIn')}
                 </Link>
               </p>
             </div>

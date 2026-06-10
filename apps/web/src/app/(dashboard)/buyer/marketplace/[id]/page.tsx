@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useGetListingByIdQuery, useSubmitInterestMutation, useGetMyInterestForListingQuery } from '@/store/endpoints/listingsApi';
 import { useGetMandiRatesQuery } from '@/store/endpoints/mandiApi';
 import { useAuth } from '@/hooks/useAuth';
+import { useTranslations } from 'next-intl';
 
 // ─── HELPERS ─────────────────────────────────────────────────────────────────
 
@@ -17,36 +18,36 @@ const fmtDate = (d: string) =>
 const fmtShortDate = (d: string) =>
   new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
 
-const interestStatusConfig: Record<string, { bg: string; border: string; text: string; label: string }> = {
+const interestStatusConfig: Record<string, { bg: string; border: string; text: string; labelKey: string }> = {
   pending: {
     bg: 'bg-amber-50 dark:bg-amber-950/20',
     border: 'border-amber-200 dark:border-amber-800/50',
     text: 'text-amber-800 dark:text-amber-400',
-    label: 'Pending',
+    labelKey: 'statusPending',
   },
   accepted: {
     bg: 'bg-green-50 dark:bg-green-950/20',
     border: 'border-green-200 dark:border-green-800/50',
     text: 'text-green-800 dark:text-green-400',
-    label: 'Accepted',
+    labelKey: 'statusAccepted',
   },
   rejected: {
     bg: 'bg-red-50 dark:bg-red-950/20',
     border: 'border-red-200 dark:border-red-800/50',
     text: 'text-red-700 dark:text-red-400',
-    label: 'Rejected',
+    labelKey: 'statusRejected',
   },
   withdrawn: {
     bg: 'bg-stone-50 dark:bg-stone-900',
     border: 'border-stone-200 dark:border-stone-700',
     text: 'text-stone-600 dark:text-stone-400',
-    label: 'Withdrawn',
+    labelKey: 'statusWithdrawn',
   },
 };
 
 // ─── MANDI RATE TABLE COMPONENT ───────────────────────────────────────────────
 
-function MandiRateTable({ cropId, unit }: { cropId: string; unit: string }) {
+function MandiRateTable({ cropId, unit, t }: { cropId: string; unit: string; t: any }) {
   const { data, isLoading } = useGetMandiRatesQuery(cropId);
   const rates: any[] = (data?.data ?? []).slice(0, 5);
 
@@ -62,7 +63,7 @@ function MandiRateTable({ cropId, unit }: { cropId: string; unit: string }) {
   if (rates.length === 0) {
     return (
       <p className="text-sm text-stone-500 dark:text-stone-400 font-sans italic">
-        No mandi rates available for this crop.
+        {t('noMandiRates')}
       </p>
     );
   }
@@ -74,11 +75,11 @@ function MandiRateTable({ cropId, unit }: { cropId: string; unit: string }) {
         <table className="w-full text-sm font-sans text-left border-collapse">
           <thead>
             <tr className="bg-stone-50 dark:bg-stone-950/50 text-stone-500 dark:text-stone-400 text-xs uppercase tracking-wider border-b border-stone-200 dark:border-stone-800">
-              <th className="px-4 py-3 font-medium">Market</th>
-              <th className="px-4 py-3 font-medium">Date</th>
-              <th className="px-4 py-3 text-right font-medium">Min</th>
-              <th className="px-4 py-3 text-right font-medium">Max</th>
-              <th className="px-4 py-3 text-right font-medium">Modal</th>
+              <th className="px-4 py-3 font-medium">{t('market')}</th>
+              <th className="px-4 py-3 font-medium">{t('date')}</th>
+              <th className="px-4 py-3 text-right font-medium">{t('min')}</th>
+              <th className="px-4 py-3 text-right font-medium">{t('max')}</th>
+              <th className="px-4 py-3 text-right font-medium">{t('modal')}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-stone-100 dark:divide-stone-800 text-stone-700 dark:text-stone-300">
@@ -91,7 +92,7 @@ function MandiRateTable({ cropId, unit }: { cropId: string; unit: string }) {
                   {r.market}
                   {i === 0 && (
                     <span className="ml-2 text-[10px] px-1.5 py-0.5 bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-400 rounded font-bold tracking-wider uppercase">
-                      Latest
+                      {t('latest')}
                     </span>
                   )}
                 </td>
@@ -105,7 +106,7 @@ function MandiRateTable({ cropId, unit }: { cropId: string; unit: string }) {
         </table>
       </div>
       <p className="text-xs text-stone-400 dark:text-stone-500 font-sans pl-1">
-        All prices evaluated per {unit} • Data Source: Agmarknet / Market Entry records
+        {t('mandiDisclaimer', { unit })}
       </p>
     </div>
   );
@@ -113,7 +114,7 @@ function MandiRateTable({ cropId, unit }: { cropId: string; unit: string }) {
 
 // ─── INTEREST PANEL COMPONENT ─────────────────────────────────────────────────
 
-function InterestPanel({ listing }: { listing: any }) {
+function InterestPanel({ listing, t }: { listing: any, t: any }) {
   const { isAuthenticated, isInitialized } = useAuth();
   const [price, setPrice] = useState('');
   const [quantity, setQuantity] = useState('');
@@ -135,7 +136,7 @@ function InterestPanel({ listing }: { listing: any }) {
     setLocalError('');
     const priceNum = Number(price);
     if (!price || isNaN(priceNum) || priceNum <= 0) {
-      setLocalError('Please enter a valid offered price.');
+      setLocalError(t('invalidPrice'));
       return;
     }
     try {
@@ -152,7 +153,7 @@ function InterestPanel({ listing }: { listing: any }) {
       setNotes('');
       setShowReSubmit(false);
     } catch (err: any) {
-      setLocalError(err?.data?.message || 'Failed to submit interest. Please try again.');
+      setLocalError(err?.data?.message || t('submitError'));
     }
   };
 
@@ -168,16 +169,16 @@ function InterestPanel({ listing }: { listing: any }) {
           </svg>
         </div>
         <div>
-          <p className="font-serif text-lg text-stone-800 dark:text-stone-100 font-medium">Sign in to Express Interest</p>
+          <p className="font-serif text-lg text-stone-800 dark:text-stone-100 font-medium">{t('signInTitle')}</p>
           <p className="text-sm text-stone-500 dark:text-stone-400 mt-1 font-sans">
-            Create an account or log in as a verified buyer to submit offers directly to this producer.
+            {t('signInDesc')}
           </p>
         </div>
         <Link
           href={`/login?redirect=/buyer/marketplace/${listing._id}`}
           className="inline-flex items-center justify-center h-12 px-8 rounded-xl bg-green-800 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white font-sans font-medium text-sm transition-colors shadow-sm w-full sm:w-auto"
         >
-          Sign In to Continue
+          {t('signInBtn')}
         </Link>
       </div>
     );
@@ -205,26 +206,36 @@ function InterestPanel({ listing }: { listing: any }) {
           </div>
           <div>
             <p className="font-serif text-lg text-green-800 dark:text-green-300 font-medium">
-              Offer Accepted
+              {t('offerAcceptedTitle')}
             </p>
             <p className="text-sm text-green-700 dark:text-green-400 font-sans mt-0.5">
-              The producer has accepted your purchase terms. You can now establish direct communication.
+              {t('offerAcceptedDesc')}
             </p>
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-4 bg-white/60 dark:bg-stone-900/40 rounded-xl p-4 border border-green-100 dark:border-green-900/30 shadow-sm">
           <div>
-            <p className="text-xs text-stone-400 dark:text-stone-500 uppercase tracking-wider font-sans mb-0.5">Your Offered Price</p>
+            <p className="text-xs text-stone-400 dark:text-stone-500 uppercase tracking-wider font-sans mb-0.5">{t('yourOfferedPrice')}</p>
             <p className="font-serif text-xl font-semibold text-green-800 dark:text-green-300">{fmtPrice(myInterest.price)} / {listing.unit}</p>
           </div>
           {myInterest.quantity && (
             <div>
-              <p className="text-xs text-stone-400 dark:text-stone-500 uppercase tracking-wider font-sans mb-0.5">Quantity Placed</p>
+              <p className="text-xs text-stone-400 dark:text-stone-500 uppercase tracking-wider font-sans mb-0.5">{t('quantityPlaced')}</p>
               <p className="font-serif text-xl font-semibold text-stone-800 dark:text-stone-200">{myInterest.quantity} {listing.unit}</p>
             </div>
           )}
         </div>
+
+        {myInterest.orderId && (
+          <Link
+            href={`/buyer/orders/${myInterest.orderId}`}
+            className="flex items-center justify-center gap-2 h-12 rounded-xl bg-green-800 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white font-sans font-medium text-sm transition-colors shadow-sm"
+          >
+            {t('viewOrderBtn')}
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+          </Link>
+        )}
 
         {/* Revealed Direct Contact Credentials on Accepted State Match */}
         {listing.sellerId?.phone && (
@@ -260,29 +271,29 @@ function InterestPanel({ listing }: { listing: any }) {
               </svg>
             </div>
             <div>
-              <p className="font-sans font-semibold text-amber-800 dark:text-amber-400">Awaiting seller response</p>
-              <p className="text-xs text-stone-500 dark:text-stone-400 font-sans mt-0.5">Submitted {fmtDate(myInterest.createdAt)}</p>
+              <p className="font-sans font-semibold text-amber-800 dark:text-amber-400">{t('awaitingSeller')}</p>
+              <p className="text-xs text-stone-500 dark:text-stone-400 font-sans mt-0.5">{t('submittedOn', { date: fmtDate(myInterest.createdAt) })}</p>
             </div>
           </div>
           <span className="px-3 py-1 rounded-full text-xs font-semibold bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800/40">
-            Pending
+            {t('statusPending')}
           </span>
         </div>
 
         <div className="grid grid-cols-2 gap-4 bg-white dark:bg-stone-900 rounded-xl p-4 border border-stone-200 dark:border-stone-800 shadow-sm">
           <div>
-            <p className="text-xs text-stone-400 dark:text-stone-500 uppercase tracking-wider font-sans mb-0.5">Offered Price</p>
+            <p className="text-xs text-stone-400 dark:text-stone-500 uppercase tracking-wider font-sans mb-0.5">{t('offeredPrice')}</p>
             <p className="font-serif text-xl font-medium text-stone-800 dark:text-stone-100">{fmtPrice(myInterest.price)} / {listing.unit}</p>
           </div>
           {myInterest.quantity && (
             <div>
-              <p className="text-xs text-stone-400 dark:text-stone-500 uppercase tracking-wider font-sans mb-0.5">Quantity</p>
+              <p className="text-xs text-stone-400 dark:text-stone-500 uppercase tracking-wider font-sans mb-0.5">{t('quantity')}</p>
               <p className="font-serif text-xl font-medium text-stone-800 dark:text-stone-100">{myInterest.quantity} {listing.unit}</p>
             </div>
           )}
           {myInterest.quantity && (
             <div className="col-span-2 pt-2 border-t border-stone-100 dark:border-stone-800">
-              <p className="text-xs text-stone-400 dark:text-stone-500 uppercase tracking-wider font-sans mb-0.5">Total Value Valuation</p>
+              <p className="text-xs text-stone-400 dark:text-stone-500 uppercase tracking-wider font-sans mb-0.5">{t('totalValuation')}</p>
               <p className="font-serif text-xl font-bold text-green-800 dark:text-green-500">
                 {fmtPrice(myInterest.price * myInterest.quantity)}
               </p>
@@ -292,7 +303,7 @@ function InterestPanel({ listing }: { listing: any }) {
 
         {myInterest.notes && (
           <div className="text-sm text-stone-600 dark:text-stone-400 font-sans bg-white dark:bg-stone-900 rounded-xl px-4 py-3 border border-stone-200 dark:border-stone-800/60 shadow-sm">
-            <span className="text-xs font-semibold uppercase tracking-wider text-stone-400 dark:text-stone-500 block mb-1">Your Proposal Notes</span>
+            <span className="text-xs font-semibold uppercase tracking-wider text-stone-400 dark:text-stone-500 block mb-1">{t('proposalNotes')}</span>
             {myInterest.notes}
           </div>
         )}
@@ -312,17 +323,17 @@ function InterestPanel({ listing }: { listing: any }) {
             <div>
               <p className={`font-sans font-semibold ${statusCfg.text}`}>
                 {myInterest.status === 'rejected'
-                  ? 'The seller has declined your offer.'
-                  : 'This interest expression was withdrawn.'}
+                  ? t('declinedMsg')
+                  : t('withdrawnMsg')}
               </p>
               <p className="text-xs text-stone-500 dark:text-stone-400 font-sans mt-1">
                 {myInterest.status === 'rejected'
-                  ? 'You are eligible to place an adjusted offer counter proposal alternative valuation strategy.'
-                  : 'You can resubmit interest if the harvest parameters remain active and open.'}
+                  ? t('declinedSubMsg')
+                  : t('withdrawnSubMsg')}
               </p>
             </div>
             <span className={`flex-shrink-0 px-2.5 py-1 rounded-full text-xs font-bold border tracking-wider uppercase ${statusCfg.bg} ${statusCfg.border} ${statusCfg.text}`}>
-              {statusCfg.label}
+              {t(statusCfg.labelKey)}
             </span>
           </div>
           {(listing.status === 'open' || listing.status === 'interest_received') && (
@@ -330,7 +341,7 @@ function InterestPanel({ listing }: { listing: any }) {
               onClick={() => setShowReSubmit(true)}
               className="w-full h-12 rounded-xl bg-white dark:bg-stone-800 border-2 border-stone-200 dark:border-stone-700 text-stone-700 dark:text-stone-200 text-sm font-medium hover:bg-stone-50 dark:hover:bg-stone-700 transition-all active:scale-[0.99] shadow-sm"
             >
-              Submit New Offer
+              {t('submitNewOffer')}
             </button>
           )}
         </div>
@@ -343,9 +354,9 @@ function InterestPanel({ listing }: { listing: any }) {
           className="rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-6 md:p-8 space-y-5 shadow-sm"
         >
           <div>
-            <h3 className="font-serif text-xl text-stone-800 dark:text-stone-100 font-medium">Express Purchase Interest</h3>
+            <h3 className="font-serif text-xl text-stone-800 dark:text-stone-100 font-medium">{t('expressInterestTitle')}</h3>
             <p className="text-sm text-stone-500 dark:text-stone-400 font-sans mt-1">
-              Propose your contract buying conditions to the producer. They will review parameters.
+              {t('expressInterestDesc')}
             </p>
           </div>
 
@@ -358,7 +369,7 @@ function InterestPanel({ listing }: { listing: any }) {
           <div className="space-y-4">
             <div>
               <label className="block text-xs font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wider mb-2 font-sans" htmlFor="interest-price-input">
-                Offered Price (₹ per {listing.unit}) <span className="text-red-500">*</span>
+                {t('offerPriceLabel', { unit: listing.unit })} <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-400 font-sans text-sm">₹</span>
@@ -377,14 +388,14 @@ function InterestPanel({ listing }: { listing: any }) {
 
             <div>
               <label className="block text-xs font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wider mb-2 font-sans" htmlFor="interest-qty-input">
-                Desired Quantity ({listing.unit}) <span className="text-stone-400 font-normal">(optional)</span>
+                {t('qtyLabel', { unit: listing.unit })} <span className="text-stone-400 font-normal">{t('optional')}</span>
               </label>
               <input
                 id="interest-qty-input"
                 type="number"
                 value={quantity}
                 onChange={(e) => setQuantity(e.target.value)}
-                placeholder={`Maximum limit: ${listing.quantity}`}
+                placeholder={t('maxLimit', { limit: listing.quantity })}
                 min="1"
                 max={listing.quantity}
                 className="w-full h-12 px-4 rounded-xl border border-stone-300 dark:border-stone-700 bg-stone-50 dark:bg-stone-950 text-stone-800 dark:text-stone-100 text-sm focus:outline-none focus:ring-2 focus:ring-green-800 dark:focus:ring-green-700 transition-all shadow-sm"
@@ -393,13 +404,13 @@ function InterestPanel({ listing }: { listing: any }) {
 
             <div>
               <label className="block text-xs font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wider mb-2 font-sans" htmlFor="interest-notes-input">
-                Proposal Notes & Terms <span className="text-stone-400 font-normal">(optional)</span>
+                {t('notesLabel')} <span className="text-stone-400 font-normal">{t('optional')}</span>
               </label>
               <textarea
                 id="interest-notes-input"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder="Specify details like shipping arrangements, verification windows, or multi-batch staging requirements..."
+                placeholder={t('notesPlaceholder')}
                 rows={3}
                 maxLength={500}
                 className="w-full px-4 py-3 rounded-xl border border-stone-300 dark:border-stone-700 bg-stone-50 dark:bg-stone-950 text-stone-800 dark:text-stone-100 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-green-800 dark:focus:ring-green-700 transition-all shadow-sm font-sans"
@@ -414,7 +425,7 @@ function InterestPanel({ listing }: { listing: any }) {
                 onClick={() => setShowReSubmit(false)}
                 className="h-12 flex-1 rounded-xl border-2 border-stone-300 dark:border-stone-700 text-stone-700 dark:text-stone-300 text-sm font-medium hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors"
               >
-                Cancel
+                {t('cancelBtn')}
               </button>
             )}
             <button
@@ -423,7 +434,7 @@ function InterestPanel({ listing }: { listing: any }) {
               disabled={isSubmitting}
               className="h-12 flex-[2] rounded-xl bg-green-800 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 disabled:opacity-50 text-white font-sans font-medium text-sm transition-colors shadow-sm active:scale-[0.99]"
             >
-              {isSubmitting ? 'Submitting offer...' : showReSubmit ? 'Submit Adjusted Counter Offer' : 'Express Interest'}
+              {isSubmitting ? t('submittingBtn') : showReSubmit ? t('submitAdjustedBtn') : t('expressInterestBtn')}
             </button>
           </div>
         </form>
@@ -433,7 +444,7 @@ function InterestPanel({ listing }: { listing: any }) {
       {['sale_confirmed', 'closed', 'cancelled', 'expired'].includes(listing.status?.toLowerCase()) && (
         <div className="rounded-2xl border border-stone-200 dark:border-stone-800 bg-stone-100/50 dark:bg-stone-900/40 p-5 text-center shadow-sm">
           <p className="text-sm text-stone-500 dark:text-stone-400 font-sans font-medium">
-            This listing transaction window is closed and is no longer accepting buyer negotiations.
+            {t('listingClosed')}
           </p>
         </div>
       )}
@@ -450,6 +461,7 @@ export default function ListingDetailPage() {
 
   const { data, isLoading, isError } = useGetListingByIdQuery(id);
   const listing = data?.data;
+  const t = useTranslations('buyerMarketplaceView');
 
   if (isLoading) {
     return (
@@ -466,9 +478,9 @@ export default function ListingDetailPage() {
   if (isError || !listing) {
     return (
       <div className="max-w-3xl mx-auto p-12 text-center bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 shadow-sm mt-8 space-y-4">
-        <p className="text-red-600 dark:text-red-400 font-sans font-medium text-lg">Harvest catalog listing not found.</p>
+        <p className="text-red-600 dark:text-red-400 font-sans font-medium text-lg">{t('listingNotFound')}</p>
         <Link href="/buyer/marketplace" className="inline-flex h-11 px-5 items-center justify-center bg-stone-100 dark:bg-stone-800 rounded-xl text-sm font-sans font-medium text-stone-700 dark:text-stone-300 hover:bg-stone-200 transition-colors">
-          Return to Marketplace
+          {t('returnToMarketplace')}
         </Link>
       </div>
     );
@@ -489,7 +501,7 @@ export default function ListingDetailPage() {
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7 m0 0l7-7 m-7 7h18" />
         </svg>
-        Back to Marketplace
+        {t('backToMarketplace')}
       </button>
 
       {/* Image Carousel Panel Section */}
@@ -525,7 +537,7 @@ export default function ListingDetailPage() {
           <svg className="w-12 h-12 stroke-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
           </svg>
-          <span className="text-xs font-sans font-medium">No catalog media available</span>
+          <span className="text-xs font-sans font-medium">{t('noMedia')}</span>
         </div>
       )}
 
@@ -544,7 +556,7 @@ export default function ListingDetailPage() {
               {crop?.name ?? '—'}
             </h1>
             {listing.variety && (
-              <p className="text-sm font-sans text-stone-500 dark:text-stone-400 mt-1 font-medium capitalize">Variety Strain: <span className="text-stone-700 dark:text-stone-300">{listing.variety}</span></p>
+              <p className="text-sm font-sans text-stone-500 dark:text-stone-400 mt-1 font-medium capitalize">{t('varietyStrain')}: <span className="text-stone-700 dark:text-stone-300">{listing.variety}</span></p>
             )}
           </div>
           <span className="text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full border border-stone-300 dark:border-stone-700 text-stone-600 dark:text-stone-400 font-sans bg-stone-50 dark:bg-stone-950 shadow-sm">
@@ -555,14 +567,14 @@ export default function ListingDetailPage() {
         <div className="flex items-center gap-4 text-xs font-medium text-stone-500 dark:text-stone-400 font-sans flex-wrap pt-2 border-t border-stone-100 dark:border-stone-800/60">
           <span className="flex items-center gap-1.5">
             <svg className="w-4 h-4 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-            {listing.viewCount ?? 0} active catalog views
+            {listing.viewCount ?? 0} {t('activeViews')}
           </span>
           <span>·</span>
-          <span>Published: {fmtDate(listing.createdAt)}</span>
+          <span>{t('publishedOn', { date: fmtDate(listing.createdAt) })}</span>
           {listing.expiresAt && (
             <>
               <span>·</span>
-              <span className="text-red-600 dark:text-red-400">Trading Window Close: {fmtShortDate(listing.expiresAt)}</span>
+              <span className="text-red-600 dark:text-red-400">{t('tradingWindowClose', { date: fmtShortDate(listing.expiresAt) })}</span>
             </>
           )}
         </div>
@@ -571,7 +583,7 @@ export default function ListingDetailPage() {
       {/* Quantity Section */}
       <section className="bg-stone-50 dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 p-5 md:p-6 shadow-sm">
         <h2 className="text-xs font-bold uppercase tracking-wider text-stone-400 dark:text-stone-500 font-sans mb-4">
-          Available Quantity
+          {t('availableQty')}
         </h2>
         <p className="font-serif text-2xl md:text-3xl font-bold text-stone-800 dark:text-stone-100">
           {listing.quantity}
@@ -582,7 +594,7 @@ export default function ListingDetailPage() {
       {/* Optional Free-Text Narrative Description Section */}
       {listing.description && (
         <section className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 p-5 md:p-6 shadow-sm space-y-3">
-          <h2 className="text-xs font-bold uppercase tracking-wider text-stone-400 dark:text-stone-500 font-sans">Harvest Parameters & Field Condition Notes</h2>
+          <h2 className="text-xs font-bold uppercase tracking-wider text-stone-400 dark:text-stone-500 font-sans">{t('harvestNotes')}</h2>
           <p className="font-sans text-stone-700 dark:text-stone-300 leading-relaxed text-sm md:text-base whitespace-pre-line">
             {listing.description}
           </p>
@@ -592,7 +604,7 @@ export default function ListingDetailPage() {
       {/* Kisan Identification Core Profile Summary Card */}
       <section className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 p-5 shadow-sm">
         <h2 className="text-xs font-bold uppercase tracking-wider text-stone-400 dark:text-stone-500 font-sans mb-4">
-          Producer Verification Credentials
+          {t('producerCredentials')}
         </h2>
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 rounded-xl bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-400 border border-green-200 dark:border-green-800/40 flex items-center justify-center font-serif font-bold text-lg flex-shrink-0">
@@ -603,14 +615,14 @@ export default function ListingDetailPage() {
               <p className="font-sans font-semibold text-stone-800 dark:text-stone-100">{seller?.name ?? '—'}</p>
               {seller?.isVerified && (
                 <span className="inline-flex items-center gap-0.5 text-[10px] font-bold tracking-wider uppercase text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/10 px-2 py-0.5 rounded border border-blue-100 dark:border-blue-900/30">
-                  Verified Producer
+                  {t('verifiedProducer')}
                 </span>
               )}
             </div>
             {seller?.averageRating > 0 && (
               <div className="flex items-center gap-1 mt-0.5">
                 <span className="text-amber-500 text-sm">{'★'.repeat(Math.round(seller.averageRating))}</span>
-                <span className="text-xs text-stone-500 dark:text-stone-400 font-sans font-medium">({seller.averageRating.toFixed(1)} rating)</span>
+                <span className="text-xs text-stone-500 dark:text-stone-400 font-sans font-medium">{t('rating', { rating: seller.averageRating.toFixed(1) })}</span>
               </div>
             )}
             {seller?.location && (
@@ -624,24 +636,24 @@ export default function ListingDetailPage() {
       <section className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 p-5 space-y-2 shadow-sm">
         <h2 className="text-xs font-bold uppercase tracking-wider text-stone-400 dark:text-stone-500 font-sans flex items-center gap-1.5 mb-2">
           <svg className="w-4 h-4 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-          Pickup Location Specifications
+          {t('pickupSpecs')}
         </h2>
         <p className="font-sans text-stone-800 dark:text-stone-100 font-medium text-sm md:text-base">{listing.farmAddress}</p>
         <p className="font-sans text-stone-500 dark:text-stone-400 text-sm font-medium">{listing.farmDistrict}, {listing.farmState}</p>
       </section>
 
-      {/* Agmarknet Government Analytics Tracker Frame */}
       {crop?._id && (
         <section className="space-y-3">
           <div className="flex items-center justify-between pl-1">
             <h2 className="text-xs font-bold uppercase tracking-wider text-stone-400 dark:text-stone-500 font-sans">
-              Market Index Rate Comparison
+              {t('marketIndexComparison')}
             </h2>
-            <span className="text-xs text-stone-400 dark:text-stone-500 font-sans font-medium">Historical Window: 7 Days</span>
+            <span className="text-xs text-stone-400 dark:text-stone-500 font-sans font-medium">{t('historicalWindow')}</span>
           </div>
           <MandiRateTable
             cropId={crop._id}
             unit={listing.unit}
+            t={t}
           />
         </section>
       )}
@@ -649,9 +661,9 @@ export default function ListingDetailPage() {
       {/* Real-time Interaction Intent Entry Gate */}
       <section className="space-y-4">
         <h2 className="font-serif text-xl text-stone-800 dark:text-stone-100 font-medium border-b border-stone-200 dark:border-stone-800 pb-2">
-          Your Intent Status
+          {t('yourIntentStatus')}
         </h2>
-        <InterestPanel listing={listing} />
+        <InterestPanel listing={listing} t={t} />
       </section>
 
     </div>

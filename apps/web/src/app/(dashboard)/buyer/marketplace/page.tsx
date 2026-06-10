@@ -4,6 +4,7 @@ import { useState, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import { useGetListingsQuery } from '@/store/endpoints/listingsApi';
 import { useGetCropsQuery } from '@/store/endpoints/cropsApi';
+import { useTranslations } from 'next-intl';
 
 // ─── HELPERS ────────────────────────────────────────────────────────────────
 
@@ -51,6 +52,8 @@ function CropCard({ listing }: { listing: any }) {
   const crop = listing.cropId;
   const seller = listing.sellerId;
   const expDays = listing.expiresAt ? daysUntil(listing.expiresAt) : null;
+  const tBuyer = useTranslations('buyerMarketplace');
+  const tCrop = useTranslations('cropSelector');
 
   return (
     <Link
@@ -69,7 +72,7 @@ function CropCard({ listing }: { listing: any }) {
             <svg className="w-10 h-10 stroke-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
-            <span className="text-xs font-sans">No Image</span>
+            <span className="text-xs font-sans">{tCrop('noImage')}</span>
           </div>
         )}
 
@@ -81,7 +84,7 @@ function CropCard({ listing }: { listing: any }) {
 
         {expDays !== null && expDays <= 3 && expDays > 0 && (
           <span className="absolute top-3 right-3 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-red-600 text-white shadow-sm animate-pulse">
-            {expDays}d left
+            {tBuyer('daysLeft', { days: expDays })}
           </span>
         )}
       </div>
@@ -95,7 +98,7 @@ function CropCard({ listing }: { listing: any }) {
           <svg className="w-4 h-4 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
           </svg>
-          <span>{listing.quantity} {listing.unit} available</span>
+          <span>{tBuyer('available', { quantity: listing.quantity, unit: listing.unit })}</span>
         </div>
 
         <div className="flex items-center justify-between mt-auto pt-3 border-t border-stone-100 dark:border-stone-800/60">
@@ -107,7 +110,7 @@ function CropCard({ listing }: { listing: any }) {
           </div>
           {seller?.isVerified && (
             <span className="flex items-center gap-0.5 text-[10px] text-blue-700 dark:text-blue-400 font-bold uppercase tracking-wider flex-shrink-0 bg-blue-50 dark:bg-blue-900/20 px-2 py-0.5 rounded-md border border-blue-100 dark:border-blue-900/30">
-              Verified
+              {tBuyer('verified')}
             </span>
           )}
         </div>
@@ -152,6 +155,8 @@ export default function MarketplacePage() {
   const [localFilters, setLocalFilters] = useState<Filters>(EMPTY_FILTERS);
   const [page, setPage] = useState(1);
   const [filterOpen, setFilterOpen] = useState(false);
+  const tBuyer = useTranslations('buyerMarketplace');
+  const tCommon = useTranslations('common');
 
   const { data: cropsData } = useGetCropsQuery({ limit: 100 });
   const crops: any[] = cropsData?.data ?? [];
@@ -212,7 +217,7 @@ export default function MarketplacePage() {
 
   const activeChips = useMemo(() => {
     const chips: { label: string; clear: () => void }[] = [];
-    if (appliedFilters.search) chips.push({ label: `खोज: ${appliedFilters.search}`, clear: () => removeSpecificFilter('search') });
+    if (appliedFilters.search) chips.push({ label: tBuyer('searchPrefix', { term: appliedFilters.search }), clear: () => removeSpecificFilter('search') });
     if (appliedFilters.cropId) {
       const crop = crops.find((c) => c._id === appliedFilters.cropId);
       if (crop) chips.push({ label: crop.name, clear: () => removeSpecificFilter('cropId') });
@@ -241,7 +246,7 @@ export default function MarketplacePage() {
                 type="text"
                 value={localFilters.search}
                 onChange={(e) => handleUpdateLocalFilter('search', e.target.value)}
-                placeholder="फसल, जिला या राज्य खोजें (Search crops, districts, states...)"
+                placeholder={tBuyer('searchPlaceholder')}
                 className="w-full h-12 pl-12 pr-4 rounded-xl border border-stone-300 dark:border-stone-700 bg-stone-50 dark:bg-stone-950 text-stone-800 dark:text-stone-100 placeholder-stone-400 font-sans text-sm focus:outline-none focus:ring-2 focus:ring-green-800 transition-colors"
               />
             </div>
@@ -259,7 +264,7 @@ export default function MarketplacePage() {
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z" />
               </svg>
-              Filter {activeFilterCount > 0 && `(${activeFilterCount})`}
+              {tCommon('filter')} {activeFilterCount > 0 && `(${activeFilterCount})`}
             </button>
 
             {/* Submit execution handler wrapper for Desktop */}
@@ -267,7 +272,7 @@ export default function MarketplacePage() {
               type="submit"
               className="hidden md:flex h-12 px-6 rounded-xl bg-green-800 hover:bg-green-700 text-white font-sans text-sm font-medium items-center justify-center transition-colors shadow-sm whitespace-nowrap"
             >
-              खोजें (Search)
+              {tCommon('search')}
             </button>
           </div>
 
@@ -279,7 +284,7 @@ export default function MarketplacePage() {
                 onChange={(e) => handleUpdateLocalFilter('cropId', e.target.value)}
                 className={selectStyles}
               >
-                <option value="">All Crops</option>
+                <option value="">{tBuyer('allCrops')}</option>
                 {crops.map((c) => (
                   <option key={c._id} value={c._id}>{c.name}</option>
                 ))}
@@ -293,7 +298,7 @@ export default function MarketplacePage() {
               type="text"
               value={localFilters.state}
               onChange={(e) => handleUpdateLocalFilter('state', e.target.value)}
-              placeholder="State"
+              placeholder={tBuyer('state')}
               className={`${inputStyles} w-32`}
             />
 
@@ -301,7 +306,7 @@ export default function MarketplacePage() {
               type="text"
               value={localFilters.district}
               onChange={(e) => handleUpdateLocalFilter('district', e.target.value)}
-              placeholder="District"
+              placeholder={tBuyer('district')}
               className={`${inputStyles} w-34`}
             />
 
@@ -311,7 +316,7 @@ export default function MarketplacePage() {
                 onChange={(e) => handleSortChange(e.target.value)}
                 className={`${selectStyles} h-10`}
               >
-                <option value="newest">Newest first</option>
+                <option value="newest">{tBuyer('newestFirst')}</option>
               </select>
               <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3.5 text-stone-400">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
@@ -324,7 +329,7 @@ export default function MarketplacePage() {
                 onClick={clearFilters}
                 className="h-10 px-4 rounded-xl text-sm font-medium text-stone-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/25 transition-colors border border-transparent hover:border-red-100"
               >
-                ✕ Clear All
+                {tBuyer('clearAll')}
               </button>
             )}
           </div>
@@ -340,7 +345,7 @@ export default function MarketplacePage() {
                   onChange={(e) => handleUpdateLocalFilter('cropId', e.target.value)}
                   className={`${selectStyles} w-full`}
                 >
-                  <option value="">All Crops</option>
+                  <option value="">{tBuyer('allCrops')}</option>
                   {crops.map((c) => <option key={c._id} value={c._id}>{c.name}</option>)}
                 </select>
                 <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3.5 text-stone-400">
@@ -352,14 +357,14 @@ export default function MarketplacePage() {
                 type="text"
                 value={localFilters.state}
                 onChange={(e) => handleUpdateLocalFilter('state', e.target.value)}
-                placeholder="State"
+                placeholder={tBuyer('state')}
                 className={inputStyles}
               />
               <input
                 type="text"
                 value={localFilters.district}
                 onChange={(e) => handleUpdateLocalFilter('district', e.target.value)}
-                placeholder="District"
+                placeholder={tBuyer('district')}
                 className={inputStyles}
               />
               
@@ -369,7 +374,7 @@ export default function MarketplacePage() {
                   onChange={(e) => handleSortChange(e.target.value)}
                   className={`${selectStyles} w-full`}
                 >
-                  <option value="newest">Newest first</option>
+                  <option value="newest">{tBuyer('newestFirst')}</option>
                 </select>
                 <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3.5 text-stone-400">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
@@ -384,7 +389,7 @@ export default function MarketplacePage() {
                   onClick={() => { clearFilters(); setFilterOpen(false); }}
                   className="h-12 flex-1 rounded-xl border-2 border-stone-200 dark:border-stone-700 text-stone-700 dark:text-stone-300 font-sans font-medium text-sm transition-colors active:scale-95"
                 >
-                  Clear
+                  {tCommon('clear')}
                 </button>
               )}
               <button
@@ -392,7 +397,7 @@ export default function MarketplacePage() {
                 onClick={() => handleApplyFilters()}
                 className="h-12 flex-[2] rounded-xl bg-green-800 text-white font-sans font-medium text-sm transition-colors active:scale-95 shadow-sm"
               >
-                फ़िल्टर लागू करें
+                {tBuyer('applyFilters')}
               </button>
             </div>
           </div>
@@ -404,16 +409,13 @@ export default function MarketplacePage() {
         
         {/* Metric Response Summary Area */}
         <div className="flex flex-col gap-2.5">
-          <p className="text-sm text-stone-600 dark:text-stone-400 font-sans">
+          <p className="text-sm text-stone-600 dark:text-stone-400 font-sans font-medium">
             {isLoading ? (
               <span className="inline-block h-4 w-44 bg-stone-200 dark:bg-stone-800 rounded animate-pulse" />
             ) : (
-              <>
-                कुल <span className="font-semibold text-stone-800 dark:text-stone-100">
-                  {meta?.total?.toLocaleString('en-IN') ?? 0}
-                </span> फसल उपलब्ध हैं (Crops Available)
-                {activeFilterCount > 0 && ' • filtered'}
-              </>
+              activeFilterCount > 0 
+                ? tBuyer('cropsAvailableFiltered', { total: meta?.total?.toLocaleString('en-IN') ?? 0 })
+                : tBuyer('cropsAvailable', { total: meta?.total?.toLocaleString('en-IN') ?? 0 })
             )}
           </p>
 
@@ -433,12 +435,12 @@ export default function MarketplacePage() {
             <svg className="w-12 h-12 mx-auto text-red-500 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
-            <p className="text-stone-600 dark:text-stone-400 font-sans font-medium">डेटा लोड करने में समस्या आई।</p>
+            <p className="text-stone-600 dark:text-stone-400 font-sans font-medium">{tBuyer('errorLoading')}</p>
             <button
               onClick={() => window.location.reload()}
               className="h-11 px-6 bg-stone-100 dark:bg-stone-800 text-stone-800 dark:text-stone-200 rounded-xl text-sm font-medium hover:bg-stone-200 dark:hover:bg-stone-700 transition-colors shadow-sm"
             >
-              फिर प्रयास करें (Retry)
+              {tBuyer('retry')}
             </button>
           </div>
         ) : (
@@ -455,9 +457,9 @@ export default function MarketplacePage() {
                   </svg>
                 </div>
                 <div>
-                  <p className="font-serif text-xl font-semibold text-stone-800 dark:text-stone-100">कोई फसल उपलब्ध नहीं है</p>
+                  <p className="font-serif text-xl font-semibold text-stone-800 dark:text-stone-100">{tBuyer('noCropsAvailable')}</p>
                   <p className="font-sans text-sm text-stone-500 dark:text-stone-400 mt-1">
-                    {activeFilterCount > 0 ? 'कृपया अपने फ़िल्टर बदलें।' : 'यहाँ जल्द ही नई फसलें जोड़ी जाएँगी।'}
+                    {activeFilterCount > 0 ? tBuyer('changeFilters') : tBuyer('comingSoon')}
                   </p>
                 </div>
                 {activeFilterCount > 0 && (
@@ -465,7 +467,7 @@ export default function MarketplacePage() {
                     onClick={clearFilters}
                     className="h-11 px-6 rounded-xl bg-green-800 hover:bg-green-700 text-white text-sm font-medium transition-colors shadow-sm"
                   >
-                    फ़िल्टर हटाएँ
+                    {tBuyer('removeFilters')}
                   </button>
                 )}
               </div>
@@ -487,17 +489,16 @@ export default function MarketplacePage() {
               className="flex items-center gap-2 h-10 px-4 rounded-xl text-sm font-medium text-stone-700 dark:text-stone-300 bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-95"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
-              Prev
+              {tCommon('prev')}
             </button>
 
             <div className="text-xs sm:text-sm text-stone-600 dark:text-stone-400 font-sans">
               <span>
-                Showing{' '}
-                <span className="font-semibold text-stone-800 dark:text-stone-100">
-                  {(page - 1) * meta.limit + 1}–{Math.min(page * meta.limit, meta.total)}
-                </span>{' '}
-                of{' '}
-                <span className="font-semibold text-stone-800 dark:text-stone-100">{meta.total.toLocaleString('en-IN')}</span>
+                {tCommon('showing', { 
+                  start: (page - 1) * meta.limit + 1, 
+                  end: Math.min(page * meta.limit, meta.total), 
+                  total: meta.total.toLocaleString('en-IN') 
+                })}
               </span>
             </div>
 
@@ -507,7 +508,7 @@ export default function MarketplacePage() {
               onClick={() => setPage((p) => p + 1)}
               className="flex items-center gap-2 h-10 px-4 rounded-xl text-sm font-medium text-stone-700 dark:text-stone-300 bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-95"
             >
-              Next
+              {tCommon('next')}
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
             </button>
           </div>

@@ -71,6 +71,8 @@ export const listingsApi = baseApi.injectEndpoints({
         { type: 'Listing', id: listingId },
         { type: 'Listing', id: `interests-${listingId}` },
         'Listing',
+        // Accepting creates an Order — refresh the kisan's orders list
+        'Order',
       ],
     }),
     rejectInterest: builder.mutation<any, { listingId: string; interestId: string }>({

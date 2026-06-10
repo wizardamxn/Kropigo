@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import {
+  useGetUnreadCountQuery,
   useMarkAllReadMutation,
   useMarkNotificationReadMutation,
   INotification,
@@ -42,6 +43,12 @@ const getNotificationIcon = (type: string) => {
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" /></svg>
         </div>
       );
+    case SOCKET_EVENTS.OFFER_REJECTED:
+      return (
+        <div className="p-2.5 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-xl border border-red-100 dark:border-red-900/30 flex-shrink-0">
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+        </div>
+      );
     default:
       return (
         <div className="p-2.5 bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400 rounded-xl border border-stone-200 dark:border-stone-700 flex-shrink-0">
@@ -51,10 +58,14 @@ const getNotificationIcon = (type: string) => {
   }
 };
 
-const getNavigationPath = (type: string, payload: any): string | null => {
+const getNavigationPath = (type: string, payload: any, role?: string): string | null => {
+  // Order notifications go to the viewer's own role section — kisans and
+  // buyers both receive ORDER_STATUS_UPDATED for the same order.
+  const orderBase = role === 'kisan' ? '/kisan/orders' : role === 'admin' ? '/admin/orders' : '/buyer/orders';
   if (type === SOCKET_EVENTS.NEW_DEAL && payload?.orderId) return `/admin/orders/${payload.orderId}`;
-  if (type === SOCKET_EVENTS.OFFER_ACCEPTED && payload?.orderId) return `/buyer/orders/${payload.orderId}`;
-  if (type === SOCKET_EVENTS.ORDER_STATUS_UPDATED && payload?.orderId) return `/buyer/orders/${payload.orderId}`;
+  if (type === SOCKET_EVENTS.OFFER_ACCEPTED && payload?.orderId) return `${orderBase}/${payload.orderId}`;
+  if (type === SOCKET_EVENTS.ORDER_STATUS_UPDATED && payload?.orderId) return `${orderBase}/${payload.orderId}`;
+  if (type === SOCKET_EVENTS.OFFER_REJECTED && payload?.listingId) return `/buyer/marketplace/${payload.listingId}`;
   if (type === SOCKET_EVENTS.NEW_OFFER_RECEIVED && payload?.listingId) return `/kisan/listings/${payload.listingId}/view`;
   return null;
 };
@@ -72,8 +83,12 @@ const fmtTime = (isoString: string) => {
 export default function NotificationsPage() {
   const router = useRouter();
   const dispatch = useDispatch();
-  const { isAuthenticated, isInitialized } = useAuth();
-  const { unreadCount } = useSelector((state: RootState) => state.notifications);
+  const { isAuthenticated, isInitialized, role } = useAuth();
+  const { unreadCount: localUnreadCount } = useSelector((state: RootState) => state.notifications);
+  // The server count covers all notifications, not just those loaded locally;
+  // its cache tag is invalidated on every socket event and mark-read mutation.
+  const { data: unreadData } = useGetUnreadCountQuery(undefined, { skip: !isAuthenticated });
+  const unreadCount = unreadData?.count ?? localUnreadCount;
 
   // --- Pagination state ---
   const [items, setItems] = useState<INotification[]>([]);
@@ -182,7 +197,7 @@ export default function NotificationsPage() {
     } catch (err) {
       console.error('Failed to sync item read status onto server stack:', err);
     }
-    const path = getNavigationPath(n.type, n.payload);
+    const path = getNavigationPath(n.type, n.payload, role);
     if (path) router.push(path);
   };
 

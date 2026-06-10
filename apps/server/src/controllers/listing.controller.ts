@@ -4,6 +4,7 @@ import { Listing } from "../models/Listing.model";
 import { MandiRate } from "../models/MandiRate.model";
 import { Interest } from "../models/Interest.model";
 import { Order } from "../models/Order.model";
+import { User } from "../models/user.model";
 import { deleteMediaByUrls } from "../services/upload.service";
 import { createAndEmitNotification } from "../services/socket.service";
 import { SOCKET_EVENTS } from "../utils/socketEvents";
@@ -363,6 +364,10 @@ export const acceptInterest = async (
         throw new Error('Deal already confirmed for this listing');
       }
 
+      if (!['open', 'interest_received'].includes(listing.status)) {
+        throw new Error('Listing is not accepting deals (expired, cancelled, or closed)');
+      }
+
       // 2. Find the interest being accepted
       const interest = await Interest.findOne({ 
         _id: interestId, 
@@ -534,7 +539,8 @@ export const rejectInterest = async (
     const sellerId = req.user?.userId;
     const { id: listingId, interestId } = req.params;
 
-    const listing = await Listing.findOne({ _id: listingId, sellerId });
+    const listing = await Listing.findOne({ _id: listingId, sellerId })
+      .populate<{ cropId: { name: string } }>("cropId", "name");
     if (!listing) {
       res
         .status(404)
@@ -565,6 +571,23 @@ export const rejectInterest = async (
       await listing.save();
     }
 
+    // Notify the buyer their offer was rejected (fire-and-forget)
+    const cropName = (listing.cropId as any)?.name ?? "Fasal";
+    createAndEmitNotification({
+      type: SOCKET_EVENTS.OFFER_REJECTED,
+      message: `Aapka offer accept nahi hua: ${cropName}. Aap naya offer bhej sakte hain.`,
+      payload: {
+        listingId: listing._id.toString(),
+        cropName,
+        offeredPrice: interest.price,
+      },
+      targetRole: "buyer",
+      targetUserId: interest.buyerId.toString(),
+      listingId: listing._id.toString(),
+    }).catch((err) => {
+      console.error("Offer rejected notification failed:", err);
+    });
+
     res
       .status(200)
       .json({ success: true, message: "Interest rejected successfully" });
@@ -593,7 +616,8 @@ export const submitInterest = async (
       return;
     }
 
-    const listing = await Listing.findById(listingId);
+    const listing = await Listing.findById(listingId)
+      .populate<{ cropId: { name: string } }>("cropId", "name");
     if (!listing) {
       res.status(404).json({ success: false, message: "Listing not found" });
       return;
@@ -626,6 +650,31 @@ export const submitInterest = async (
       listing.status = "interest_received";
     }
     await listing.save();
+
+    // Notify the kisan a new offer arrived (fire-and-forget)
+    const cropName = (listing.cropId as any)?.name ?? "Fasal";
+    User.findById(buyerId)
+      .select("name")
+      .then((buyer) =>
+        createAndEmitNotification({
+          type: SOCKET_EVENTS.NEW_OFFER_RECEIVED,
+          message: `Naya offer: ${cropName} — ₹${interest.price}/${listing.unit}${buyer?.name ? ` (${buyer.name})` : ""}`,
+          payload: {
+            listingId: listing._id.toString(),
+            cropName,
+            buyerName: buyer?.name ?? "",
+            offeredPrice: interest.price,
+            quantity: interest.quantity ?? listing.quantity,
+            unit: listing.unit,
+          },
+          targetRole: "kisan",
+          targetUserId: listing.sellerId.toString(),
+          listingId: listing._id.toString(),
+        })
+      )
+      .catch((err) => {
+        console.error("New offer notification failed:", err);
+      });
 
     res.status(201).json({ success: true, data: interest });
   } catch (error: any) {

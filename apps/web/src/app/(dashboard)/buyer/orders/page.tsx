@@ -4,18 +4,10 @@ import { useGetOrdersQuery } from '@/store/endpoints/ordersApi';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { RoleGuard } from '@/components/auth/RoleGuard';
+import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 
-const STATUS_LABELS: Record<string, string> = {
-  sale_confirmed: 'Deal Confirmed',
-  admin_notified: 'Admin Notified',
-  qc_scheduled: 'QC Scheduled',
-  qc_passed: 'QC Passed',
-  qc_failed: 'QC Failed',
-  pickup_scheduled: 'Pickup Scheduled',
-  in_transit: 'In Transit',
-  delivered: 'Delivered',
-};
+// We will fetch STATUS_LABELS from translations in the component
 
 const STATUS_STYLES: Record<string, string> = {
   sale_confirmed: 'bg-stone-100 text-stone-700 dark:bg-stone-800 dark:text-stone-300 border-stone-200 dark:border-stone-700',
@@ -38,12 +30,12 @@ const PROGRESS_STEPS = [
   'delivered',
 ];
 
-function OrderProgressBar({ status }: { status: string }) {
+function OrderProgressBar({ status, t }: { status: string, t: any }) {
   if (status === 'qc_failed') {
     return (
       <div className="flex items-center gap-2 text-red-600 dark:text-red-400 text-xs font-sans font-medium bg-red-50 dark:bg-red-950/20 p-3 rounded-xl border border-red-100 dark:border-red-900/30">
         <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-        Quality Check Failed — Our operations management team will contact you directly.
+        {t('qcFailedMsg')}
       </div>
     );
   }
@@ -61,13 +53,13 @@ function OrderProgressBar({ status }: { status: string }) {
                 ? 'bg-green-800 dark:bg-green-600 shadow-sm'
                 : 'bg-stone-200 dark:bg-stone-800'
             }`}
-            title={STATUS_LABELS[step]}
+            title={t(`status${step.split('_').map((s: string) => s.charAt(0).toUpperCase() + s.slice(1)).join('')}`)}
           />
         ))}
       </div>
       <div className="flex justify-between items-center text-[10px] font-sans text-stone-400 font-medium uppercase tracking-wider px-1">
-        <span>Order Placed</span>
-        <span>Out for Delivery</span>
+        <span>{t('orderPlaced')}</span>
+        <span>{t('outForDelivery')}</span>
       </div>
     </div>
   );
@@ -77,6 +69,18 @@ export default function BuyerOrdersPage() {
   const router = useRouter();
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState('');
+  const t = useTranslations('buyerOrders');
+
+  const STATUS_KEYS = [
+    'sale_confirmed',
+    'admin_notified',
+    'qc_scheduled',
+    'qc_passed',
+    'qc_failed',
+    'pickup_scheduled',
+    'in_transit',
+    'delivered',
+  ];
 
   const { data, isLoading, isFetching } = useGetOrdersQuery({
     page,
@@ -93,10 +97,10 @@ export default function BuyerOrdersPage() {
         {/* Page Title Header */}
         <div>
           <h1 className="font-serif text-3xl md:text-4xl text-stone-800 dark:text-stone-100 font-medium tracking-tight">
-            My Orders
+            {t('title')}
           </h1>
           <p className="font-sans text-stone-600 dark:text-stone-400 mt-1 text-sm md:text-base">
-            Track and audit every confirmed crop purchase pipeline from verification to safe delivery.
+            {t('subtitle')}
           </p>
         </div>
 
@@ -110,9 +114,9 @@ export default function BuyerOrdersPage() {
                 : 'text-stone-600 dark:text-stone-400 bg-white dark:bg-stone-900 border-stone-200 dark:border-stone-800 hover:bg-stone-50 dark:hover:bg-stone-800'
             }`}
           >
-            All Orders
+            {t('allOrders')}
           </button>
-          {Object.keys(STATUS_LABELS).map((status) => {
+          {STATUS_KEYS.map((status) => {
             const isTabActive = statusFilter === status;
             return (
               <button
@@ -124,7 +128,7 @@ export default function BuyerOrdersPage() {
                     : 'text-stone-600 dark:text-stone-400 bg-white dark:bg-stone-900 border-stone-200 dark:border-stone-800 hover:bg-stone-50 dark:hover:bg-stone-800'
                 }`}
               >
-                {STATUS_LABELS[status]}
+                {t(`status${status.split('_').map((s: string) => s.charAt(0).toUpperCase() + s.slice(1)).join('')}`)}
               </button>
             );
           })}
@@ -145,13 +149,13 @@ export default function BuyerOrdersPage() {
               </svg>
             </div>
             <div>
-              <p className="font-serif text-xl font-semibold text-stone-800 dark:text-stone-100">No matching orders found</p>
+              <p className="font-serif text-xl font-semibold text-stone-800 dark:text-stone-100">{t('noOrdersFound')}</p>
               <p className="font-sans text-sm text-stone-500 dark:text-stone-400 mt-1 max-w-xs mx-auto leading-relaxed">
-                Orders appear here once a producer approves your purchase interest terms.
+                {t('noOrdersDesc')}
               </p>
             </div>
             <Link href="/buyer/marketplace" className="mt-2 h-12 px-6 rounded-xl bg-green-800 hover:bg-green-700 text-white font-sans text-sm font-semibold transition-all shadow-sm flex items-center justify-center w-full sm:w-auto">
-              Browse Crop Marketplace
+              {t('browseMarketplace')}
             </Link>
           </div>
         ) : (
@@ -168,12 +172,12 @@ export default function BuyerOrdersPage() {
                       <h3 className="font-serif text-lg sm:text-xl font-semibold text-stone-800 dark:text-stone-100 leading-tight">
                         {(order.listingId as any)?.cropId?.name ?? '—'}
                       </h3>
-                      <p className="font-mono text-xs text-stone-400 dark:text-stone-500 mt-1 font-medium">Order ID: #{order._id.slice(-6).toUpperCase()}</p>
+                      <p className="font-mono text-xs text-stone-400 dark:text-stone-500 mt-1 font-medium">{t('orderId', { id: order._id.slice(-6).toUpperCase() })}</p>
                     </div>
                     
                     <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold border tracking-wide uppercase shadow-sm ${STATUS_STYLES[order.status] ?? 'bg-stone-100 text-stone-700'}`}>
-                        {STATUS_LABELS[order.status] ?? order.status}
+                        {t(`status${order.status.split('_').map((s: string) => s.charAt(0).toUpperCase() + s.slice(1)).join('')}`)}
                       </span>
                       <p className="font-sans text-base font-bold text-stone-800 dark:text-stone-200">
                         ₹{order.totalAmount?.toLocaleString('en-IN')}
@@ -182,14 +186,14 @@ export default function BuyerOrdersPage() {
                   </div>
 
                   {/* Operational Timeline Progress Stream */}
-                  <OrderProgressBar status={order.status} />
+                  <OrderProgressBar status={order.status} t={t} />
 
                   <div className="flex justify-between items-center pt-2 border-t border-stone-100 dark:border-stone-800/60 mt-1">
                     <p className="font-sans text-xs text-stone-500 dark:text-stone-400 font-medium">
-                      Bulk Load: <span className="text-stone-800 dark:text-stone-200 font-semibold">{order.quantity} {order.unit}</span> • {new Date(order.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      {t('bulkLoad')}<span className="text-stone-800 dark:text-stone-200 font-semibold">{order.quantity} {order.unit}</span> • {new Date(order.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                     </p>
                     <p className="font-sans text-xs font-semibold text-green-800 dark:text-green-500 flex items-center gap-1.5 hover:underline">
-                      Review Details 
+                      {t('reviewDetails')} 
                       <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
                     </p>
                   </div>
@@ -199,9 +203,13 @@ export default function BuyerOrdersPage() {
 
             {/* Pagination Controls Section */}
             <div className="flex flex-col sm:flex-row items-center justify-between bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 px-5 py-3.5 shadow-sm gap-4">
-              <p className="font-sans text-xs sm:text-sm text-stone-500 dark:text-stone-400 font-medium">
-                Showing {orders.length} of <span className="font-semibold text-stone-800 dark:text-stone-100">{data?.pagination.total}</span> total pipeline records
-              </p>
+              <span className="font-sans text-xs sm:text-sm text-stone-500">
+                {t.rich('showingRecords', {
+                  count: orders.length,
+                  total: data?.pagination.total ?? 0,
+                  bold: (chunks) => <span className="font-semibold text-stone-800 dark:text-stone-100">{chunks}</span>
+                })}
+              </span>
               
               <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
                 <button
@@ -209,7 +217,7 @@ export default function BuyerOrdersPage() {
                   disabled={page === 1 || isFetching}
                   className="h-10 px-4 rounded-xl text-xs font-semibold font-sans border border-stone-200 dark:border-stone-700 bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 disabled:opacity-40 hover:bg-stone-200 dark:hover:bg-stone-700 transition-all active:scale-95 shadow-sm"
                 >
-                  Prev
+                  {t('prev')}
                 </button>
                 <span className="text-xs font-sans font-semibold text-stone-500 dark:text-stone-400 min-w-[36px] text-center">
                   {page} / {data?.pagination.pages ?? 1}
@@ -219,7 +227,7 @@ export default function BuyerOrdersPage() {
                   disabled={page === (data?.pagination.pages ?? 1) || isFetching}
                   className="h-10 px-4 rounded-xl text-xs font-semibold font-sans border border-stone-200 dark:border-stone-700 bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 disabled:opacity-40 hover:bg-stone-200 dark:hover:bg-stone-700 transition-all active:scale-95 shadow-sm"
                 >
-                  Next
+                  {t('next')}
                 </button>
               </div>
             </div>

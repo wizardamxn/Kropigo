@@ -5,11 +5,13 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { useGetListingsQuery, useDeleteListingMutation } from '@/store/endpoints/listingsApi';
+import { useTranslations } from 'next-intl';
 
 const STATUS_OPTIONS = ['', 'draft', 'open', 'interest_received', 'sale_confirmed', 'cancelled', 'expired', 'closed'];
 
-const formatStatus = (status: string) => {
-  if (!status) return 'All Statuses';
+// We pass t to formatStatus to translate "All Statuses"
+const formatStatus = (status: string, t: any) => {
+  if (!status) return t('allStatuses');
   return status.replace('_', ' ').replace(/\b\w/g, (char) => char.toUpperCase());
 };
 
@@ -37,6 +39,9 @@ export default function KisanListings() {
   const router = useRouter();
   const [status, setStatus] = useState('');
   const [page, setPage] = useState(1);
+  const t = useTranslations('kisanListings');
+  const tCommon = useTranslations('common');
+  const tDashboard = useTranslations('kisanDashboard');
 
   const { data, isLoading, isError, isFetching } = useGetListingsQuery(
     { sellerId: user?.id, ...(status && { status }), page, limit: 10 },
@@ -49,7 +54,7 @@ export default function KisanListings() {
   const meta = data?.meta;
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this listing? This action cannot be undone.')) return;
+    if (!confirm(t('deleteConfirm'))) return;
     await deleteListing(id);
   };
 
@@ -72,8 +77,8 @@ export default function KisanListings() {
     return (
       <div className="p-8 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl flex flex-col items-center justify-center text-center space-y-4">
         <svg className="w-12 h-12 text-red-500 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-        <p className="font-sans text-lg text-red-800 dark:text-red-300 font-medium">Failed to load your listings.</p>
-        <button onClick={() => window.location.reload()} className="h-12 px-6 bg-white dark:bg-stone-800 text-stone-800 dark:text-stone-200 rounded-xl shadow-sm font-medium hover:bg-stone-50 dark:hover:bg-stone-700 transition-colors">Try Again</button>
+        <p className="font-sans text-lg text-red-800 dark:text-red-300 font-medium">{t('failedToLoad')}</p>
+        <button onClick={() => window.location.reload()} className="h-12 px-6 bg-white dark:bg-stone-800 text-stone-800 dark:text-stone-200 rounded-xl shadow-sm font-medium hover:bg-stone-50 dark:hover:bg-stone-700 transition-colors">{tCommon('tryAgain')}</button>
       </div>
     );
   }
@@ -85,10 +90,10 @@ export default function KisanListings() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="font-serif text-3xl md:text-4xl text-stone-800 dark:text-stone-100 font-medium tracking-tight">
-            My Listings
+            {t('title')}
           </h1>
           <p className="font-sans text-sm text-stone-600 dark:text-stone-400 mt-1">
-          Manage your crop listings and track buyer activity.
+          {t('subtitle')}
           </p>
         </div>
 
@@ -100,7 +105,7 @@ export default function KisanListings() {
               className="appearance-none h-12 w-full sm:w-48 px-4 pr-10 rounded-xl bg-white dark:bg-stone-900 border border-stone-300 dark:border-stone-700 text-stone-800 dark:text-stone-100 font-sans shadow-sm focus:outline-none focus:ring-2 focus:ring-green-800 dark:focus:ring-green-700 transition-colors cursor-pointer"
             >
               {STATUS_OPTIONS.map((s) => (
-                <option key={s} value={s}>{formatStatus(s)}</option>
+                <option key={s} value={s}>{formatStatus(s, t)}</option>
               ))}
             </select>
             <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-stone-500">
@@ -113,7 +118,7 @@ export default function KisanListings() {
             className="h-12 px-5 rounded-xl bg-green-800 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white font-sans font-medium transition-colors flex items-center justify-center gap-2 shadow-sm whitespace-nowrap"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-            New Listing
+            {t('newListing')}
           </Link>
         </div>
       </div>
@@ -126,9 +131,9 @@ export default function KisanListings() {
               <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
             </div>
             <div>
-              <p className="font-serif text-xl text-stone-800 dark:text-stone-100 mb-1">No listings found</p>
+              <p className="font-serif text-xl text-stone-800 dark:text-stone-100 mb-1">{t('noListingsFound')}</p>
               <p className="font-sans text-sm text-stone-500 dark:text-stone-400">
-                {status ? `You don't have any listings with the status "${formatStatus(status)}".` : "You haven't created any crop listings yet."}
+                {status ? t('noListingsForStatus', { status: formatStatus(status, t) }) : t('noListingsYet')}
               </p>
             </div>
           </div>
@@ -140,13 +145,13 @@ export default function KisanListings() {
                 <table className="w-full text-left border-collapse table-auto min-w-[800px]">
                   <thead>
                     <tr className="bg-stone-50 dark:bg-stone-950/50 font-sans text-xs font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wider border-b border-stone-200 dark:border-stone-800">
-                      <th className="px-6 py-4">Crop</th>
-                      <th className="px-6 py-4">Qty</th>
-                      <th className="px-6 py-4">Status</th>
-                      <th className="px-6 py-4 text-center">Interests</th>
-                      <th className="px-6 py-4 text-center">Views</th>
-                      <th className="px-6 py-4">Date</th>
-                      <th className="px-6 py-4 text-right">Actions</th>
+                      <th className="px-6 py-4">{tDashboard('crop')}</th>
+                      <th className="px-6 py-4">{t('qty')}</th>
+                      <th className="px-6 py-4">{tDashboard('status')}</th>
+                      <th className="px-6 py-4 text-center">{tCommon('interests')}</th>
+                      <th className="px-6 py-4 text-center">{t('views')}</th>
+                      <th className="px-6 py-4">{t('date')}</th>
+                      <th className="px-6 py-4 text-right">{t('actions')}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-stone-100 dark:divide-stone-800 font-sans text-sm">
@@ -179,7 +184,7 @@ export default function KisanListings() {
                           </td>
                           <td className="px-6 py-3.5">
                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusBadge(l.status)}`}>
-                              {formatStatus(l.status)}
+                              {formatStatus(l.status, t)}
                             </span>
                           </td>
                           <td className="px-6 py-3.5 text-center">
@@ -277,13 +282,13 @@ export default function KisanListings() {
                           </p>
                         </div>
                         <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${getStatusBadge(l.status)}`}>
-                          {formatStatus(l.status)}
+                          {formatStatus(l.status, t)}
                         </span>
                       </div>
 
                       <div className="grid grid-cols-1 gap-3 bg-stone-50 dark:bg-stone-950/50 p-3 rounded-xl border border-stone-100 dark:border-stone-800">
                         <div className="flex flex-col">
-                          <span className="text-[10px] text-stone-500 dark:text-stone-400 uppercase tracking-wider mb-0.5">Quantity</span>
+                          <span className="text-[10px] text-stone-500 dark:text-stone-400 uppercase tracking-wider mb-0.5">{t('qty')}</span>
                           <span className="font-sans text-sm font-medium text-stone-800 dark:text-stone-200">{l.quantity} {l.unit}</span>
                         </div>
                       </div>
@@ -296,7 +301,7 @@ export default function KisanListings() {
                           </div>
                           {l.interestCount > 0 && (
                             <span className="relative inline-flex items-center px-2 py-0.5 rounded bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800/40 text-[11px] font-semibold">
-                              {l.interestCount} bids
+                              {t('bids', { count: l.interestCount })}
                               {l.hasUnreadInterests && (
                                 <span className="absolute -top-0.5 -right-0.5 flex h-1.5 w-1.5">
                                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
@@ -313,14 +318,14 @@ export default function KisanListings() {
                             onClick={(e) => e.stopPropagation()}
                             className="h-9 px-3 flex items-center justify-center rounded-lg bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 font-medium text-xs hover:bg-stone-200 dark:hover:bg-stone-700 transition-colors"
                           >
-                            View
+                            {tCommon('view')}
                           </Link>
                           <Link
                             href={`/kisan/listings/${l._id}`}
                             onClick={(e) => e.stopPropagation()}
                             className="h-9 px-3 flex items-center justify-center rounded-lg bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 font-medium text-xs hover:bg-stone-200 dark:hover:bg-stone-700 transition-colors"
                           >
-                            Edit
+                            {tCommon('edit')}
                           </Link>
                           {['draft', 'open'].includes(l.status) && (
                             <button
@@ -352,11 +357,11 @@ export default function KisanListings() {
                   className="h-10 px-4 rounded-lg flex items-center gap-2 font-sans text-sm font-medium text-stone-700 dark:text-stone-300 bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
-                  Prev
+                  {tCommon('prev')}
                 </button>
 
                 <span className="font-sans text-xs text-stone-600 dark:text-stone-400">
-                  Page <span className="font-medium text-stone-800 dark:text-stone-100">{meta.page}</span> of {meta.totalPages}
+                  {tCommon('page', { current: meta.page, total: meta.totalPages })}
                 </span>
 
                 <button
@@ -364,7 +369,7 @@ export default function KisanListings() {
                   onClick={() => setPage((p) => p + 1)}
                   className="h-10 px-4 rounded-lg flex items-center gap-2 font-sans text-sm font-medium text-stone-700 dark:text-stone-300 bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
-                  Next
+                  {tCommon('next')}
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
                 </button>
               </div>

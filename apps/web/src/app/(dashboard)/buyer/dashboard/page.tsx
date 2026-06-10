@@ -6,6 +6,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { RoleGuard } from '@/components/auth/RoleGuard';
+import { useTranslations } from 'next-intl';
 
 const STATUS_LABELS: Record<string, string> = {
   sale_confirmed: 'Deal Confirmed',
@@ -81,6 +82,7 @@ function StatCard({ label, value, sub, color = 'stone', icon }: StatCardProps) {
 export default function BuyerDashboard() {
   const { user } = useAuth();
   const router = useRouter();
+  const t = useTranslations('buyerDashboard');
 
   const { data: ordersData, isLoading: ordersLoading } = useGetOrdersQuery({ page: 1, limit: 5 });
   const { data: interestsData, isLoading: interestsLoading } = useGetMyInterestsQuery({ limit: 100 });
@@ -104,10 +106,10 @@ export default function BuyerDashboard() {
         {/* Header Section */}
         <header className="flex flex-col gap-1">
           <h1 className="font-serif text-3xl md:text-4xl text-stone-800 dark:text-stone-100 font-medium tracking-tight">
-            Dashboard
+            {t('title')}
           </h1>
           <p className="font-sans text-stone-600 dark:text-stone-400 text-lg">
-            Welcome back, <span className="font-medium text-amber-700 dark:text-amber-500">{user?.name}</span>
+            {t('welcomeBack')} <span className="font-medium text-amber-700 dark:text-amber-500">{user?.name}</span>
           </p>
         </header>
 
@@ -121,27 +123,27 @@ export default function BuyerDashboard() {
         ) : (
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <StatCard 
-              label="Pending Interests" 
+              label={t('pendingInterests')} 
               value={pendingInterests} 
               color="amber" 
               icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
             />
             <StatCard 
-              label="Accepted Deals" 
+              label={t('acceptedDeals')} 
               value={acceptedInterests} 
               color="green" 
               icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
             />
             <StatCard 
-              label="Active Orders" 
+              label={t('activeOrders')} 
               value={activeOrders} 
               color="blue" 
               icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" /></svg>}
             />
             <StatCard 
-              label="Total Spent" 
+              label={t('totalSpent')} 
               value={`₹${totalSpent.toLocaleString('en-IN')}`} 
-              sub="across open and filled orders" 
+              sub={t('acrossOpenFilled')} 
               color="stone" 
               icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>}
             />
@@ -160,8 +162,8 @@ export default function BuyerDashboard() {
               </svg>
             </div>
             <div>
-              <p className="font-sans font-semibold text-base">Browse Crop Marketplace</p>
-              <p className="font-sans text-sm text-amber-100/70 dark:text-stone-400">Explore listings and send crop bids</p>
+              <p className="font-sans font-semibold text-base">{t('browseMarketplace')}</p>
+              <p className="font-sans text-sm text-amber-100/70 dark:text-stone-400">{t('exploreListings')}</p>
             </div>
           </Link>
           
@@ -175,8 +177,8 @@ export default function BuyerDashboard() {
               </svg>
             </div>
             <div>
-              <p className="font-sans font-semibold text-base text-stone-800 dark:text-stone-100">Track My Orders</p>
-              <p className="font-sans text-sm text-stone-500 dark:text-stone-400">Review logistics & check status</p>
+              <p className="font-sans font-semibold text-base text-stone-800 dark:text-stone-100">{t('trackOrders')}</p>
+              <p className="font-sans text-sm text-stone-500 dark:text-stone-400">{t('reviewLogistics')}</p>
             </div>
           </Link>
         </div>
@@ -184,9 +186,9 @@ export default function BuyerDashboard() {
         {/* Recent Orders Processing Feed */}
         <section className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 overflow-hidden shadow-sm">
           <div className="px-6 py-4.5 border-b border-stone-100 dark:border-stone-800/60 flex justify-between items-center bg-stone-50/50 dark:bg-stone-950/20">
-            <h2 className="font-serif text-xl text-stone-800 dark:text-stone-100 font-medium">Recent Orders</h2>
+            <h2 className="font-serif text-xl text-stone-800 dark:text-stone-100 font-medium">{t('recentOrders')}</h2>
             <Link href="/buyer/orders" className="font-sans text-sm font-semibold text-amber-700 dark:text-amber-500 hover:text-amber-600 dark:hover:text-amber-400 hover:underline">
-              View All
+              {t('viewAll')}
             </Link>
           </div>
 
@@ -204,11 +206,11 @@ export default function BuyerDashboard() {
                 </svg>
               </div>
               <div>
-                <p className="font-serif text-lg text-stone-800 dark:text-stone-100 mb-1">No orders yet</p>
-                <p className="font-sans text-sm text-stone-500 dark:text-stone-400">Browse the marketplace and submit an interest bid to get started.</p>
+                <p className="font-serif text-lg text-stone-800 dark:text-stone-100 mb-1">{t('noOrdersYet')}</p>
+                <p className="font-sans text-sm text-stone-500 dark:text-stone-400">{t('browseToStart')}</p>
               </div>
               <Link href="/buyer/marketplace" className="mt-2 h-11 px-6 rounded-xl bg-amber-800 hover:bg-amber-700 text-white font-sans text-sm font-medium transition-colors flex items-center justify-center shadow-sm">
-                Go to Marketplace
+                {t('goToMarketplace')}
               </Link>
             </div>
           ) : (
@@ -218,10 +220,10 @@ export default function BuyerDashboard() {
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="bg-stone-50/50 dark:bg-stone-950/40 font-sans text-xs font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wider border-b border-stone-100 dark:border-stone-800">
-                      <th className="px-6 py-4">Order ID</th>
-                      <th className="px-6 py-4">Crop Item</th>
-                      <th className="px-6 py-4">Total Amount</th>
-                      <th className="px-6 py-4 text-right">Fulfillment Status</th>
+                      <th className="px-6 py-4">{t('orderId')}</th>
+                      <th className="px-6 py-4">{t('cropItem')}</th>
+                      <th className="px-6 py-4">{t('totalAmount')}</th>
+                      <th className="px-6 py-4 text-right">{t('fulfillmentStatus')}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-stone-100 dark:divide-stone-800 font-sans text-sm">
@@ -278,7 +280,7 @@ export default function BuyerDashboard() {
                       </span>
                     </div>
                     <div className="flex justify-between items-center pt-2 border-t border-stone-50 dark:border-stone-800/40">
-                      <span className="text-xs text-stone-400 uppercase tracking-wider font-medium">Total Amount</span>
+                      <span className="text-xs text-stone-400 uppercase tracking-wider font-medium">{t('totalAmount')}</span>
                       <span className="font-sans font-bold text-stone-800 dark:text-stone-100 text-sm">₹{order.totalAmount?.toLocaleString('en-IN')}</span>
                     </div>
                   </div>

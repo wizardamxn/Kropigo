@@ -7,6 +7,8 @@ import { RoleGuard } from '@/components/auth/RoleGuard';
 import { useSocket } from '@/hooks/useSocket';
 import { useNotifications } from '@/hooks/useNotifications';
 import { NotificationBell } from '@/components/shared/NotificationBell';
+import { LanguageSwitcher } from '@/components/shared/LanguageSwitcher';
+import { useTranslations } from 'next-intl';
 
 const navLinks = [
   { 
@@ -51,6 +53,7 @@ export default function KisanLayout({ children }: { children: React.ReactNode })
   const pathname = usePathname();
   useSocket();
   useNotifications();
+  const t = useTranslations('common');
 
   // Unified link comparison helper
   const isLinkActive = (href: string) => {
@@ -78,8 +81,11 @@ export default function KisanLayout({ children }: { children: React.ReactNode })
             <Image src="/KROPIGO_cropped.png" alt="KropiGo" width={34} height={34} className="rounded-xl shadow-sm ring-1 ring-black/6 dark:ring-white/10 object-cover shrink-0" />
             <span className="font-serif text-xl font-bold tracking-tight text-stone-900 dark:text-stone-50">KropiGo</span>
           </div>
-          <div className="transform scale-95">
-            <NotificationBell />
+          <div className="flex items-center gap-3">
+            <LanguageSwitcher />
+            <div className="transform scale-95">
+              <NotificationBell />
+            </div>
           </div>
         </header>
 
@@ -92,21 +98,27 @@ export default function KisanLayout({ children }: { children: React.ReactNode })
               <Image src="/KROPIGO_cropped.png" alt="KropiGo" width={48} height={48} className="rounded-2xl shadow-md ring-1 ring-black/6 dark:ring-white/10 object-cover" />
               <span className="font-serif text-2xl font-bold tracking-tight text-stone-900 dark:text-stone-50 leading-none">KropiGo</span>
             </div>
-            <NotificationBell />
+            <div className="flex flex-col items-end gap-3">
+              <NotificationBell />
+              <LanguageSwitcher />
+            </div>
           </div>
 
           {/* Primary Navigation Elements */}
           <div className="flex flex-row md:flex-col justify-between md:justify-start w-full gap-1 md:gap-2 flex-1 md:flex-initial">
-            {navLinks.map(({ href, label, icon }) => (
-              <Link
-                key={href}
-                href={href}
-                className={navLinkClasses(isLinkActive(href))}
-              >
-                {icon}
-                <span className="text-[10px] sm:text-xs md:text-base tracking-tight md:tracking-normal">{label}</span>
-              </Link>
-            ))}
+            {navLinks.map(({ href, label, icon }) => {
+              const labelKey = label.toLowerCase() as any;
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  className={navLinkClasses(isLinkActive(href))}
+                >
+                  {icon}
+                  <span className="text-[10px] sm:text-xs md:text-base tracking-tight md:tracking-normal">{t(labelKey)}</span>
+                </Link>
+              );
+            })}
 
             {/* Profile Link — Inlined natively into the flex matrix on mobile */}
             <Link 
@@ -116,7 +128,7 @@ export default function KisanLayout({ children }: { children: React.ReactNode })
               <svg className="w-5 h-5 md:w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
-              <span className="text-[10px] sm:text-xs md:text-base tracking-tight md:tracking-normal">Profile</span>
+              <span className="text-[10px] sm:text-xs md:text-base tracking-tight md:tracking-normal">{t('profile')}</span>
             </Link>
           </div>
         </nav>

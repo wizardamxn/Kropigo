@@ -20,21 +20,29 @@ export const metadata: Metadata = {
   description: "    Grow Connect Trade",
 };
 
-export default function RootLayout({
+import { NextIntlClientProvider } from 'next-intl';
+import { getLocale, getMessages } from 'next-intl/server';
+
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = await getLocale();
+  const messages = await getMessages();
+
   return (
     <html
-      lang="en"
+      lang={locale}
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col">
         <StoreProvider>
           <AuthInitializer>
-            <ThemeProvider>{children}</ThemeProvider>
+            <NextIntlClientProvider messages={messages}>
+              <ThemeProvider>{children}</ThemeProvider>
+            </NextIntlClientProvider>
           </AuthInitializer>
         </StoreProvider>
       </body>

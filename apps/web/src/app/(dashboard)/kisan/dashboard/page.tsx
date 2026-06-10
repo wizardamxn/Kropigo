@@ -3,6 +3,7 @@
 import { useAuth } from '@/hooks/useAuth';
 import { useGetListingsQuery } from '@/store/endpoints/listingsApi';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 
 // Helper function to color-code status badges
 const getStatusBadge = (status: string) => {
@@ -26,6 +27,8 @@ const formatStatus = (status: string) => {
 
 export default function KisanDashboard() {
   const { user } = useAuth();
+  const t = useTranslations('kisanDashboard');
+  const tCommon = useTranslations('common');
   const { data, isLoading, isError } = useGetListingsQuery(
     { sellerId: user?.id, limit: 100 },
     { skip: !user?.id }
@@ -52,8 +55,8 @@ export default function KisanDashboard() {
     return (
       <div className="p-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl flex flex-col items-center justify-center text-center space-y-3">
         <svg className="w-10 h-10 text-red-500 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-        <p className="font-sans text-red-800 dark:text-red-300 font-medium">Failed to load dashboard data.</p>
-        <button onClick={() => window.location.reload()} className="px-4 py-2 bg-white dark:bg-stone-800 text-stone-800 dark:text-stone-200 rounded-xl shadow-sm text-sm font-medium hover:bg-stone-50 dark:hover:bg-stone-700 transition-colors">Try Again</button>
+        <p className="font-sans text-red-800 dark:text-red-300 font-medium">{t('failedToLoad')}</p>
+        <button onClick={() => window.location.reload()} className="px-4 py-2 bg-white dark:bg-stone-800 text-stone-800 dark:text-stone-200 rounded-xl shadow-sm text-sm font-medium hover:bg-stone-50 dark:hover:bg-stone-700 transition-colors">{tCommon('tryAgain')}</button>
       </div>
     );
   }
@@ -71,41 +74,42 @@ export default function KisanDashboard() {
       {/* Header Section */}
       <header className="flex flex-col gap-2">
         <h1 className="font-serif text-3xl md:text-4xl text-stone-800 dark:text-stone-100 font-medium tracking-tight">
-          Dashboard
+          {t('title')}
         </h1>
         <p className="font-sans text-stone-600 dark:text-stone-400 text-lg">
-          Welcome back, <span className="font-medium text-green-800 dark:text-green-500">{user?.name}</span>
+          {t('welcomeBack', { name: user?.name ?? '' })}
         </p>
       </header>
 
       {/* Summary Cards Grid */}
       <section>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <StatCard title="Total Listings" value={listings.length} icon="M4 6h16M4 10h16M4 14h16M4 18h16" href="/kisan/listings" />
-          <StatCard title="Active (Open)" value={open} icon="M5 13l4 4L19 7" color="green" href="/kisan/listings" />
-          <StatCard title="Drafts" value={draft} icon="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" color="stone" href="/kisan/listings" />
-          <StatCard title="Sold / Closed" value={sold} icon="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" color="blue" href="/kisan/listings" />
+          <StatCard title={t('totalListings')} value={listings.length} icon="M4 6h16M4 10h16M4 14h16M4 18h16" href="/kisan/listings" />
+          <StatCard title={t('activeOpen')} value={open} icon="M5 13l4 4L19 7" color="green" href="/kisan/listings" />
+          <StatCard title={t('drafts')} value={draft} icon="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" color="stone" href="/kisan/listings" />
+          <StatCard title={t('soldClosed')} value={sold} icon="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" color="blue" href="/kisan/listings" />
         </div>
       </section>
 
       {/* Activity Summary */}
       <section className="bg-stone-50 dark:bg-stone-900/50 p-6 rounded-2xl border border-stone-200 dark:border-stone-800 space-y-2">
-        <h2 className="font-serif text-xl text-stone-800 dark:text-stone-100 font-medium">Activity</h2>
+        <h2 className="font-serif text-xl text-stone-800 dark:text-stone-100 font-medium">{t('activity')}</h2>
         <p className="font-sans text-sm text-stone-500 dark:text-stone-400">
-          <span className="font-semibold text-amber-700 dark:text-amber-400 text-base">{interestListings}</span> of your listings have received buyer interest.
-          Visit <Link href="/kisan/listings" className="underline text-green-800 dark:text-green-500">My Listings</Link> to review and act on offers.
+          <span className="font-semibold text-amber-700 dark:text-amber-400 text-base">{interestListings}</span>{' '}
+          {t('interestMessage', { count: interestListings }).replace('{count}', '')}{' '}
+          Visit <Link href="/kisan/listings" className="underline text-green-800 dark:text-green-500">{t('visitListings')}</Link> to review and act on offers.
         </p>
       </section>
 
       {/* Recent Listings Section */}
       <section className="bg-white dark:bg-stone-900 rounded-2xl shadow-sm border border-stone-200 dark:border-stone-800 overflow-hidden">
         <div className="p-6 border-b border-stone-100 dark:border-stone-800 flex justify-between items-center">
-          <h2 className="font-serif text-2xl text-stone-800 dark:text-stone-100">Recent Listings</h2>
+          <h2 className="font-serif text-2xl text-stone-800 dark:text-stone-100">{t('recentListings')}</h2>
           <Link 
             href="/kisan/listings" 
             className="font-sans text-sm font-medium text-green-800 dark:text-green-500 hover:text-green-700 dark:hover:text-green-400 hover:underline px-2 py-1 rounded-lg"
           >
-            View All
+            {tCommon('viewAll')}
           </Link>
         </div>
 
@@ -114,12 +118,12 @@ export default function KisanDashboard() {
             <div className="w-16 h-16 bg-stone-100 dark:bg-stone-800 rounded-full flex items-center justify-center text-stone-400">
               <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
             </div>
-            <p className="font-sans text-stone-500 dark:text-stone-400">You haven't created any listings yet.</p>
+            <p className="font-sans text-stone-500 dark:text-stone-400">{t('noListings')}</p>
             <Link 
               href="/kisan/listings/create" 
               className="mt-2 h-12 px-6 rounded-xl bg-green-800 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white font-sans font-medium transition-colors inline-flex items-center justify-center"
             >
-              Create First Listing
+              {t('createFirst')}
             </Link>
           </div>
         ) : (
@@ -129,11 +133,11 @@ export default function KisanDashboard() {
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-stone-50 dark:bg-stone-950/50 font-sans text-sm text-stone-500 dark:text-stone-400 uppercase tracking-wider">
-                    <th className="px-6 py-4 font-medium">Crop</th>
-                    <th className="px-6 py-4 font-medium">Quantity</th>
-                    <th className="px-6 py-4 font-medium">Status</th>
-                    <th className="px-6 py-4 font-medium text-center">Interests</th>
-                    <th className="px-6 py-4 font-medium">Date Created</th>
+                    <th className="px-6 py-4 font-medium">{t('crop')}</th>
+                    <th className="px-6 py-4 font-medium">{t('quantity')}</th>
+                    <th className="px-6 py-4 font-medium">{t('status')}</th>
+                    <th className="px-6 py-4 font-medium text-center">{tCommon('interests')}</th>
+                    <th className="px-6 py-4 font-medium">{t('date')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-stone-100 dark:divide-stone-800">
@@ -199,7 +203,7 @@ export default function KisanDashboard() {
                   </div>
                   <div className="flex justify-between items-end bg-stone-50 dark:bg-stone-950/50 p-3 rounded-xl border border-stone-100 dark:border-stone-800">
                     <div className="flex flex-col">
-                      <span className="text-xs text-stone-500 dark:text-stone-400 uppercase tracking-wider">Quantity</span>
+                      <span className="text-xs text-stone-500 dark:text-stone-400 uppercase tracking-wider">{t('quantity')}</span>
                       <span className="font-sans text-stone-800 dark:text-stone-200">{l.quantity} {l.unit}</span>
                     </div>
                   </div>

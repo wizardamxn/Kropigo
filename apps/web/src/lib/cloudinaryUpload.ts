@@ -1,8 +1,9 @@
 import imageCompression from 'browser-image-compression';
 import type { CloudinarySignature } from '@/store/endpoints/mediaApi';
+import { compressVideo } from './videoCompressor';
 
 const MAX_MEDIA_FILES = 6;
-const MAX_FILE_SIZE_BYTES = 100 * 1024 * 1024;
+const MAX_FILE_SIZE_BYTES = 100 * 1024 * 1024; // 100MB
 const ALLOWED_MIME_TYPES = new Set([
   'image/jpeg',
   'image/png',
@@ -67,11 +68,16 @@ const compressIfImage = async (file: File): Promise<File> => {
 
 export const uploadMediaFile = async (
   file: File,
-  getCloudinarySignature: GetCloudinarySignature
+  getCloudinarySignature: GetCloudinarySignature,
+  onVideoProgress?: (pct: number) => void
 ): Promise<string> => {
   const { cloudName, apiKey } = getCloudinaryConfig();
   const { timestamp, signature } = await getCloudinarySignature();
-  const uploadFile = await compressIfImage(file);
+  
+  // Compress video if video, else compress image if image
+  const uploadFile = file.type.startsWith('video/')
+    ? await compressVideo(file, onVideoProgress)
+    : await compressIfImage(file);
 
   const formData = new FormData();
   formData.append('file', uploadFile);
@@ -96,16 +102,23 @@ export const uploadListingMedia = async (
   files: File[] | FileList | null | undefined,
   getCloudinarySignature: GetCloudinarySignature,
   existingCount = 0,
-  onUploaded?: (url: string) => void
+  onUploaded?: (url: string) => void,
+  onVideoProgress?: (index: number, pct: number) => void
 ): Promise<string[]> => {
   if (!files || files.length === 0) return [];
 
   const selectedFiles = validateMediaFiles(files, existingCount);
-  return Promise.all(
-    selectedFiles.map(async (file) => {
-      const url = await uploadMediaFile(file, getCloudinarySignature);
-      onUploaded?.(url);
-      return url;
-    })
-  );
+  const urls: string[] = [];
+
+  // Upload sequentially to optimize memory and performance on mobile devices
+  for (let i = 0; i < selectedFiles.length; i++) {
+    const file = selectedFiles[i];
+    const url = await uploadMediaFile(file, getCloudinarySignature, (pct) => {
+      onVideoProgress?.(i, pct);
+    });
+    onUploaded?.(url);
+    urls.push(url);
+  }
+
+  return urls;
 };

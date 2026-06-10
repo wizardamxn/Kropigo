@@ -10,6 +10,7 @@ import {
   useRejectInterestMutation,
 } from '@/store/endpoints/listingsApi';
 import { Modal } from '@/components/ui/modal';
+import { useTranslations } from 'next-intl';
 
 /*
   API: GET /listings/:id
@@ -44,6 +45,10 @@ export default function ListingViewPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const [activeImage, setActiveImage] = useState(0);
+  const t = useTranslations('kisanListingView');
+  const tDetail = useTranslations('listingDetail');
+  const tCommon = useTranslations('common');
+  const tDash = useTranslations('kisanDashboard');
 
   const { data, isLoading, isError } = useGetListingByIdQuery(id);
   const { data: interestsData, isLoading: interestsLoading } = useGetListingInterestsQuery(id);
@@ -71,14 +76,14 @@ export default function ListingViewPage() {
         closeActionModal();
         router.push(`/kisan/orders/${response.orderId}`);
       } catch (err: any) {
-        alert(err?.data?.message || 'Failed to accept offer');
+        alert(err?.data?.message || t('failedToAccept'));
       }
     } else if (modalState.type === 'reject') {
       try {
         await rejectInterest({ listingId: listing._id, interestId: modalState.interestId }).unwrap();
         closeActionModal();
       } catch (err: any) {
-        alert(err?.data?.message || 'Failed to reject offer');
+        alert(err?.data?.message || t('failedToReject'));
       }
     }
   };
@@ -102,8 +107,8 @@ export default function ListingViewPage() {
   if (isError || !listing) {
     return (
       <div className="max-w-3xl mx-auto p-8 text-center space-y-4">
-        <p className="text-red-600 dark:text-red-400 font-sans">Listing not found.</p>
-        <Link href="/kisan/listings" className="text-sm underline text-stone-500">Back to listings</Link>
+        <p className="text-red-600 dark:text-red-400 font-sans">{tDetail('listingNotFound')}</p>
+        <Link href="/kisan/listings" className="text-sm underline text-stone-500">{t('backToListings')}</Link>
       </div>
     );
   }
@@ -121,13 +126,13 @@ export default function ListingViewPage() {
           onClick={() => router.back()}
           className="flex items-center gap-2 text-sm text-stone-500 hover:text-stone-800 dark:hover:text-stone-100 font-sans transition-colors"
         >
-          ← Back
+          ← {t('backToListings')}
         </button>
         <Link
           href={`/kisan/listings/${listing._id}`}
           className="text-sm font-medium text-green-700 dark:text-green-500 hover:underline font-sans"
         >
-          Edit Listing
+          {t('editListing')}
         </Link>
       </div>
 
@@ -164,7 +169,7 @@ export default function ListingViewPage() {
         </section>
       ) : (
         <div className="w-full aspect-video rounded-2xl bg-stone-100 dark:bg-stone-900 border border-stone-200 dark:border-stone-800 flex items-center justify-center text-stone-400 dark:text-stone-600">
-          <span className="font-sans text-sm">No images uploaded</span>
+          <span className="font-sans text-sm">{t('noImages')}</span>
         </div>
       )}
 
@@ -192,13 +197,13 @@ export default function ListingViewPage() {
         </div>
 
         <div className="flex items-center gap-4 mt-3 text-sm text-stone-500 dark:text-stone-400 font-sans">
-          <span>{listing.viewCount ?? 0} views</span>
+          <span>{t('views', { count: listing.viewCount ?? 0 })}</span>
           <span>·</span>
-          <span>Listed {new Date(listing.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+          <span>{t('listed', { date: new Date(listing.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) })}</span>
           {listing.expiresAt && (
             <>
               <span>·</span>
-              <span>Expires {new Date(listing.expiresAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</span>
+              <span>{t('expires', { date: new Date(listing.expiresAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) })}</span>
             </>
           )}
         </div>
@@ -211,7 +216,7 @@ export default function ListingViewPage() {
       */}
       <section className="bg-stone-50 dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 p-5 space-y-4">
         <h2 className="font-sans text-xs font-semibold uppercase tracking-wider text-stone-400 dark:text-stone-500">
-          Quantity
+          {tDash('quantity')}
         </h2>
         <div>
           <p className="font-serif text-2xl text-stone-800 dark:text-stone-100">
@@ -227,7 +232,7 @@ export default function ListingViewPage() {
       {listing.description && (
         <section className="space-y-2">
           <h2 className="font-sans text-xs font-semibold uppercase tracking-wider text-stone-400 dark:text-stone-500">
-            Description
+            {t('description')}
           </h2>
           <p className="font-sans text-stone-700 dark:text-stone-300 leading-relaxed whitespace-pre-line">
             {listing.description}
@@ -245,7 +250,7 @@ export default function ListingViewPage() {
       */}
       <section className="bg-stone-50 dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 p-5 space-y-3">
         <h2 className="font-sans text-xs font-semibold uppercase tracking-wider text-stone-400 dark:text-stone-500">
-          Pickup Location
+          {t('pickupLocation')}
         </h2>
         <p className="font-sans text-stone-800 dark:text-stone-100">
           {listing.farmAddress}
@@ -255,7 +260,7 @@ export default function ListingViewPage() {
         </p>
         {listing.lat && listing.lng && (
           <p className="font-sans text-xs text-stone-400 dark:text-stone-500">
-            GPS: {Number(listing.lat).toFixed(5)}, {Number(listing.lng).toFixed(5)}
+            {t('gps', { lat: Number(listing.lat).toFixed(5), lng: Number(listing.lng).toFixed(5) })}
           </p>
         )}
       </section>
@@ -268,7 +273,7 @@ export default function ListingViewPage() {
       */}
       <section className="bg-stone-50 dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 p-5 space-y-3">
         <h2 className="font-sans text-xs font-semibold uppercase tracking-wider text-stone-400 dark:text-stone-500">
-          Seller
+          {t('seller')}
         </h2>
         <div className="flex items-center gap-3">
           {/* Avatar placeholder — no avatar field in current schema */}
@@ -289,7 +294,7 @@ export default function ListingViewPage() {
       {/* ── BUYER OFFERS / INTERESTS ────────────────────────────── */}
       <section className="space-y-6 pt-4 border-t border-stone-200 dark:border-stone-800">
         <h2 className="font-serif text-2xl text-stone-800 dark:text-stone-100 font-medium">
-          Received Offers ({interests.length})
+          {t('receivedOffers', { count: interests.length })}
         </h2>
 
         {interestsLoading ? (
@@ -299,12 +304,15 @@ export default function ListingViewPage() {
           </div>
         ) : interests.length === 0 ? (
           <div className="bg-stone-50 dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 p-8 text-center text-stone-500 dark:text-stone-400 font-sans text-sm">
-            No offers received on this listing yet.
+            {t('noOffers')}
           </div>
         ) : (
           <div className="flex flex-col gap-4">
             {interests.map((interest: any) => {
-              const totalVal = interest.price * interest.quantity;
+              // quantity is optional on an interest — fall back to the full
+              // listing quantity (same rule the server uses on acceptance)
+              const qty = interest.quantity ?? listing.quantity;
+              const totalVal = interest.price * qty;
               const isPending = interest.status === 'pending';
               const isAccepted = interest.status === 'accepted';
               const isRejected = interest.status === 'rejected';
@@ -337,7 +345,7 @@ export default function ListingViewPage() {
                           {interest.buyerId?.name ?? 'Anonymous Buyer'}
                         </h4>
                         <div className="flex items-center gap-1.5 text-xs text-stone-500 dark:text-stone-400 font-sans mt-0.5">
-                          <span>Phone number hidden for privacy</span>
+                          <span>{t('phoneHidden')}</span>
                         </div>
                       </div>
                     </div>
@@ -355,7 +363,7 @@ export default function ListingViewPage() {
                             : 'bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800'
                         }`}
                       >
-                        {interest.status}
+                        {tDetail(interest.status)}
                       </span>
                     </div>
                   </div>
@@ -363,21 +371,21 @@ export default function ListingViewPage() {
                   {/* Bid price details */}
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 bg-stone-50 dark:bg-stone-950/50 p-4 rounded-xl border border-stone-100 dark:border-stone-800 my-4">
                     <div>
-                      <span className="block text-xs text-stone-500 dark:text-stone-400 uppercase tracking-wider font-sans mb-0.5">Offered Price</span>
+                      <span className="block text-xs text-stone-500 dark:text-stone-400 uppercase tracking-wider font-sans mb-0.5">{t('offeredPrice')}</span>
                       <span className="font-serif text-lg text-stone-800 dark:text-stone-100">
                         ₹{interest.price.toLocaleString('en-IN')}
                         <span className="text-xs text-stone-500 dark:text-stone-400 font-sans font-normal ml-0.5">/ {listing.unit}</span>
                       </span>
                     </div>
                     <div>
-                      <span className="block text-xs text-stone-500 dark:text-stone-400 uppercase tracking-wider font-sans mb-0.5">Requested Qty</span>
+                      <span className="block text-xs text-stone-500 dark:text-stone-400 uppercase tracking-wider font-sans mb-0.5">{t('requestedQty')}</span>
                       <span className="font-serif text-lg text-stone-800 dark:text-stone-100">
-                        {interest.quantity}
+                        {qty}
                         <span className="text-xs text-stone-500 dark:text-stone-400 font-sans font-normal ml-0.5"> {listing.unit}</span>
                       </span>
                     </div>
                     <div className="col-span-2 sm:col-span-1">
-                      <span className="block text-xs text-stone-500 dark:text-stone-400 uppercase tracking-wider font-sans mb-0.5">Total Deal Value</span>
+                      <span className="block text-xs text-stone-500 dark:text-stone-400 uppercase tracking-wider font-sans mb-0.5">{t('totalDealValue')}</span>
                       <span className="font-serif text-lg font-bold text-green-800 dark:text-green-500">
                         ₹{totalVal.toLocaleString('en-IN')}
                       </span>
@@ -386,7 +394,7 @@ export default function ListingViewPage() {
 
                   {interest.notes && (
                     <div className="text-sm font-sans text-stone-600 dark:text-stone-400 leading-relaxed bg-stone-50/50 dark:bg-stone-900/30 p-3 rounded-lg border border-stone-100 dark:border-stone-800/50 mb-4">
-                      <p className="font-medium text-xs text-stone-400 dark:text-stone-500 uppercase tracking-wider mb-1">Buyer Notes</p>
+                      <p className="font-medium text-xs text-stone-400 dark:text-stone-500 uppercase tracking-wider mb-1">{t('buyerNotes')}</p>
                       {interest.notes}
                     </div>
                   )}
@@ -399,14 +407,14 @@ export default function ListingViewPage() {
                         onClick={() => setModalState({ isOpen: true, type: 'accept', interestId: interest._id, buyerName: interest.buyerId?.name || 'this buyer' })}
                         className="flex-1 h-11 rounded-xl bg-green-800 hover:bg-green-700 text-white font-sans text-sm font-medium transition-colors"
                       >
-                        Accept Offer
+                        {t('acceptOffer')}
                       </button>
                       <button
                         type="button"
                         onClick={() => setModalState({ isOpen: true, type: 'reject', interestId: interest._id, buyerName: interest.buyerId?.name || 'this buyer' })}
                         className="h-11 px-6 rounded-xl bg-red-50 hover:bg-red-100 dark:bg-red-950/20 dark:hover:bg-red-950/30 text-red-700 dark:text-red-400 font-sans text-sm font-medium border border-red-200 dark:border-red-800/40 transition-colors"
                       >
-                        Reject
+                        {t('reject')}
                       </button>
                     </div>
                   )}
@@ -416,8 +424,8 @@ export default function ListingViewPage() {
                       <div className="flex items-center gap-2">
                         <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                         <span>
-                          Deal confirmed! Hamari team jald contact karegi. 
-                          {interest.orderId && <strong className="ml-1">Order ID: {interest.orderId}</strong>}
+                          {t('dealConfirmed')}
+                          {interest.orderId && <strong className="ml-1">{t('orderId', { id: interest.orderId })}</strong>}
                         </span>
                       </div>
                       {interest.orderId && (
@@ -426,7 +434,7 @@ export default function ListingViewPage() {
                           onClick={(e) => e.stopPropagation()}
                           className="flex items-center gap-1.5 px-3 py-1.5 bg-green-100 dark:bg-green-900/50 hover:bg-green-200 dark:hover:bg-green-800 text-green-800 dark:text-green-300 rounded-lg font-medium transition-colors text-xs whitespace-nowrap self-start sm:self-auto"
                         >
-                          View Order
+                          {t('viewOrder')}
                           <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
                         </Link>
                       )}
@@ -443,11 +451,11 @@ export default function ListingViewPage() {
       <Modal
         isOpen={modalState.isOpen}
         onClose={closeActionModal}
-        title={modalState.type === 'accept' ? 'Accept Offer' : 'Reject Offer'}
+        title={modalState.type === 'accept' ? t('acceptOfferTitle') : t('rejectOfferTitle')}
         description={
           modalState.type === 'accept' 
-            ? `Are you sure you want to accept the offer from ${modalState.buyerName}? This will confirm the sale and automatically reject all other pending offers on this listing.`
-            : `Are you sure you want to reject the offer from ${modalState.buyerName}? This action cannot be undone.`
+            ? t('acceptConfirmDesc', { buyerName: modalState.buyerName })
+            : t('rejectConfirmDesc', { buyerName: modalState.buyerName })
         }
         footer={
           <>
@@ -456,7 +464,7 @@ export default function ListingViewPage() {
               disabled={isAccepting || isRejecting}
               className="px-4 py-2 text-sm font-medium text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-lg transition-colors disabled:opacity-50"
             >
-              Cancel
+              {tCommon('cancel')}
             </button>
             <button
               onClick={handleConfirmAction}
@@ -470,7 +478,7 @@ export default function ListingViewPage() {
               {(isAccepting || isRejecting) && (
                 <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
               )}
-              {modalState.type === 'accept' ? 'Yes, Accept Offer' : 'Yes, Reject'}
+              {modalState.type === 'accept' ? t('yesAccept') : t('yesReject')}
             </button>
           </>
         }
@@ -485,8 +493,8 @@ export default function ListingViewPage() {
           </div>
           <p className="text-sm text-stone-600 dark:text-stone-300">
             {modalState.type === 'accept' 
-              ? 'Accepting this offer means you are committing to sell the requested quantity at the offered price.' 
-              : 'The buyer will be notified that their offer was declined.'}
+              ? t('acceptWarning')
+              : t('rejectWarning')}
           </p>
         </div>
       </Modal>

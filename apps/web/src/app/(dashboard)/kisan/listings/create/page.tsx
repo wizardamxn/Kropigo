@@ -11,6 +11,7 @@ import {
   useGetCloudinarySignatureMutation,
 } from "@/store/endpoints/mediaApi";
 import { uploadListingMedia, validateMediaFiles } from "@/lib/cloudinaryUpload";
+import { useTranslations } from "next-intl";
 
 const UNITS = ["kg", "quintal", "ton"];
 const MAX_IMAGES = 6;
@@ -34,9 +35,12 @@ export default function CreateListing() {
   const [lng, setLng] = useState("");
   const [error, setError] = useState("");
   const [isUploading, setIsUploading] = useState(false);
+  const [isLocating, setIsLocating] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [mediaPreviews, setMediaPreviews] = useState<MediaPreview[]>([]);
-
+  const [uploadProgress, setUploadProgress] = useState<{ index: number; progress: number } | null>(null);
+  const t = useTranslations("kisanCreateListing");
+  const tCommon = useTranslations("common");
 
   const { data: mandiData } = useGetMandiRatesQuery(cropId, { skip: !cropId });
   const [createListing, { isLoading }] = useCreateListingMutation();
@@ -79,7 +83,7 @@ export default function CreateListing() {
       if (ref.current) ref.current.value = "";
     } catch (err: any) {
       if (ref.current) ref.current.value = "";
-      setError(err?.message ?? "Invalid media selection.");
+      setError(err?.message ?? t("invalidMedia"));
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
@@ -93,6 +97,7 @@ export default function CreateListing() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setUploadProgress(null);
     const uploadedMediaUrls: string[] = [];
 
     try {
@@ -101,7 +106,10 @@ export default function CreateListing() {
         selectedFiles,
         () => getCloudinarySignature().unwrap(),
         0,
-        (url) => uploadedMediaUrls.push(url)
+        (url) => uploadedMediaUrls.push(url),
+        (index, pct) => {
+          setUploadProgress({ index, progress: pct });
+        }
       );
 
       await createListing({
@@ -131,11 +139,12 @@ export default function CreateListing() {
       setError(
         err?.data?.message ??
           err?.message ??
-          "Failed to create listing. Please try again."
+          t("failedToCreate")
       );
       window.scrollTo({ top: 0, behavior: "smooth" });
     } finally {
       setIsUploading(false);
+      setUploadProgress(null);
     }
   };
 
@@ -150,10 +159,10 @@ export default function CreateListing() {
       {/* Header */}
       <div>
         <h1 className="font-serif text-3xl md:text-4xl text-stone-800 dark:text-stone-100 font-medium tracking-tight">
-          Create New Listing
+          {t("title")}
         </h1>
         <p className="font-sans text-stone-600 dark:text-stone-400 mt-2 text-lg">
-          List your harvest on the marketplace. Provide clear details to attract the best buyers.
+          {t("subtitle")}
         </p>
       </div>
 
@@ -163,9 +172,9 @@ export default function CreateListing() {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
         <div className="font-sans text-sm text-amber-800 dark:text-amber-300">
-          <strong className="font-medium block mb-0.5">Market Hours Notice</strong>
-          Listings can only be officially created and published between{" "}
-          <span className="font-semibold">10:00 AM – 5:00 PM IST</span>.
+          <strong className="font-medium block mb-0.5">{t("marketHoursNotice")}</strong>
+          {t("marketHoursDesc")}{" "}
+          <span className="font-semibold">{t("marketHoursTime")}</span>.
         </div>
       </div>
 
@@ -185,18 +194,18 @@ export default function CreateListing() {
         {/* Section 1: Crop Details */}
         <section className="bg-stone-50 dark:bg-stone-900 rounded-2xl p-5 md:p-8 border border-stone-200 dark:border-stone-800 shadow-sm space-y-5">
           <h2 className="font-serif text-2xl text-stone-800 dark:text-stone-100 border-b border-stone-200 dark:border-stone-800 pb-3">
-            Crop Details
+            {t("cropDetails")}
           </h2>
 
           <CropSelector cropId={cropId} setCropId={setCropId} />
 
           <div>
-            <label className={labelBaseClass}>Variety (Optional)</label>
+            <label className={labelBaseClass}>{t("variety")}</label>
             <input
               type="text"
               value={variety}
               onChange={(e) => setVariety(e.target.value)}
-              placeholder="e.g. Sharbati, Alphonso, Hass"
+              placeholder={t("varietyPlaceholder")}
               className={inputBaseClass}
             />
           </div>
@@ -204,21 +213,21 @@ export default function CreateListing() {
 
           <div className="flex flex-col sm:flex-row gap-5">
             <div className="sm:w-1/3">
-              <label className={labelBaseClass}>Unit *</label>
+              <label className={labelBaseClass}>{t("unit")}</label>
               <select
                 value={unit}
                 onChange={(e) => setUnit(e.target.value)}
                 required
                 className={`${inputBaseClass} appearance-none cursor-pointer`}
               >
-                <option value="" disabled>Select unit...</option>
+                <option value="" disabled>{t("selectUnit")}</option>
                 {UNITS.map((u) => (
                   <option key={u} value={u}>{u.toUpperCase()}</option>
                 ))}
               </select>
             </div>
             <div className="flex-1">
-              <label className={labelBaseClass}>Quantity *</label>
+              <label className={labelBaseClass}>{t("quantity")}</label>
               <input
                 type="number"
                 min="0"
@@ -226,7 +235,7 @@ export default function CreateListing() {
                 value={quantity}
                 onChange={(e) => setQuantity(e.target.value)}
                 required
-                placeholder={unit ? `e.g. 50 ${unit}` : "Select unit first"}
+                placeholder={unit ? `e.g. 50 ${unit}` : t("selectUnitFirst")}
                 disabled={!unit}
                 className={`${inputBaseClass} ${!unit ? 'opacity-60 cursor-not-allowed' : ''}`}
               />
@@ -244,15 +253,15 @@ export default function CreateListing() {
             </div>
             <div>
               <h3 className="font-sans font-semibold text-green-900 dark:text-green-400 mb-1">
-                Market Insight
+                {t("marketInsight")}
               </h3>
               <p className="font-sans text-sm text-green-800 dark:text-green-300 leading-relaxed">
-                The current daily Mandi rate for this crop at <strong>{latestRate.market}</strong> is tracking between{" "}
+                {t("mandiRateMsgPart1")} <strong>{latestRate.market}</strong> {t("mandiRateMsgPart2")}{" "}
                 <br className="hidden sm:block" />
                 <span className="font-mono text-base font-bold bg-green-200/50 dark:bg-green-800/50 px-2 py-0.5 rounded">
                   ₹{latestRate.minPrice} – ₹{latestRate.maxPrice}
                 </span>{" "}
-                per {latestRate.unit}.
+                / {latestRate.unit}.
               </p>
             </div>
           </div>
@@ -261,7 +270,7 @@ export default function CreateListing() {
         {/* Section 2: Description */}
         <section className="bg-stone-50 dark:bg-stone-900 rounded-2xl p-5 md:p-8 border border-stone-200 dark:border-stone-800 shadow-sm space-y-5">
           <h2 className="font-serif text-2xl text-stone-800 dark:text-stone-100 border-b border-stone-200 dark:border-stone-800 pb-3">
-            Additional Details
+            {t("additionalDetails")}
           </h2>
 
           <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/50 rounded-xl p-3 flex gap-2">
@@ -269,18 +278,18 @@ export default function CreateListing() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <p className="font-sans text-sm text-amber-800 dark:text-amber-300">
-              Pricing is determined by our team based on current market rates. Buyers will make offers that you can accept or reject.
+              {t("pricingNotice")}
             </p>
           </div>
 
           <div>
-            <label className={labelBaseClass}>Description (Optional)</label>
+            <label className={labelBaseClass}>{t("descriptionLabel")}</label>
             <textarea
               maxLength={1000}
               rows={4}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Provide details about crop quality, harvest date, or special conditions..."
+              placeholder={t("descriptionPlaceholder")}
               className="w-full rounded-xl bg-white dark:bg-stone-950 border border-stone-300 dark:border-stone-700 text-stone-800 dark:text-stone-100 placeholder-stone-400 dark:placeholder-stone-500 p-4 font-sans focus:outline-none focus:ring-2 focus:ring-green-800 dark:focus:ring-green-700 focus:border-transparent transition-all shadow-sm resize-y"
             />
             <div className="text-right mt-1 text-xs text-stone-500 dark:text-stone-400 font-sans">
@@ -297,7 +306,7 @@ export default function CreateListing() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
             <h2 className="font-serif text-2xl text-stone-800 dark:text-stone-100">
-              Pickup Location
+              {t("pickupLocation")}
             </h2>
           </div>
 
@@ -326,7 +335,7 @@ export default function CreateListing() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
               <h2 className="font-serif text-2xl text-stone-800 dark:text-stone-100">
-                Media Files
+                {t("mediaFiles")}
               </h2>
             </div>
             <span className={`font-sans text-sm font-semibold px-3 py-1 rounded-full ${
@@ -341,7 +350,7 @@ export default function CreateListing() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Photos upload */}
             <div>
-              <label className={labelBaseClass}>Photos</label>
+              <label className={labelBaseClass}>{t("photos")}</label>
               <button
                 type="button"
                 disabled={mediaPreviews.length >= MAX_IMAGES || isSubmitting}
@@ -358,8 +367,8 @@ export default function CreateListing() {
                   </svg>
                 </div>
                 <div className="text-center">
-                  <p className="font-sans text-sm font-medium text-stone-700 dark:text-stone-300">Add Photos</p>
-                  <p className="font-sans text-xs text-stone-500 dark:text-stone-500 mt-0.5">JPEG, PNG, WEBP · up to 100 MB</p>
+                  <p className="font-sans text-sm font-medium text-stone-700 dark:text-stone-300">{t("addPhotos")}</p>
+                  <p className="font-sans text-xs text-stone-500 dark:text-stone-500 mt-0.5">{t("photosSpec")}</p>
                 </div>
               </button>
               <input
@@ -375,7 +384,7 @@ export default function CreateListing() {
 
             {/* Video upload */}
             <div>
-              <label className={labelBaseClass}>Video</label>
+              <label className={labelBaseClass}>{t("video")}</label>
               <button
                 type="button"
                 disabled={mediaPreviews.length >= MAX_IMAGES || isSubmitting}
@@ -392,8 +401,8 @@ export default function CreateListing() {
                   </svg>
                 </div>
                 <div className="text-center">
-                  <p className="font-sans text-sm font-medium text-stone-700 dark:text-stone-300">Add Video</p>
-                  <p className="font-sans text-xs text-stone-500 dark:text-stone-500 mt-0.5">MP4 · up to 100 MB</p>
+                  <p className="font-sans text-sm font-medium text-stone-700 dark:text-stone-300">{t("addVideo")}</p>
+                  <p className="font-sans text-xs text-stone-500 dark:text-stone-500 mt-0.5">{t("videoSpec")}</p>
                 </div>
               </button>
               <input
@@ -447,6 +456,30 @@ export default function CreateListing() {
           )}
         </section>
 
+        {uploadProgress && (
+          <div className="bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-2xl p-5 shadow-sm space-y-3 animate-in fade-in">
+            <div className="flex justify-between font-sans text-sm font-semibold text-stone-800 dark:text-stone-150">
+              <span className="flex items-center gap-2">
+                <svg className="animate-spin h-4 w-4 text-green-700 dark:text-green-500" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                {t("processingFile", { current: uploadProgress.index + 1, total: selectedFiles.length })}
+              </span>
+              <span>{uploadProgress.progress}%</span>
+            </div>
+            <div className="w-full bg-stone-200 dark:bg-stone-800 h-2.5 rounded-full overflow-hidden">
+              <div 
+                className="bg-green-700 dark:bg-green-600 h-full transition-all duration-150 rounded-full" 
+                style={{ width: `${uploadProgress.progress}%` }} 
+              />
+            </div>
+            <p className="text-xs text-stone-500 dark:text-stone-400 font-sans">
+              {t("optimizingMedia")}
+            </p>
+          </div>
+        )}
+
         {/* Submit Actions */}
         <div className="pt-4 flex flex-col gap-3">
           <button
@@ -460,10 +493,10 @@ export default function CreateListing() {
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                {isUploading ? "Uploading Media..." : "Publishing Listing..."}
+                {isUploading ? t("uploadingMedia") : t("publishingListing")}
               </>
             ) : (
-              "Publish Listing"
+              t("publishListing")
             )}
           </button>
 
@@ -473,7 +506,7 @@ export default function CreateListing() {
             disabled={isSubmitting}
             className="h-12 w-full rounded-xl bg-transparent border-2 border-stone-300 dark:border-stone-700 text-stone-700 dark:text-stone-300 font-sans font-medium hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors disabled:opacity-50"
           >
-            Cancel
+            {tCommon("cancel")}
           </button>
         </div>
       </form>

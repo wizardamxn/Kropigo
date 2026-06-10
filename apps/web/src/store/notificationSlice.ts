@@ -1,4 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { clearUser } from './slices/authSlice';
 
 export interface Notification {
   id: string;
@@ -58,6 +59,11 @@ const notificationSlice = createSlice({
       state.notifications = [];
       state.unreadCount = 0;
     },
+  },
+  extraReducers: (builder) => {
+    // Logout: drop the previous user's notifications so they don't leak
+    // into the next session in the same tab.
+    builder.addCase(clearUser, () => initialState);
   },
 });
 

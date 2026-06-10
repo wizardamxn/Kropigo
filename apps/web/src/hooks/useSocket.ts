@@ -2,26 +2,32 @@
 
 import { useEffect } from 'react';
 import { useSelector } from 'react-redux';
-import { getSocket, disconnectSocket } from '@/lib/socket';
+import { getSocket } from '@/lib/socket';
 import { RootState } from '@/store';
 
 export const useSocket = () => {
   const { isAuthenticated } = useSelector((state: RootState) => state.auth);
 
   useEffect(() => {
-    if (isAuthenticated) {
-      const socket = getSocket();
+    if (!isAuthenticated) return;
 
-      socket.on('connect', () => {
-        console.log('[socket] connected:', socket.id);
-      });
+    const socket = getSocket();
 
-      socket.on('connect_error', (err) => {
-        console.warn('[socket] connection error:', err.message);
-      });
-    }
+    const onConnect = () => {
+      console.log('[socket] connected:', socket.id);
+    };
+    const onConnectError = (err: Error) => {
+      console.warn('[socket] connection error:', err.message);
+    };
+
+    socket.on('connect', onConnect);
+    socket.on('connect_error', onConnectError);
 
     // Do NOT disconnect on unmount — socket is a singleton.
     // Only disconnect on logout via disconnectSocket().
+    return () => {
+      socket.off('connect', onConnect);
+      socket.off('connect_error', onConnectError);
+    };
   }, [isAuthenticated]);
 };

@@ -2,15 +2,16 @@
 
 import { useState, useEffect } from 'react';
 import { useGetCropsQuery } from '@/store/endpoints/cropsApi';
+import { useTranslations } from 'next-intl';
 
 const CATEGORIES = [
-  { id: '', label: 'All Crops', icon: '🌍' },
-  { id: 'vegetable', label: 'Vegetables', icon: '🥦' },
-  { id: 'fruit', label: 'Fruits', icon: '🍎' },
-  { id: 'grain', label: 'Grains', icon: '🌾' },
-  { id: 'spice', label: 'Spices', icon: '🌶️' },
-  { id: 'flower', label: 'Flowers', icon: '🌸' },
-  { id: 'other', label: 'Other', icon: '🌱' },
+  { id: '', labelKey: 'allCrops', icon: '🌍' },
+  { id: 'vegetable', labelKey: 'vegetables', icon: '🥦' },
+  { id: 'fruit', labelKey: 'fruits', icon: '🍎' },
+  { id: 'grain', labelKey: 'grains', icon: '🌾' },
+  { id: 'spice', labelKey: 'spices', icon: '🌶️' },
+  { id: 'flower', labelKey: 'flowers', icon: '🌸' },
+  { id: 'other', labelKey: 'other', icon: '🌱' },
 ];
 
 export default function CropSelector({ cropId, setCropId }: { cropId: string, setCropId: (id: string) => void }) {
@@ -19,6 +20,9 @@ export default function CropSelector({ cropId, setCropId }: { cropId: string, se
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [page, setPage] = useState(1);
   const limit = 6;
+  
+  const t = useTranslations('cropSelector');
+  const tCommon = useTranslations('common');
 
   // Debounce search
   useEffect(() => {
@@ -47,7 +51,7 @@ export default function CropSelector({ cropId, setCropId }: { cropId: string, se
       {/* Category Selection */}
       <div>
         <label className="block font-sans text-sm font-medium text-stone-800 dark:text-stone-300 mb-3 ml-1">
-          1. Select Category *
+          {t('selectCategory')}
         </label>
         <div className="flex flex-wrap gap-2">
           {CATEGORIES.map(cat => (
@@ -67,7 +71,7 @@ export default function CropSelector({ cropId, setCropId }: { cropId: string, se
               }`}
             >
               <span className="mr-2">{cat.icon}</span>
-              {cat.label}
+              {t(cat.labelKey as any)}
             </button>
           ))}
         </div>
@@ -76,7 +80,7 @@ export default function CropSelector({ cropId, setCropId }: { cropId: string, se
       {/* Search & Grid */}
       <div className="bg-white dark:bg-stone-950 border border-stone-200 dark:border-stone-800 rounded-2xl p-5 shadow-sm">
         <label className="block font-sans text-sm font-medium text-stone-800 dark:text-stone-300 mb-2 ml-1">
-          2. Find Your Crop *
+          {t('findYourCrop')}
         </label>
         
         {/* Search Bar */}
@@ -90,7 +94,7 @@ export default function CropSelector({ cropId, setCropId }: { cropId: string, se
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search all crops..."
+            placeholder={t('searchAllCrops')}
             className="w-full pl-10 pr-4 py-3 rounded-xl bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 text-stone-800 dark:text-stone-100 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-green-800 transition-all font-sans"
           />
         </div>
@@ -102,7 +106,7 @@ export default function CropSelector({ cropId, setCropId }: { cropId: string, se
           </div>
         ) : crops.length === 0 ? (
           <div className="text-center py-10 text-stone-500 font-sans">
-            No crops found matching your search.
+            {t('noCropsFound')}
           </div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4 animate-in fade-in">
@@ -133,7 +137,7 @@ export default function CropSelector({ cropId, setCropId }: { cropId: string, se
                       className={`w-full h-full object-cover transition-transform duration-500 ${cropId === crop._id ? 'scale-105' : 'group-hover:scale-105'}`}
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-stone-400">No Image</div>
+                    <div className="w-full h-full flex items-center justify-center text-stone-400">{t('noImage')}</div>
                   )}
                   {/* Gradient Overlay */}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
@@ -168,10 +172,10 @@ export default function CropSelector({ cropId, setCropId }: { cropId: string, se
               disabled={page === 1 || isFetching}
               className="px-4 py-2 rounded-lg text-sm font-medium text-stone-700 dark:text-stone-300 border border-stone-300 dark:border-stone-700 hover:bg-stone-50 dark:hover:bg-stone-900 disabled:opacity-50 transition-colors"
             >
-              Previous
+              {t('previous')}
             </button>
             <span className="text-sm text-stone-500 font-sans">
-              Page {page} of {pagination.totalPages}
+              {tCommon('page', { current: page, total: pagination.totalPages })}
             </span>
             <button
               type="button"
@@ -179,7 +183,7 @@ export default function CropSelector({ cropId, setCropId }: { cropId: string, se
               disabled={page === pagination.totalPages || isFetching}
               className="px-4 py-2 rounded-lg text-sm font-medium text-stone-700 dark:text-stone-300 border border-stone-300 dark:border-stone-700 hover:bg-stone-50 dark:hover:bg-stone-900 disabled:opacity-50 transition-colors"
             >
-              Next
+              {tCommon('next')}
             </button>
           </div>
         )}

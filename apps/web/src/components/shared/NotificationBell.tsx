@@ -8,8 +8,10 @@ import Link from 'next/link';
 import { RootState } from '@/store';
 import { markAllRead, markOneRead, Notification } from '@/store/notificationSlice';
 import { SOCKET_EVENTS } from '@/lib/socketEvents';
-import { useGetNotificationsQuery, useMarkAllReadMutation, useMarkNotificationReadMutation } from '@/store/endpoints/notificationApi';
+import { useGetNotificationsQuery, useGetUnreadCountQuery, useMarkAllReadMutation, useMarkNotificationReadMutation } from '@/store/endpoints/notificationApi';
 import { addNotification } from '@/store/notificationSlice';
+import { useAuth } from '@/hooks/useAuth';
+import { useTranslations } from 'next-intl';
 
 // Premium context-aware SVG icons replacing the raw emojis
 const getNotificationIcon = (type: string) => {
@@ -38,6 +40,12 @@ const getNotificationIcon = (type: string) => {
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" /></svg>
         </div>
       );
+    case SOCKET_EVENTS.OFFER_REJECTED:
+      return (
+        <div className="p-2 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-xl">
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+        </div>
+      );
     default:
       return (
         <div className="p-2 bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400 rounded-xl">
@@ -47,33 +55,37 @@ const getNotificationIcon = (type: string) => {
   }
 };
 
-const getNavigationPath = (notification: Notification): string | null => {
+const getNavigationPath = (notification: Notification, role?: string): string | null => {
   const { type, payload } = notification;
+  // Order notifications go to the viewer's own role section — kisans and
+  // buyers both receive ORDER_STATUS_UPDATED for the same order.
+  const orderBase = role === 'kisan' ? '/kisan/orders' : role === 'admin' ? '/admin/orders' : '/buyer/orders';
   if (type === SOCKET_EVENTS.NEW_DEAL && payload?.orderId) return `/admin/orders/${payload.orderId}`;
-  if (type === SOCKET_EVENTS.OFFER_ACCEPTED && payload?.orderId) return `/buyer/orders/${payload.orderId}`;
-  if (type === SOCKET_EVENTS.ORDER_STATUS_UPDATED && payload?.orderId) return `/buyer/orders/${payload.orderId}`;
+  if (type === SOCKET_EVENTS.OFFER_ACCEPTED && payload?.orderId) return `${orderBase}/${payload.orderId}`;
+  if (type === SOCKET_EVENTS.ORDER_STATUS_UPDATED && payload?.orderId) return `${orderBase}/${payload.orderId}`;
+  if (type === SOCKET_EVENTS.OFFER_REJECTED && payload?.listingId) return `/buyer/marketplace/${payload.listingId}`;
   if (type === SOCKET_EVENTS.NEW_OFFER_RECEIVED && payload?.listingId) return `/kisan/listings/${payload.listingId}/view`;
   return null;
 };
 
-const fmtTime = (isoString: string) => {
-  const diff = Date.now() - new Date(isoString).getTime();
-  const mins = Math.floor(diff / 60000);
-  const hours = Math.floor(diff / 3600000);
-  if (mins < 1) return 'just now';
-  if (hours < 1) return `${mins}m ago`;
-  if (hours < 24) return `${hours}h ago`;
-  return new Date(isoString).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
-};
+// Server notification ids are Mongo ObjectIds; ids generated client-side as a
+// uuid fallback must not be sent to the mark-read endpoint.
+const isServerId = (id: string) => /^[0-9a-f]{24}$/i.test(id);
 
 export const NotificationBell = () => {
   const dispatch = useDispatch();
   const router = useRouter();
+  const { role } = useAuth();
   const containerRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
-  
-  const { notifications, unreadCount } = useSelector((state: RootState) => state.notifications);
+  const t = useTranslations('notifications');
+
+  const { notifications, unreadCount: localUnreadCount } = useSelector((state: RootState) => state.notifications);
+  // The server count covers all pages, not just the ~20 notifications loaded
+  // here; the cache tag is invalidated on every socket event and mark-read.
+  const { data: unreadData } = useGetUnreadCountQuery();
+  const unreadCount = unreadData?.count ?? localUnreadCount;
   const [isOpen, setIsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [coords, setCoords] = useState<{ top: number; left: number; width: number; maxHeight: number } | null>(null);
@@ -85,6 +97,16 @@ export const NotificationBell = () => {
     page: 1, 
     unreadOnly: false 
   });
+
+  const fmtTime = (isoString: string) => {
+    const diff = Date.now() - new Date(isoString).getTime();
+    const mins = Math.floor(diff / 60000);
+    const hours = Math.floor(diff / 3600000);
+    if (mins < 1) return t('justNow');
+    if (hours < 1) return t('minutesAgo', { mins });
+    if (hours < 24) return t('hoursAgo', { hours });
+    return new Date(isoString).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+  };
 
   useEffect(() => {
     setMounted(true);
@@ -170,12 +192,14 @@ export const NotificationBell = () => {
   const handleItemClick = async (notification: Notification) => {
     dispatch(markOneRead(notification.id));
     setIsOpen(false);
-    try {
-      await triggerMarkRead(notification.id).unwrap();
-    } catch (err) {
-      console.error('Failed to mark notification read:', err);
+    if (isServerId(notification.id)) {
+      try {
+        await triggerMarkRead(notification.id).unwrap();
+      } catch (err) {
+        console.error('Failed to mark notification read:', err);
+      }
     }
-    const path = getNavigationPath(notification);
+    const path = getNavigationPath(notification, role);
     if (path) router.push(path);
   };
 
@@ -221,14 +245,14 @@ export const NotificationBell = () => {
           {/* Menu Header Area */}
           <div className="flex-shrink-0 px-4 py-3.5 border-b border-stone-100 dark:border-stone-800/60 flex items-center justify-between bg-stone-50/50 dark:bg-stone-950/20">
             <h3 className="text-sm font-semibold text-stone-800 dark:text-stone-100 font-sans tracking-tight">
-              Notifications
+              {t('title')}
             </h3>
             {unreadCount > 0 && (
               <button
                 onClick={handleMarkAllRead}
                 className="text-xs font-semibold text-green-800 dark:text-green-500 hover:text-green-700 dark:hover:text-green-400 hover:underline transition-colors font-sans"
               >
-                Mark all read
+                {t('markAllRead')}
               </button>
             )}
           </div>
@@ -241,8 +265,8 @@ export const NotificationBell = () => {
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
                 </div>
                 <div>
-                  <p className="font-serif text-base font-medium text-stone-800 dark:text-stone-200">कोई नया अपडेट नहीं है</p>
-                  <p className="text-xs text-stone-500 dark:text-stone-400 font-sans mt-0.5">No notifications found right now.</p>
+                  <p className="font-serif text-base font-medium text-stone-800 dark:text-stone-200">{t('noUpdates')}</p>
+                  <p className="text-xs text-stone-500 dark:text-stone-400 font-sans mt-0.5">{t('noUpdatesSubtitle')}</p>
                 </div>
               </div>
             ) : (
@@ -281,7 +305,7 @@ export const NotificationBell = () => {
             onClick={() => setIsOpen(false)}
             className="block text-center text-xs font-semibold py-2.5 bg-stone-50 hover:bg-stone-100 dark:bg-stone-900/60 dark:hover:bg-stone-800 text-stone-600 dark:text-stone-400 border-t border-stone-100 dark:border-stone-800/80 transition-colors font-sans"
           >
-            View All Notifications
+            {t('viewAll')}
           </Link>
         </div>,
         document.body

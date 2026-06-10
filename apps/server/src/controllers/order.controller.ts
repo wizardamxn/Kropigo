@@ -170,9 +170,11 @@ export const updateOrderStatus = async (req: Request, res: Response): Promise<vo
       note: note?.trim() || null
     };
 
-    // Step 6 — Update the order atomically
-    const updatedOrder = await Order.findByIdAndUpdate(
-      id,
+    // Step 6 — Update the order atomically. Matching on the status we validated
+    // against prevents a concurrent update from sneaking in between the check
+    // above and this write (double transitions / duplicate timeline entries).
+    const updatedOrder = await Order.findOneAndUpdate(
+      { _id: id, status: order.status },
       {
         $set: { status },
         $push: { timeline: timelineEntry }
@@ -188,7 +190,10 @@ export const updateOrderStatus = async (req: Request, res: Response): Promise<vo
       });
 
     if (!updatedOrder) {
-      res.status(500).json({ success: false, message: 'Failed to update order' });
+      res.status(409).json({
+        success: false,
+        message: 'Order status was changed by another update. Please refresh and retry.'
+      });
       return;
     }
 

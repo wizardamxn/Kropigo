@@ -8,6 +8,8 @@ import { RoleGuard } from '@/components/auth/RoleGuard';
 import { useSocket } from '@/hooks/useSocket';
 import { useNotifications } from '@/hooks/useNotifications';
 import { NotificationBell } from '@/components/shared/NotificationBell';
+import { LanguageSwitcher } from '@/components/shared/LanguageSwitcher';
+import { useTranslations } from 'next-intl';
 
 const navLinks = [
   {
@@ -34,6 +36,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const pathname = usePathname();
   useSocket();
   useNotifications();
+  const t = useTranslations('common');
 
   const isLinkActive = (href: string) => {
     return pathname === href || (href !== '/admin/dashboard' && pathname.startsWith(href));
@@ -52,8 +55,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <span className="text-[10px] font-sans font-semibold uppercase tracking-widest text-stone-400 dark:text-stone-500">Ops Panel</span>
             </div>
           </div>
-          <div className="transform scale-95">
-            <NotificationBell />
+          <div className="flex items-center gap-3">
+            <LanguageSwitcher />
+            <div className="transform scale-95">
+              <NotificationBell />
+            </div>
           </div>
         </header>
 
@@ -69,7 +75,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 <span className="text-[10px] font-sans font-semibold uppercase tracking-widest text-stone-400 dark:text-stone-500">Ops Panel</span>
               </div>
             </div>
-            <NotificationBell />
+            <div className="flex flex-col items-end gap-3">
+              <NotificationBell />
+              <LanguageSwitcher />
+            </div>
           </div>
 
           {/* Symmetrical Core Navigation Link Grid Matrix */}
@@ -88,7 +97,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                               }`}
                 >
                   {icon}
-                  <span className="text-[10px] sm:text-xs md:text-base tracking-tight md:tracking-normal">{label}</span>
+                  <span className="text-[10px] sm:text-xs md:text-base tracking-tight md:tracking-normal">{t(label.toLowerCase() as any)}</span>
                 </Link>
               );
             })}
