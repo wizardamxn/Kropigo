@@ -1,4 +1,5 @@
 import { baseApi } from '../baseApi';
+import type { OrderStatus } from '@kropi/schemas/enum';
 
 export interface IOrder {
   _id: string
@@ -10,9 +11,9 @@ export interface IOrder {
   quantity: number
   unit: string
   totalAmount: number
-  status: string
+  status: OrderStatus
   timeline: Array<{
-    status: string
+    status: OrderStatus
     timestamp: string
     actorId: string
     note: string | null

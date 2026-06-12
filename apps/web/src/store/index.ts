@@ -3,6 +3,7 @@ import { setupListeners } from '@reduxjs/toolkit/query';
 import { baseApi } from './baseApi';
 import authReducer from './slices/authSlice';
 import notificationReducer from './notificationSlice';
+import { errorToastMiddleware } from './errorToastMiddleware';
 
 export const store = configureStore({
   reducer: {
@@ -11,7 +12,7 @@ export const store = configureStore({
     [baseApi.reducerPath]: baseApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().concat(baseApi.middleware),
+    getDefaultMiddleware().concat(baseApi.middleware, errorToastMiddleware),
 });
 
 // optional, but required for refetchOnFocus/refetchOnReconnect behaviors

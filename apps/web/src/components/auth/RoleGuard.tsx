@@ -9,12 +9,18 @@ interface RoleGuardProps {
   allowedRoles?: string[]; // If undefined, just requires authentication and profile completion
 }
 
+const homeFor = (role?: string) =>
+  role === 'buyer' ? '/buyer/marketplace' : `/${role}/dashboard`;
+
 export const RoleGuard = ({ children, allowedRoles }: RoleGuardProps) => {
   const router = useRouter();
   const pathname = usePathname();
-  const { isAuthenticated, role, hasCompletedProfile } = useAuth();
+  const { isAuthenticated, isInitialized, role, hasCompletedProfile } = useAuth();
 
   useEffect(() => {
+    // Wait until /auth/me has resolved before making any redirect decisions.
+    if (!isInitialized) return;
+
     if (!isAuthenticated) {
       router.replace('/login');
       return;
@@ -26,18 +32,17 @@ export const RoleGuard = ({ children, allowedRoles }: RoleGuardProps) => {
     }
 
     if (hasCompletedProfile && pathname === '/profile-setup') {
-        const dest = role === 'buyer' ? '/buyer/marketplace' : `/${role}/dashboard`;
-        router.replace(dest);
-        return;
+      router.replace(homeFor(role));
+      return;
     }
 
     if (allowedRoles && role && !allowedRoles.includes(role)) {
-      const home = role === 'buyer' ? '/buyer/marketplace' : `/${role}/dashboard`;
-      router.replace(home); // Redirect to their actual home
+      router.replace(homeFor(role)); // Wrong role → send to their own home
     }
-  }, [isAuthenticated, role, hasCompletedProfile, allowedRoles, router, pathname]);
+  }, [isInitialized, isAuthenticated, role, hasCompletedProfile, allowedRoles, router, pathname]);
 
-  // If not authenticated, or requires profile setup, or wrong role, don't render children yet to avoid flicker
+  // Render nothing until we have a definitive answer, to avoid flicker / wrong-content flash.
+  if (!isInitialized) return null;
   if (!isAuthenticated) return null;
   if (!hasCompletedProfile && pathname !== '/profile-setup') return null;
   if (allowedRoles && role && !allowedRoles.includes(role)) return null;

@@ -1,33 +1,14 @@
 'use client';
 
 import { useAuth } from '@/hooks/useAuth';
-import { useAppDispatch } from '@/store/hooks';
-import { clearUser } from '@/store/slices/authSlice';
-import { useLogoutMutation } from '@/store/endpoints/authApi';
-import { useRouter } from 'next/navigation';
+import { useLogout } from '@/hooks/useLogout';
 import { RoleGuard } from '@/components/auth/RoleGuard';
-import { disconnectSocket } from '@/lib/socket';
 import { useTranslations } from 'next-intl';
 
 export default function BuyerProfilePage() {
   const { user } = useAuth();
-  const dispatch = useAppDispatch();
-  const router = useRouter();
-  const [logout, { isLoading }] = useLogoutMutation();
+  const [handleLogout, isLoading] = useLogout();
   const t = useTranslations('buyerProfile');
-
-  const handleLogout = async () => {
-    try {
-      await logout().unwrap();
-    } catch (err) {
-      console.error('Logout request failed, proceeding with local clearing', err);
-    } finally {
-      disconnectSocket();
-      sessionStorage.removeItem('accessToken');
-      dispatch(clearUser());
-      router.replace('/login');
-    }
-  };
 
   return (
     <RoleGuard allowedRoles={['buyer']}>

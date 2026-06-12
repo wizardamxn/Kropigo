@@ -2,10 +2,12 @@ import { Request, Response } from "express";
 import { v2 as cloudinary } from "cloudinary";
 import { env } from "../config/env";
 import { deleteMediaByUrls } from "../services/upload.service";
+import { asyncHandler } from "../utils/asyncHandler";
+import { ApiError } from "../utils/ApiError";
 
 const parseMediaUrls = (value: unknown): string[] => {
   if (!Array.isArray(value) || value.some((item) => typeof item !== "string")) {
-    throw new Error("mediaUrls must be an array of strings");
+    throw new ApiError(400, "mediaUrls must be an array of strings");
   }
 
   return value;
@@ -21,26 +23,13 @@ export const getCloudinarySignature = (req: Request, res: Response): void => {
   res.status(200).json({ timestamp, signature });
 };
 
-export const deleteUploadedMedia = async (
-  req: Request,
-  res: Response,
-): Promise<void> => {
-  try {
-    const mediaUrls = parseMediaUrls(req.body.mediaUrls);
+export const deleteUploadedMedia = asyncHandler(async (req: Request, res: Response) => {
+  const mediaUrls = parseMediaUrls(req.body.mediaUrls);
 
-    if (mediaUrls.length > 6) {
-      res
-        .status(400)
-        .json({ success: false, message: "Maximum 6 media files allowed" });
-      return;
-    }
-
-    await deleteMediaByUrls(mediaUrls);
-    res
-      .status(200)
-      .json({ success: true, message: "Uploaded media deleted successfully" });
-  } catch (error: any) {
-    const statusCode = error.message?.includes("must be an array") ? 400 : 500;
-    res.status(statusCode).json({ success: false, message: error.message });
+  if (mediaUrls.length > 6) {
+    throw new ApiError(400, "Maximum 6 media files allowed");
   }
-};
+
+  await deleteMediaByUrls(mediaUrls);
+  res.status(200).json({ success: true, message: "Uploaded media deleted successfully" });
+});

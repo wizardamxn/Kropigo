@@ -13,6 +13,7 @@ import cookieParser from 'cookie-parser';
 import hpp from 'hpp';
 import jwt from 'jsonwebtoken';
 import authRoutes from './routes/authRoutes';
+import { apiLimiter } from './middleware/rateLimiter';
 
 const app = express();
 const httpServer = createServer(app);
@@ -61,9 +62,10 @@ io.on('connection', (socket) => {
   // Each user joins their own personal room by userId
   socket.join(userId);
 
-  // Admins additionally join the shared admin room
-  if (role === 'admin') {
-    socket.join('admin_room');
+  // Everyone also joins their role room so role-targeted broadcasts
+  // (admin_room / kisan_room / buyer_room) reach them.
+  if (role) {
+    socket.join(`${role}_room`);
   }
 
   console.log(`Socket connected: ${userId} | role: ${role}`);
@@ -87,6 +89,7 @@ app.use(cors({
 app.use(express.json());
 app.use(cookieParser());
 app.use(hpp());
+app.use('/api/v1', apiLimiter);
 
 import mongoose from 'mongoose';
 
@@ -97,7 +100,6 @@ mongoose.connect(env.MONGODB_URI)
 
 // ─── Routes ───────────────────────────────────────────────────────────────────
 app.use('/api/v1/auth', authRoutes);
-app.use('/webhook', authRoutes);
 
 import userRoutes from './routes/userRoutes';
 app.use('/api/v1/user', userRoutes);

@@ -1,6 +1,8 @@
 import { Router, type Router as ExpressRouter } from 'express';
 import { getMandiRatesByCrop, createManualMandiRate } from '../controllers/mandiRate.controller';
 import { authenticate, requireRole } from '../middleware/authMiddleware';
+import { validate } from '../middleware/validate';
+import { createMandiRateSchema } from '../validators/mandiRate.validator';
 
 const router: ExpressRouter = Router();
 
@@ -12,6 +14,7 @@ router.post(
   '/',
   authenticate,
   requireRole('admin'),
+  validate(createMandiRateSchema),
   createManualMandiRate
 );
 

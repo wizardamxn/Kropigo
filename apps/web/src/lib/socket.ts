@@ -1,4 +1,5 @@
 import { io as socketIo, Socket } from 'socket.io-client';
+import { SOCKET_URL } from '@/lib/config';
 
 let socket: Socket | null = null;
 
@@ -10,15 +11,7 @@ let socket: Socket | null = null;
  */
 export const getSocket = (): Socket => {
   if (!socket) {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-    let socketUrl = apiUrl;
-    try {
-      socketUrl = new URL(apiUrl).origin;
-    } catch (e) {
-      console.warn('Failed to parse NEXT_PUBLIC_API_URL for socket origin');
-    }
-
-    socket = socketIo(socketUrl, {
+    socket = socketIo(SOCKET_URL, {
       withCredentials: true,
       transports: ['websocket', 'polling'],
       autoConnect: true,

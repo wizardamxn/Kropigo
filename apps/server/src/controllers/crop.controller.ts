@@ -1,14 +1,14 @@
 import { Request, Response } from 'express';
 import { Crop } from '../models/Crop.model';
+import { asyncHandler } from '../utils/asyncHandler';
 
-export const getCrops = async (req: Request, res: Response): Promise<void> => {
-  try {
-    const { category, search, page = '1', limit = '6' } = req.query;
-    const limitNumber = parseInt(limit as string, 10);
-    const skipNumber = (parseInt(page as string, 10) - 1) * limitNumber;
+export const getCrops = asyncHandler(async (req: Request, res: Response) => {
+  const { category, search, page = '1', limit = '6' } = req.query;
+  const limitNumber = parseInt(limit as string, 10);
+  const skipNumber = (parseInt(page as string, 10) - 1) * limitNumber;
 
-    let result: any[] = [];
-    let usedFallback = false;
+  let result: any[] = [];
+  let usedFallback = false;
 
     // 1. Try Atlas Search first if a search query is provided
     if (search) {
@@ -98,8 +98,4 @@ export const getCrops = async (req: Request, res: Response): Promise<void> => {
         totalPages: Math.ceil(totalCrops / limitNumber)
       }
     });
-  } catch (error: any) {
-    console.error("❌ getCrops overall error:", error);
-    res.status(500).json({ success: false, message: error.message });
-  }
-};
+});

@@ -1,13 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
-import { useUpdateProfileMutation, useLogoutMutation } from '@/store/endpoints/authApi';
+import { useUpdateProfileMutation } from '@/store/endpoints/authApi';
 import { useGetCloudinarySignatureMutation, useDeleteCloudinaryMediaMutation } from '@/store/endpoints/mediaApi';
 import { useAppDispatch } from '@/store/hooks';
-import { clearUser, updateUser } from '@/store/slices/authSlice';
-import { disconnectSocket } from '@/lib/socket';
+import { updateUser } from '@/store/slices/authSlice';
+import { useLogout } from '@/hooks/useLogout';
 import { uploadMediaFile } from '@/lib/cloudinaryUpload';
 import { useTranslations } from 'next-intl';
 
@@ -136,7 +135,6 @@ const ImageCrudField = ({
 export default function KisanProfile() {
   const { user } = useAuth();
   const dispatch = useAppDispatch();
-  const router = useRouter();
   const t = useTranslations('kisanProfile');
 
   const [name, setName] = useState('');
@@ -160,7 +158,7 @@ export default function KisanProfile() {
   const [updateProfile, { isLoading: isSaving }] = useUpdateProfileMutation();
   const [getCloudinarySignature] = useGetCloudinarySignatureMutation();
   const [deleteCloudinaryMedia] = useDeleteCloudinaryMediaMutation();
-  const [logout, { isLoading: isLoggingOut }] = useLogoutMutation();
+  const [handleLogout, isLoggingOut] = useLogout();
 
   useEffect(() => {
     if (!user) return;
@@ -252,18 +250,6 @@ export default function KisanProfile() {
     }
   };
 
-  const handleLogout = async () => {
-    try {
-      await logout().unwrap();
-    } catch (e) {
-      console.error('Logout request failed, proceeding with local clearing', e);
-    } finally {
-      disconnectSocket();
-      sessionStorage.removeItem('accessToken');
-      dispatch(clearUser());
-      router.replace('/login');
-    }
-  };
 
   const inputBaseClass = "h-12 w-full rounded-xl bg-white dark:bg-stone-950 border border-stone-300 dark:border-stone-700 text-stone-800 dark:text-stone-100 placeholder-stone-400 dark:placeholder-stone-500 px-4 font-sans focus:outline-none focus:ring-2 focus:ring-green-800 dark:focus:ring-green-700 focus:border-transparent transition-all shadow-sm";
   const labelBaseClass = "block font-sans text-sm font-medium text-stone-800 dark:text-stone-300 mb-1.5 ml-1";

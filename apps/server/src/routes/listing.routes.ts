@@ -13,6 +13,12 @@ import {
 } from "../controllers/listing.controller";
 import { authenticate, requireRole } from "../middleware/authMiddleware";
 import { listingWindow } from "../middleware/listingWindow";
+import { validate } from "../middleware/validate";
+import {
+  createListingSchema,
+  updateListingSchema,
+  submitInterestSchema,
+} from "../validators/listing.validator";
 
 const router: ExpressRouter = Router();
 
@@ -26,10 +32,11 @@ router.post(
   authenticate,
   requireRole("kisan"),
   listingWindow,
+  validate(createListingSchema),
   createListing,
 );
 
-router.put("/:id", authenticate, requireRole("kisan"), updateListing);
+router.put("/:id", authenticate, requireRole("kisan"), validate(updateListingSchema), updateListing);
 
 router.delete("/:id", authenticate, requireRole("kisan"), deleteListing);
 
@@ -39,7 +46,7 @@ router.patch("/:id/interests/:interestId/accept", authenticate, requireRole("kis
 router.patch("/:id/interests/:interestId/reject", authenticate, requireRole("kisan"), rejectInterest);
 
 // Buyer: Submit interest & check own interest
-router.post("/:id/interests", authenticate, requireRole("buyer"), submitInterest);
+router.post("/:id/interests", authenticate, requireRole("buyer"), validate(submitInterestSchema), submitInterest);
 router.get("/:id/interests/mine", authenticate, requireRole("buyer"), getMyInterestForListing);
 
 export default router;

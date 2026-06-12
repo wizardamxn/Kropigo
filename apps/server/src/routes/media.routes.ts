@@ -1,10 +1,11 @@
 import { Router, type Router as ExpressRouter } from 'express';
 import { deleteUploadedMedia, getCloudinarySignature } from '../controllers/media.controller';
-import { authenticate, requireRole } from '../middleware/authMiddleware';
+import { authenticate } from '../middleware/authMiddleware';
 
 const router: ExpressRouter = Router();
 
-router.get('/signature', authenticate, requireRole('kisan'), getCloudinarySignature);
-router.post('/cleanup', authenticate, requireRole('kisan'), deleteUploadedMedia);
+// Any authenticated user may upload (kisan KYC/listing media, buyer profile photo).
+router.get('/signature', authenticate, getCloudinarySignature);
+router.post('/cleanup', authenticate, deleteUploadedMedia);
 
 export default router;

@@ -1,4 +1,19 @@
 import mongoose, { Schema, Document } from 'mongoose';
+import type { OrderStatus } from '@kropi/schemas/enum';
+
+// Mirrors OrderStatusSchema in @kropi/schemas. Kept as a local literal so the server
+// has no runtime import of the shared package (it isn't a linked node module); the
+// `satisfies` check fails compilation if this drifts to an invalid status.
+const ORDER_STATUSES = [
+  'sale_confirmed',
+  'admin_notified',
+  'qc_scheduled',
+  'qc_passed',
+  'qc_failed',
+  'pickup_scheduled',
+  'in_transit',
+  'delivered',
+] as const satisfies readonly OrderStatus[];
 
 export interface ITimelineEntry {
   status: string;
@@ -16,7 +31,7 @@ export interface IOrder extends Document {
   quantity: number;
   unit: string;
   totalAmount: number;
-  status: string;
+  status: OrderStatus;
   timeline: ITimelineEntry[];
   billUrl: string | null;
   createdAt: Date;
@@ -69,17 +84,8 @@ const OrderSchema = new Schema<IOrder>({
   },
   status: {
     type: String,
-    enum: [
-      'sale_confirmed',
-      'admin_notified',
-      'qc_scheduled',
-      'qc_passed',
-      'qc_failed',
-      'pickup_scheduled',
-      'in_transit',
-      'delivered'
-    ],
-    default: 'sale_confirmed'
+    enum: [...ORDER_STATUSES],
+    default: 'sale_confirmed' satisfies OrderStatus,
   },
   timeline: [TimelineEntrySchema],
   billUrl: { 

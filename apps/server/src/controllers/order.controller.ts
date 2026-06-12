@@ -4,6 +4,14 @@ import { Order } from '../models/Order.model';
 import { getPaginationOptions } from '../utils/paginate';
 import { createAndEmitNotification } from '../services/socket.service';
 import { SOCKET_EVENTS } from '../utils/socketEvents';
+import { asyncHandler } from '../utils/asyncHandler';
+import { ApiError } from '../utils/ApiError';
+
+// Non-sensitive user fields safe to expose to order participants.
+const PUBLIC_USER_FIELDS =
+  'name phone email location isVerified profilePhoto fathersName marka averageRating totalRatings isActive createdAt';
+// Admins additionally see KYC / banking details for verification & settlement.
+const ADMIN_USER_FIELDS = `${PUBLIC_USER_FIELDS} bankDetails farmerIdPhoto aadharCardPhoto bankPassbookPhoto`;
 
 // ─── State machine: valid order status transitions ────────────────────────────
 const VALID_TRANSITIONS: Record<string, string[]> = {
@@ -17,118 +25,93 @@ const VALID_TRANSITIONS: Record<string, string[]> = {
   delivered:        []
 };
 
-export const getOrders = async (req: Request, res: Response) => {
-  try {
-    const { status, district, startDate, endDate } = req.query;
-    const { skip, limit, page } = getPaginationOptions(req);
+export const getOrders = asyncHandler(async (req: Request, res: Response) => {
+  const { status, startDate, endDate } = req.query;
+  const { skip, limit, page } = getPaginationOptions(req);
 
-    const filter: any = {};
+  const filter: any = {};
 
-    // Role-aware filtering — one endpoint serves all roles
-    if (req.user?.role === 'kisan') {
-      filter.sellerId = req.user.userId;
-    } else if (req.user?.role === 'buyer') {
-      filter.buyerId = req.user.userId;
-    } else if (req.user?.role === 'admin') {
-      // no filter — admin sees all
-      if (startDate || endDate) {
-        filter.createdAt = {};
-        if (startDate) filter.createdAt.$gte = new Date(startDate as string);
-        if (endDate) filter.createdAt.$lte = new Date(endDate as string);
-      }
-    } else {
-      return res.status(403).json({ 
-        success: false, 
-        message: 'Unauthorized' 
-      });
+  // Role-aware filtering — one endpoint serves all roles
+  if (req.user?.role === 'kisan') {
+    filter.sellerId = req.user.userId;
+  } else if (req.user?.role === 'buyer') {
+    filter.buyerId = req.user.userId;
+  } else if (req.user?.role === 'admin') {
+    // no filter — admin sees all
+    if (startDate || endDate) {
+      filter.createdAt = {};
+      if (startDate) filter.createdAt.$gte = new Date(startDate as string);
+      if (endDate) filter.createdAt.$lte = new Date(endDate as string);
     }
-
-    if (status) filter.status = status;
-
-    const [orders, total] = await Promise.all([
-      Order.find(filter)
-        .populate('buyerId', 'name phone profilePhoto')
-        .populate('sellerId', 'name phone profilePhoto')
-        .populate({
-          path: 'listingId',
-          populate: { path: 'cropId', select: 'name nameHindi' },
-          select: 'cropId mediaUrls farmAddress farmDistrict farmState'
-        })
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit),
-      Order.countDocuments(filter)
-    ]);
-
-    res.status(200).json({
-      success: true,
-      data: orders,
-      pagination: {
-        total,
-        page: Number(page),
-        pages: Math.ceil(total / limit)
-      }
-    });
-  } catch (error: any) {
-    res.status(500).json({ success: false, message: error.message });
+  } else {
+    throw new ApiError(403, 'Unauthorized');
   }
-};
 
-export const getOrderById = async (req: Request, res: Response) => {
-  try {
-    const order = await Order.findById(req.params.id)
+  if (status) filter.status = status;
+
+  const [orders, total] = await Promise.all([
+    Order.find(filter)
+      .populate('buyerId', 'name phone profilePhoto')
+      .populate('sellerId', 'name phone profilePhoto')
       .populate({
         path: 'listingId',
-        select: 'cropId mediaUrls farmAddress farmDistrict farmState',
-        populate: { path: 'cropId', select: 'name category unit' }
+        populate: { path: 'cropId', select: 'name nameHindi' },
+        select: 'cropId mediaUrls farmAddress farmDistrict farmState'
       })
-      .populate('buyerId', 'name phone email location isVerified profilePhoto fathersName marka bankDetails farmerIdPhoto aadharCardPhoto bankPassbookPhoto averageRating totalRatings isActive createdAt')
-      .populate('sellerId', 'name phone email location isVerified profilePhoto fathersName marka bankDetails farmerIdPhoto aadharCardPhoto bankPassbookPhoto averageRating totalRatings isActive createdAt')
-      .populate('interestId', 'price quantity notes');
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit),
+    Order.countDocuments(filter)
+  ]);
 
-    if (!order) {
-      return res.status(404).json({ 
-        success: false, 
-        message: 'Order not found' 
-      });
+  res.status(200).json({
+    success: true,
+    data: orders,
+    pagination: {
+      total,
+      page: Number(page),
+      pages: Math.ceil(total / limit)
     }
+  });
+});
 
-    // Authorization check — only involved parties or admin can view
-    const userId = req.user?.userId;
-    const isInvolved = 
-      order.buyerId._id.toString() === userId ||
-      order.sellerId._id.toString() === userId ||
-      req.user?.role === 'admin';
+export const getOrderById = asyncHandler(async (req: Request, res: Response) => {
+  const isAdmin = req.user?.role === 'admin';
+  const userFields = isAdmin ? ADMIN_USER_FIELDS : PUBLIC_USER_FIELDS;
 
-    if (!isInvolved) {
-      return res.status(403).json({ 
-        success: false, 
-        message: 'Unauthorized' 
-      });
-    }
+  const order = await Order.findById(req.params.id)
+    .populate({
+      path: 'listingId',
+      select: 'cropId mediaUrls farmAddress farmDistrict farmState',
+      populate: { path: 'cropId', select: 'name category unit' }
+    })
+    .populate('buyerId', userFields)
+    .populate('sellerId', userFields)
+    .populate('interestId', 'price quantity notes');
 
-    res.status(200).json({ 
-      success: true, 
-      data: order 
-    });
-  } catch (error: any) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-};
+  if (!order) throw new ApiError(404, 'Order not found');
+
+  // Authorization check — only involved parties or admin can view
+  const userId = req.user?.userId;
+  const isInvolved =
+    order.buyerId._id.toString() === userId ||
+    order.sellerId._id.toString() === userId ||
+    isAdmin;
+
+  if (!isInvolved) throw new ApiError(403, 'Unauthorized');
+
+  res.status(200).json({ success: true, data: order });
+});
 
 // ─── Admin: Update Order Status ───────────────────────────────────────────────
-export const updateOrderStatus = async (req: Request, res: Response): Promise<void> => {
-  try {
-    const { id } = req.params;
-    const { status, note } = req.body;
+export const updateOrderStatus = asyncHandler(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { status, note } = req.body;
 
-    // Step 1 — Validate request body (Zod middleware already ran, but guard anyway)
-    if (!status) {
-      res.status(400).json({ success: false, message: 'Status is required' });
-      return;
-    }
+  // Step 1 — Validate request body (Zod middleware already ran, but guard anyway)
+  if (!status) throw new ApiError(400, 'Status is required');
 
-    // Step 2 — Fetch the order with populated buyer and seller
+  // Step 2 — Fetch the order with populated buyer and seller
     const order = await Order.findById(id)
       .populate<{ buyerId: { _id: mongoose.Types.ObjectId; name: string } }>('buyerId', '_id name')
       .populate<{ sellerId: { _id: mongoose.Types.ObjectId; name: string } }>('sellerId', '_id name')
@@ -145,21 +128,16 @@ export const updateOrderStatus = async (req: Request, res: Response): Promise<vo
 
     // Step 3 — Check current status is not terminal
     if (['qc_failed', 'delivered'].includes(order.status)) {
-      res.status(400).json({
-        success: false,
-        message: `Order is in terminal state '${order.status}' and cannot be updated`
-      });
-      return;
+      throw new ApiError(400, `Order is in terminal state '${order.status}' and cannot be updated`);
     }
 
     // Step 4 — Validate the transition is legal
     const allowedNextStatuses = VALID_TRANSITIONS[order.status] || [];
     if (!allowedNextStatuses.includes(status)) {
-      res.status(400).json({
-        success: false,
-        message: `Cannot transition from '${order.status}' to '${status}'. Allowed: ${allowedNextStatuses.join(', ') || 'none'}`
-      });
-      return;
+      throw new ApiError(
+        400,
+        `Cannot transition from '${order.status}' to '${status}'. Allowed: ${allowedNextStatuses.join(', ') || 'none'}`,
+      );
     }
 
     // Step 5 — Build the timeline entry
@@ -190,11 +168,7 @@ export const updateOrderStatus = async (req: Request, res: Response): Promise<vo
       });
 
     if (!updatedOrder) {
-      res.status(409).json({
-        success: false,
-        message: 'Order status was changed by another update. Please refresh and retry.'
-      });
-      return;
+      throw new ApiError(409, 'Order status was changed by another update. Please refresh and retry.');
     }
 
     // Step 7 — Build notification messages per status
@@ -269,7 +243,4 @@ export const updateOrderStatus = async (req: Request, res: Response): Promise<vo
       message: `Order status updated to '${status}'`,
       data: updatedOrder
     });
-  } catch (error: any) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-};
+});

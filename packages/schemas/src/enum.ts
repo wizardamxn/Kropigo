@@ -28,15 +28,18 @@ export type InterestStatus = z.infer<typeof InterestStatusSchema>;
 // --- Order Status ---
 export const OrderStatusSchema = z.enum([
   'sale_confirmed',
-  'payment_pending',
-  'payment_done',
-  'dispatched',
-  'arrived_at_farm',
-  'qc_rejected',
-  'picked_up',
+  'admin_notified',
+  'qc_scheduled',
+  'qc_passed',
+  'qc_failed',
+  'pickup_scheduled',
+  'in_transit',
   'delivered',
 ]);
 export type OrderStatus = z.infer<typeof OrderStatusSchema>;
+
+export const ORDER_STATUSES = OrderStatusSchema.options;
+export const TERMINAL_ORDER_STATUSES = ['qc_failed', 'delivered'] as const;
 
 // --- Transport Request Status ---
 export const TransportRequestStatusSchema = z.enum([
