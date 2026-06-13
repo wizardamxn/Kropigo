@@ -3,6 +3,8 @@
 import { useParams, useRouter } from 'next/navigation';
 import { useGetOrderByIdQuery } from '@/store/endpoints/ordersApi';
 import Link from 'next/link';
+import { StatusBadge } from '@/components/shared/StatusBadge';
+import { ArrowLeft, CheckCircle2, FileText } from 'lucide-react';
 
 export default function KisanOrderViewPage() {
   const { id } = useParams<{ id: string }>();
@@ -42,9 +44,7 @@ export default function KisanOrderViewPage() {
           onClick={() => router.back()}
           className="mb-4 flex items-center gap-2 text-stone-500 hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-100 font-sans text-sm font-medium transition-colors w-fit"
         >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-          </svg>
+          <ArrowLeft className="w-4 h-4" />
           Back
         </button>
         <div className="flex flex-wrap items-end justify-between gap-4">
@@ -56,17 +56,13 @@ export default function KisanOrderViewPage() {
               Order ID: <span className="font-mono">{order._id}</span>
             </p>
           </div>
-          <span className="inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-medium border bg-green-100 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800/50 capitalize">
-            {order.status.replace('_', ' ')}
-          </span>
+          <StatusBadge status={order.status} />
         </div>
       </div>
 
       {/* Warning/Info Box */}
       <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800/50 rounded-2xl p-4 flex gap-3 shadow-sm">
-        <svg className="w-6 h-6 text-green-600 dark:text-green-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
+        <CheckCircle2 className="w-6 h-6 text-green-600 dark:text-green-500 flex-shrink-0" />
         <div className="font-sans text-sm text-green-900 dark:text-green-300">
           <strong className="font-medium block mb-0.5">Success!</strong>
           You have accepted the buyer's offer. Our team will contact you shortly to coordinate the pickup and payment. For privacy reasons, direct contact details are kept hidden until confirmed.
@@ -145,9 +141,7 @@ export default function KisanOrderViewPage() {
             href={`/kisan/orders/${order._id}/invoice`}
             className="flex items-center gap-2 h-10 px-5 rounded-xl bg-green-800 hover:bg-green-700 text-white font-sans text-sm font-medium transition-colors shadow-sm"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
+            <FileText className="w-4 h-4" />
             Download Invoice
           </Link>
         )}

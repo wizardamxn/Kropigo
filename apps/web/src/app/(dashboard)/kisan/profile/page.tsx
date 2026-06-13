@@ -10,6 +10,25 @@ import { useLogout } from '@/hooks/useLogout';
 import { uploadMediaFile } from '@/lib/cloudinaryUpload';
 import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { FormField } from '@/components/shared/FormField';
+import { Input } from '@/components/ui/input';
+import { 
+  FileText, 
+  Loader2, 
+  Check, 
+  Eye, 
+  RefreshCw, 
+  Trash2, 
+  Plus, 
+  CheckCircle2, 
+  AlertTriangle, 
+  Clock, 
+  LogOut, 
+  X 
+} from 'lucide-react';
 
 const ImageCrudField = ({
   label,
@@ -40,9 +59,7 @@ const ImageCrudField = ({
               onError={(e) => { e.currentTarget.src = 'https://placehold.co/100?text=Invalid'; }} 
             />
           ) : (
-            <svg className="w-6 h-6 text-stone-400 dark:text-stone-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
+            <FileText className="w-6 h-6 text-stone-400 dark:text-stone-600" />
           )}
         </div>
         <div className="min-w-0">
@@ -50,15 +67,12 @@ const ImageCrudField = ({
           <div className="font-sans text-xs mt-0.5">
             {isUploading ? (
               <span className="text-stone-500 animate-pulse flex items-center gap-1.5">
-                <svg className="animate-spin h-3.5 w-3.5 text-stone-500" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
+                <Loader2 className="animate-spin h-3.5 w-3.5 text-stone-500" />
                 {t('uploadingStorage')}
               </span>
             ) : value ? (
               <span className="text-green-700 dark:text-green-500 font-semibold flex items-center gap-1">
-                <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
+                <Check className="w-3.5 h-3.5 flex-shrink-0" />
                 {t('docAttached')}
               </span>
             ) : (
@@ -78,18 +92,13 @@ const ImageCrudField = ({
               onClick={onView}
               className="h-10 px-4 rounded-xl bg-stone-100 hover:bg-stone-200 dark:bg-stone-800 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-300 font-sans text-xs font-semibold transition-all flex items-center gap-1.5 shadow-sm active:scale-95"
             >
-              <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-              </svg>
+              <Eye className="w-4 h-4 flex-shrink-0" />
               {t('viewFile')}
             </button>
 
             {/* Change File Option */}
             <label className="relative h-10 px-4 rounded-xl bg-green-50 hover:bg-green-100 dark:bg-green-950/40 dark:hover:bg-green-900/30 text-green-700 dark:text-green-400 font-sans text-xs font-semibold transition-all flex items-center gap-1.5 shadow-sm active:scale-95 cursor-pointer">
-              <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 7.89H18.2" />
-              </svg>
+              <RefreshCw className="w-4 h-4 flex-shrink-0" />
               {t('replace')}
               <input
                 type="file"
@@ -106,18 +115,14 @@ const ImageCrudField = ({
               onClick={onRemove}
               className="h-10 px-4 rounded-xl bg-red-50 hover:bg-red-100 dark:bg-red-950/40 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 font-sans text-xs font-semibold transition-all flex items-center gap-1.5 shadow-sm active:scale-95"
             >
-              <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-              </svg>
+              <Trash2 className="w-4 h-4 flex-shrink-0" />
               {t('remove')}
             </button>
           </>
         ) : (
           /* Initial Upload Button Setup Trigger */
           <label className="relative h-12 px-5 rounded-xl bg-green-800 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white font-sans text-xs font-bold shadow-sm transition-all flex items-center gap-1.5 active:scale-95 cursor-pointer">
-            <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
-            </svg>
+            <Plus className="w-4 h-4 flex-shrink-0" />
             {t('uploadDoc')}
             <input
               type="file"
@@ -133,22 +138,29 @@ const ImageCrudField = ({
   );
 };
 
+const kisanProfileSchema = z.object({
+  name: z.string().min(2, 'Name must be at least 2 characters'),
+  fathersName: z.string().max(200, "Father's name cannot exceed 200 characters").optional(),
+  marka: z.string().max(5, "Marka cannot exceed 5 characters").optional(),
+  location: z.string().optional(),
+  profilePhoto: z.string().optional(),
+  farmerIdPhoto: z.string().optional(),
+  aadharCardPhoto: z.string().optional(),
+  bankPassbookPhoto: z.string().optional(),
+  bankDetails: z.object({
+    accountNumber: z.string(),
+    ifscCode: z.string(),
+    bankName: z.string()
+  }),
+});
+
+type KisanProfileInput = z.infer<typeof kisanProfileSchema>;
+
 export default function KisanProfile() {
   const { user } = useAuth();
   const dispatch = useAppDispatch();
   const t = useTranslations('kisanProfile');
 
-  const [name, setName] = useState('');
-  const [location, setLocation] = useState('');
-  const [fathersName, setFathersName] = useState('');
-  const [marka, setMarka] = useState('');
-  const [profilePhoto, setProfilePhoto] = useState('');
-  const [farmerIdPhoto, setFarmerIdPhoto] = useState('');
-  const [aadharCardPhoto, setAadharCardPhoto] = useState('');
-  const [bankPassbookPhoto, setBankPassbookPhoto] = useState('');
-  const [accountNumber, setAccountNumber] = useState('');
-  const [ifscCode, setIfscCode] = useState('');
-  const [bankName, setBankName] = useState('');
   const [isUploading, setIsUploading] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
@@ -161,24 +173,55 @@ export default function KisanProfile() {
   const [deleteCloudinaryMedia] = useDeleteCloudinaryMediaMutation();
   const [handleLogout, isLoggingOut] = useLogout();
 
+  const { register, handleSubmit, setValue, watch, reset, formState: { errors } } = useForm<KisanProfileInput>({
+    resolver: zodResolver(kisanProfileSchema),
+    defaultValues: {
+      name: '',
+      fathersName: '',
+      marka: '',
+      location: '',
+      profilePhoto: '',
+      farmerIdPhoto: '',
+      aadharCardPhoto: '',
+      bankPassbookPhoto: '',
+      bankDetails: {
+        accountNumber: '',
+        ifscCode: '',
+        bankName: '',
+      }
+    },
+    mode: 'onTouched',
+  });
+
   useEffect(() => {
     if (!user) return;
-    setName(user.name ?? '');
-    setLocation(user.location ?? '');
-    setFathersName(user.fathersName ?? '');
-    setMarka(user.marka ?? '');
-    setProfilePhoto(user.profilePhoto ?? '');
-    setFarmerIdPhoto(user.farmerIdPhoto ?? '');
-    setAadharCardPhoto(user.aadharCardPhoto ?? '');
-    setBankPassbookPhoto(user.bankPassbookPhoto ?? '');
-    setAccountNumber(user.bankDetails?.accountNumber ?? '');
-    setIfscCode(user.bankDetails?.ifscCode ?? '');
-    setBankName(user.bankDetails?.bankName ?? '');
-  }, [user]);
+    reset({
+      name: user.name ?? '',
+      location: user.location ?? '',
+      fathersName: user.fathersName ?? '',
+      marka: user.marka ?? '',
+      profilePhoto: user.profilePhoto ?? '',
+      farmerIdPhoto: user.farmerIdPhoto ?? '',
+      aadharCardPhoto: user.aadharCardPhoto ?? '',
+      bankPassbookPhoto: user.bankPassbookPhoto ?? '',
+      bankDetails: {
+        accountNumber: user.bankDetails?.accountNumber ?? '',
+        ifscCode: user.bankDetails?.ifscCode ?? '',
+        bankName: user.bankDetails?.bankName ?? '',
+      }
+    });
+  }, [user, reset]);
+
+  const watchedName = watch('name') || '';
+  const watchedMarka = watch('marka') || '';
+  const watchedProfilePhoto = watch('profilePhoto') || '';
+  const watchedFarmerIdPhoto = watch('farmerIdPhoto') || '';
+  const watchedAadharCardPhoto = watch('aadharCardPhoto') || '';
+  const watchedBankPassbookPhoto = watch('bankPassbookPhoto') || '';
 
   const handleFileUpload = async (
     e: React.ChangeEvent<HTMLInputElement>,
-    setter: (val: string) => void,
+    field: keyof KisanProfileInput,
     currentUrl: string
   ) => {
     const file = e.target.files?.[0];
@@ -187,52 +230,52 @@ export default function KisanProfile() {
       setIsUploading(true);
       setError('');
       const url = await uploadMediaFile(file, () => getCloudinarySignature().unwrap());
-      setter(url);
+      setValue(field, url, { shouldValidate: true, shouldDirty: true });
       if (currentUrl) {
         setUrlsToDelete((prev) => [...prev, currentUrl]);
       }
     } catch (err: any) {
       setError(err.message || 'File upload failed');
+      toast.error(err.message || 'File upload failed');
     } finally {
       setIsUploading(false);
     }
   };
 
-  const handleRemovePhoto = (val: string, setter: (val: string) => void) => {
+  const handleRemovePhoto = (field: keyof KisanProfileInput, val: string) => {
     if (val) {
       setUrlsToDelete((prev) => [...prev, val]);
     }
-    setter('');
+    setValue(field, '', { shouldValidate: true, shouldDirty: true });
   };
 
-  const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const onSubmit = async (data: KisanProfileInput) => {
     setMessage('');
     setError('');
     try {
       await updateProfile({ 
-        name, 
+        name: data.name, 
         role: user!.role, 
-        location, 
-        fathersName: fathersName || undefined,
-        marka: marka || undefined,
-        profilePhoto,
-        farmerIdPhoto,
-        aadharCardPhoto,
-        bankPassbookPhoto,
-        bankDetails: { accountNumber, ifscCode, bankName }
+        location: data.location, 
+        fathersName: data.fathersName || undefined,
+        marka: data.marka || undefined,
+        profilePhoto: data.profilePhoto,
+        farmerIdPhoto: data.farmerIdPhoto,
+        aadharCardPhoto: data.aadharCardPhoto,
+        bankPassbookPhoto: data.bankPassbookPhoto,
+        bankDetails: data.bankDetails
       }).unwrap();
       
       dispatch(updateUser({ 
-        name, 
-        location, 
-        fathersName,
-        marka,
-        profilePhoto,
-        farmerIdPhoto,
-        aadharCardPhoto,
-        bankPassbookPhoto,
-        bankDetails: { accountNumber, ifscCode, bankName }
+        name: data.name, 
+        location: data.location, 
+        fathersName: data.fathersName,
+        marka: data.marka,
+        profilePhoto: data.profilePhoto,
+        farmerIdPhoto: data.farmerIdPhoto,
+        aadharCardPhoto: data.aadharCardPhoto,
+        bankPassbookPhoto: data.bankPassbookPhoto,
+        bankDetails: data.bankDetails
       }));
       setMessage('Profile updated successfully.');
       toast.success('Profile updated successfully.');
@@ -249,12 +292,9 @@ export default function KisanProfile() {
       setTimeout(() => setMessage(''), 3000);
     } catch (err: any) {
       setError(err?.data?.message ?? 'Failed to update profile.');
+      toast.error(err?.data?.message ?? 'Failed to update profile.');
     }
   };
-
-
-  const inputBaseClass = "h-12 w-full rounded-xl bg-white dark:bg-stone-950 border border-stone-300 dark:border-stone-700 text-stone-800 dark:text-stone-100 placeholder-stone-400 dark:placeholder-stone-500 px-4 font-sans focus:outline-none focus:ring-2 focus:ring-green-800 dark:focus:ring-green-700 focus:border-transparent transition-all shadow-sm";
-  const labelBaseClass = "block font-sans text-sm font-medium text-stone-800 dark:text-stone-300 mb-1.5 ml-1";
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 md:space-y-8 animate-in fade-in duration-500 pb-12 w-full overflow-hidden">
@@ -272,13 +312,13 @@ export default function KisanProfile() {
       {/* Dynamic Alerts */}
       {message && (
         <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800/50 rounded-2xl p-4 flex gap-3 shadow-sm animate-in slide-in-from-top-2">
-          <svg className="w-6 h-6 text-green-600 dark:text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+          <CheckCircle2 className="w-6 h-6 text-green-600 dark:text-green-500 flex-shrink-0" />
           <span className="font-sans text-sm font-medium text-green-800 dark:text-green-300">{message}</span>
         </div>
       )}
       {error && (
         <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/50 rounded-2xl p-4 flex gap-3 shadow-sm animate-in slide-in-from-top-2">
-          <svg className="w-6 h-6 text-red-600 dark:text-red-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+          <AlertTriangle className="w-6 h-6 text-red-600 dark:text-red-500 flex-shrink-0" />
           <span className="font-sans text-sm font-medium text-red-800 dark:text-red-300">{error}</span>
         </div>
       )}
@@ -292,24 +332,24 @@ export default function KisanProfile() {
             
             {/* Avatar Box Component */}
             <div className="w-24 h-24 rounded-full bg-stone-100 dark:bg-stone-950 border-4 border-white dark:border-stone-900 shadow-sm overflow-hidden mb-4 flex items-center justify-center text-green-800 dark:text-green-500 font-serif font-bold text-4xl">
-              {profilePhoto ? (
-                <img src={profilePhoto} alt="Producer Profile" className="w-full h-full object-cover" onError={(e) => (e.currentTarget.style.display = 'none')} />
+              {watchedProfilePhoto ? (
+                <img src={watchedProfilePhoto} alt="Producer Profile" className="w-full h-full object-cover" onError={(e) => (e.currentTarget.style.display = 'none')} />
               ) : (
-                (name || 'K')[0].toUpperCase()
+                (watchedName || 'K')[0].toUpperCase()
               )}
             </div>
             
-            <h2 className="font-serif text-2xl font-medium text-stone-800 dark:text-stone-100 truncate w-full px-2">{name || 'Farmer User'}</h2>
+            <h2 className="font-serif text-2xl font-medium text-stone-800 dark:text-stone-100 truncate w-full px-2">{watchedName || 'Farmer User'}</h2>
             <p className="font-sans text-xs font-semibold tracking-wider text-stone-400 dark:text-stone-500 uppercase mt-0.5 mb-4">{t('account', { role: user?.role || 'Kisan' })}</p>
             
             {user?.isVerified ? (
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-50 dark:bg-green-950/20 text-green-800 dark:text-green-400 font-sans text-xs font-semibold border border-green-200/60 dark:border-green-800/40 shadow-sm">
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
+                <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0" />
                 {t('verifiedProducer')}
               </span>
             ) : (
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 dark:bg-amber-950/20 text-amber-800 dark:text-amber-400 font-sans text-xs font-semibold border border-amber-200/60 dark:border-amber-800/40 shadow-sm">
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <Clock className="w-3.5 h-3.5 flex-shrink-0" />
                 {t('pendingVerification')}
               </span>
             )}
@@ -346,7 +386,7 @@ export default function KisanProfile() {
               disabled={isLoggingOut}
               className="h-12 w-full rounded-xl bg-white dark:bg-stone-800 border-2 border-stone-200 dark:border-stone-700 hover:border-red-200 dark:hover:border-red-900/40 hover:bg-red-50 dark:hover:bg-red-950/20 text-red-600 dark:text-red-400 font-sans font-semibold text-sm transition-all shadow-sm active:scale-95 flex items-center justify-center gap-2"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+              <LogOut className="w-4 h-4" />
               {isLoggingOut ? t('terminatingSync') : t('signOutSecurely')}
             </button>
           </section>
@@ -359,70 +399,93 @@ export default function KisanProfile() {
               {t('editAccountConfig')}
             </h2>
             
-            <form onSubmit={handleSave} className="space-y-6">
-              <div>
-                <label className={labelBaseClass} htmlFor="name-input">{t('fullName')}</label>
-                <input 
-                  id="name-input" 
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+              <FormField
+                id="name"
+                label={t('fullName')}
+                error={errors.name?.message}
+                required
+              >
+                <Input 
+                  id="name" 
                   type="text" 
-                  minLength={2} 
-                  value={name} 
-                  onChange={(e) => setName(e.target.value)} 
-                  required 
+                  {...register('name')}
                   placeholder={t('fullNamePlaceholder')}
-                  className={inputBaseClass}
+                  disabled={isSaving || isUploading}
+                  className="h-12 rounded-xl"
+                  aria-invalid={errors.name ? "true" : "false"}
+                  aria-describedby={errors.name ? "name-error" : undefined}
                 />
-              </div>
+              </FormField>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <div>
-                  <label className={labelBaseClass} htmlFor="fathers-name-input">{t('fathersNameLabel')}</label>
-                  <input 
-                    id="fathers-name-input" 
+                <FormField
+                  id="fathersName"
+                  label={t('fathersNameLabel')}
+                  error={errors.fathersName?.message}
+                >
+                  <Input 
+                    id="fathersName" 
                     type="text" 
-                    value={fathersName} 
-                    onChange={(e) => setFathersName(e.target.value)} 
+                    {...register('fathersName')}
                     placeholder={t('fathersNamePlaceholder')}
-                    className={inputBaseClass}
+                    disabled={isSaving || isUploading}
+                    className="h-12 rounded-xl"
+                    aria-invalid={errors.fathersName ? "true" : "false"}
+                    aria-describedby={errors.fathersName ? "fathersName-error" : undefined}
                   />
-                </div>
+                </FormField>
                 <div>
-                  <label className={labelBaseClass} htmlFor="marka-input">{t('markaLabel')}</label>
-                  <input 
-                    id="marka-input" 
-                    type="text" 
-                    maxLength={5} 
-                    value={marka} 
-                    onChange={(e) => setMarka(e.target.value.toUpperCase())} 
-                    placeholder={t('markaPlaceholder')}
-                    className={`${inputBaseClass} uppercase font-semibold`}
-                  />
+                  <FormField
+                    id="marka"
+                    label={t('markaLabel')}
+                    error={errors.marka?.message}
+                  >
+                    <Input 
+                      id="marka" 
+                      type="text" 
+                      maxLength={5} 
+                      {...register('marka', {
+                        onChange: (e) => setValue('marka', e.target.value.toUpperCase())
+                      })}
+                      placeholder={t('markaPlaceholder')}
+                      disabled={isSaving || isUploading}
+                      className="h-12 rounded-xl uppercase font-semibold"
+                      aria-invalid={errors.marka ? "true" : "false"}
+                      aria-describedby={errors.marka ? "marka-error" : undefined}
+                    />
+                  </FormField>
                   <div className="text-right mt-1 text-xs text-stone-500 dark:text-stone-400 font-sans">
-                    {t('markaLength', { length: marka.length })}
+                    {t('markaLength', { length: watchedMarka.length })}
                   </div>
                 </div>
               </div>
 
-              <div>
-                <label className={labelBaseClass} htmlFor="location-input">{t('locationLabel')}</label>
-                <input 
-                  id="location-input" 
+              <FormField
+                id="location"
+                label={t('locationLabel')}
+                error={errors.location?.message}
+              >
+                <Input 
+                  id="location" 
                   type="text" 
-                  value={location} 
-                  onChange={(e) => setLocation(e.target.value)} 
+                  {...register('location')}
                   placeholder={t('locationPlaceholder')}
-                  className={inputBaseClass}
+                  disabled={isSaving || isUploading}
+                  className="h-12 rounded-xl"
+                  aria-invalid={errors.location ? "true" : "false"}
+                  aria-describedby={errors.location ? "location-error" : undefined}
                 />
                 <p className="text-xs text-stone-500 mt-1.5 ml-1">{t('locationHelp')}</p>
-              </div>
+              </FormField>
 
               <ImageCrudField
                 label={t('profileAvatar')}
-                value={profilePhoto}
-                onUpload={(e) => handleFileUpload(e, setProfilePhoto, profilePhoto)}
+                value={watchedProfilePhoto}
+                onUpload={(e) => handleFileUpload(e, 'profilePhoto', watchedProfilePhoto)}
                 isUploading={isUploading}
-                onRemove={() => handleRemovePhoto(profilePhoto, setProfilePhoto)}
-                onView={() => { setPreviewUrl(profilePhoto); setPreviewLabel(t('profileAvatar')); }}
+                onRemove={() => handleRemovePhoto('profilePhoto', watchedProfilePhoto)}
+                onView={() => { setPreviewUrl(watchedProfilePhoto); setPreviewLabel(t('profileAvatar')); }}
               />
 
               {/* Identity Verification Sub-Forms Surfaces */}
@@ -433,29 +496,29 @@ export default function KisanProfile() {
                 <div className="space-y-4">
                   <ImageCrudField
                     label={t('farmerIdImage')}
-                    value={farmerIdPhoto}
-                    onUpload={(e) => handleFileUpload(e, setFarmerIdPhoto, farmerIdPhoto)}
+                    value={watchedFarmerIdPhoto}
+                    onUpload={(e) => handleFileUpload(e, 'farmerIdPhoto', watchedFarmerIdPhoto)}
                     isUploading={isUploading}
-                    onRemove={() => handleRemovePhoto(farmerIdPhoto, setFarmerIdPhoto)}
-                    onView={() => { setPreviewUrl(farmerIdPhoto); setPreviewLabel(t('farmerIdImage')); }}
+                    onRemove={() => handleRemovePhoto('farmerIdPhoto', watchedFarmerIdPhoto)}
+                    onView={() => { setPreviewUrl(watchedFarmerIdPhoto); setPreviewLabel(t('farmerIdImage')); }}
                   />
 
                   <ImageCrudField
                     label={t('aadharImage')}
-                    value={aadharCardPhoto}
-                    onUpload={(e) => handleFileUpload(e, setAadharCardPhoto, aadharCardPhoto)}
+                    value={watchedAadharCardPhoto}
+                    onUpload={(e) => handleFileUpload(e, 'aadharCardPhoto', watchedAadharCardPhoto)}
                     isUploading={isUploading}
-                    onRemove={() => handleRemovePhoto(aadharCardPhoto, setAadharCardPhoto)}
-                    onView={() => { setPreviewUrl(aadharCardPhoto); setPreviewLabel(t('aadharImage')); }}
+                    onRemove={() => handleRemovePhoto('aadharCardPhoto', watchedAadharCardPhoto)}
+                    onView={() => { setPreviewUrl(watchedAadharCardPhoto); setPreviewLabel(t('aadharImage')); }}
                   />
 
                   <ImageCrudField
                     label={t('bankPassbookImage')}
-                    value={bankPassbookPhoto}
-                    onUpload={(e) => handleFileUpload(e, setBankPassbookPhoto, bankPassbookPhoto)}
+                    value={watchedBankPassbookPhoto}
+                    onUpload={(e) => handleFileUpload(e, 'bankPassbookPhoto', watchedBankPassbookPhoto)}
                     isUploading={isUploading}
-                    onRemove={() => handleRemovePhoto(bankPassbookPhoto, setBankPassbookPhoto)}
-                    onView={() => { setPreviewUrl(bankPassbookPhoto); setPreviewLabel(t('bankPassbookImage')); }}
+                    onRemove={() => handleRemovePhoto('bankPassbookPhoto', watchedBankPassbookPhoto)}
+                    onView={() => { setPreviewUrl(watchedBankPassbookPhoto); setPreviewLabel(t('bankPassbookImage')); }}
                   />
                 </div>
               </div>
@@ -466,16 +529,58 @@ export default function KisanProfile() {
                 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="sm:col-span-2">
-                    <label className={labelBaseClass} htmlFor="bank-name-input">{t('bankName')}</label>
-                    <input id="bank-name-input" type="text" value={bankName} onChange={(e) => setBankName(e.target.value)} placeholder={t('bankNamePlaceholder')} className={inputBaseClass} />
+                    <FormField
+                      id="bankName"
+                      label={t('bankName')}
+                      error={errors.bankDetails?.bankName?.message}
+                    >
+                      <Input 
+                        id="bankName" 
+                        type="text" 
+                        {...register('bankDetails.bankName')}
+                        placeholder={t('bankNamePlaceholder')} 
+                        disabled={isSaving || isUploading}
+                        className="h-12 rounded-xl"
+                        aria-invalid={errors.bankDetails?.bankName ? "true" : "false"}
+                        aria-describedby={errors.bankDetails?.bankName ? "bankName-error" : undefined}
+                      />
+                    </FormField>
                   </div>
                   <div>
-                    <label className={labelBaseClass} htmlFor="account-num-input">{t('accountNumber')}</label>
-                    <input id="account-num-input" type="text" value={accountNumber} onChange={(e) => setAccountNumber(e.target.value)} placeholder={t('accountNumberPlaceholder')} className={inputBaseClass} />
+                    <FormField
+                      id="accountNumber"
+                      label={t('accountNumber')}
+                      error={errors.bankDetails?.accountNumber?.message}
+                    >
+                      <Input 
+                        id="accountNumber" 
+                        type="text" 
+                        {...register('bankDetails.accountNumber')}
+                        placeholder={t('accountNumberPlaceholder')} 
+                        disabled={isSaving || isUploading}
+                        className="h-12 rounded-xl"
+                        aria-invalid={errors.bankDetails?.accountNumber ? "true" : "false"}
+                        aria-describedby={errors.bankDetails?.accountNumber ? "accountNumber-error" : undefined}
+                      />
+                    </FormField>
                   </div>
                   <div>
-                    <label className={labelBaseClass} htmlFor="ifsc-input">{t('ifscCode')}</label>
-                    <input id="ifsc-input" type="text" value={ifscCode} onChange={(e) => setIfscCode(e.target.value)} placeholder={t('ifscPlaceholder')} className={inputBaseClass} />
+                    <FormField
+                      id="ifscCode"
+                      label={t('ifscCode')}
+                      error={errors.bankDetails?.ifscCode?.message}
+                    >
+                      <Input 
+                        id="ifscCode" 
+                        type="text" 
+                        {...register('bankDetails.ifscCode')}
+                        placeholder={t('ifscPlaceholder')} 
+                        disabled={isSaving || isUploading}
+                        className="h-12 rounded-xl"
+                        aria-invalid={errors.bankDetails?.ifscCode ? "true" : "false"}
+                        aria-describedby={errors.bankDetails?.ifscCode ? "ifscCode-error" : undefined}
+                      />
+                    </FormField>
                   </div>
                 </div>
               </div>
@@ -489,10 +594,7 @@ export default function KisanProfile() {
                 >
                   {isSaving ? (
                     <>
-                      <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
+                      <Loader2 className="animate-spin h-4 w-4 text-white" />
                       {t('updatingProfile')}
                     </>
                   ) : (
@@ -518,7 +620,7 @@ export default function KisanProfile() {
                 className="p-2 rounded-xl hover:bg-stone-200 dark:hover:bg-stone-800 text-stone-500 transition-colors"
                 title="Close"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg>
+                <X className="w-5 h-5" />
               </button>
             </div>
             <div className="flex-1 bg-stone-950 flex items-center justify-center p-6 overflow-hidden min-h-[320px]">

@@ -13,7 +13,7 @@ import EmptyState from '@/components/shared/EmptyState';
 import Pagination from '@/components/shared/Pagination';
 import { TableSkeleton } from '@/components/shared/Skeletons';
 import ConfirmDialog from '@/components/shared/ConfirmDialog';
-import { Package, Eye, Pencil, Trash2, ChevronDown, Plus, AlertTriangle } from 'lucide-react';
+import { Package, Eye, Pencil, Trash2, ChevronDown, Plus, AlertTriangle, ImageIcon } from 'lucide-react';
 
 const STATUS_OPTIONS = ['', 'draft', 'open', 'interest_received', 'sale_confirmed', 'cancelled', 'expired', 'closed'];
 
@@ -149,9 +149,7 @@ export default function KisanListings() {
                                 />
                               ) : (
                                 <div className="w-12 h-12 rounded-xl bg-stone-100 dark:bg-stone-800 flex items-center justify-center shrink-0 border border-stone-200 dark:border-stone-800">
-                                  <svg className="w-5 h-5 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                  </svg>
+                                  <ImageIcon className="w-5 h-5 text-stone-400" />
                                 </div>
                               )}
                               <span className="text-stone-800 dark:text-stone-200 font-medium truncate max-w-[160px]">
@@ -244,9 +242,7 @@ export default function KisanListings() {
                       </div>
                     ) : (
                       <div className="w-full h-24 bg-stone-100 dark:bg-stone-800/50 flex items-center justify-center border-b border-stone-100 dark:border-stone-800">
-                        <svg className="w-8 h-8 text-stone-300 dark:text-stone-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
+                        <ImageIcon className="w-8 h-8 text-stone-300 dark:text-stone-600" />
                       </div>
                     )}
 
@@ -271,7 +267,7 @@ export default function KisanListings() {
                       <div className="flex justify-between items-center pt-2.5 border-t border-stone-100 dark:border-stone-800">
                         <div className="flex items-center gap-3">
                           <div className="flex items-center gap-1 text-stone-500 dark:text-stone-400 text-xs font-medium">
-                            <svg className="w-4 h-4 opacity-75" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                            <Eye className="w-4 h-4 opacity-75" />
                             {l.viewCount || 0}
                           </div>
                           {l.interestCount > 0 && (

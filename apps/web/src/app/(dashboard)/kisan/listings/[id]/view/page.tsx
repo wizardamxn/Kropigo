@@ -22,6 +22,7 @@ import { Button } from '@/components/ui/button';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
+import { ArrowLeft, CheckCircle2, ChevronRight, Check, X, Loader2 } from 'lucide-react';
 
 /*
   API: GET /listings/:id
@@ -139,7 +140,8 @@ export default function ListingViewPage() {
           onClick={() => router.back()}
           className="flex items-center gap-2 text-sm text-stone-500 hover:text-stone-800 dark:hover:text-stone-100 font-sans transition-colors"
         >
-          ← {t('backToListings')}
+          <ArrowLeft className="w-4 h-4" />
+          {t('backToListings')}
         </button>
         <Link
           href={`/kisan/listings/${listing._id}`}
@@ -422,7 +424,7 @@ export default function ListingViewPage() {
                   {isAccepted && (
                     <div className="mt-3 bg-green-50 dark:bg-green-950/20 text-green-800 dark:text-green-400 text-sm font-sans px-4 py-3 rounded-xl border border-green-200/50 dark:border-green-800/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                       <div className="flex items-center gap-2">
-                        <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
                         <span>
                           {t('dealConfirmed')}
                           {interest.orderId && <strong className="ml-1">{t('orderId', { id: interest.orderId })}</strong>}
@@ -435,7 +437,7 @@ export default function ListingViewPage() {
                           className="flex items-center gap-1.5 px-3 py-1.5 bg-green-100 dark:bg-green-900/50 hover:bg-green-200 dark:hover:bg-green-800 text-green-800 dark:text-green-300 rounded-lg font-medium transition-colors text-xs whitespace-nowrap self-start sm:self-auto"
                         >
                           {t('viewOrder')}
-                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                          <ChevronRight className="w-3.5 h-3.5" />
                         </Link>
                       )}
                     </div>
@@ -464,9 +466,9 @@ export default function ListingViewPage() {
           <div className="flex items-center gap-3 p-4 bg-stone-50 dark:bg-stone-800/50 border border-stone-200 dark:border-stone-700 rounded-xl">
             <div className={`p-2 rounded-full ${modalState.type === 'accept' ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400' : 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400'}`}>
               {modalState.type === 'accept' ? (
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                <Check className="w-5 h-5" />
               ) : (
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                <X className="w-5 h-5" />
               )}
             </div>
             <p className="text-sm text-stone-600 dark:text-stone-300">
@@ -486,7 +488,7 @@ export default function ListingViewPage() {
                 : 'bg-red-600 hover:bg-red-700 text-white'}
             >
               {(isAccepting || isRejecting) && (
-                <svg className="animate-spin h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" /></svg>
+                <Loader2 className="animate-spin h-4 w-4 mr-1" />
               )}
               {modalState.type === 'accept' ? t('yesAccept') : t('yesReject')}
             </Button>

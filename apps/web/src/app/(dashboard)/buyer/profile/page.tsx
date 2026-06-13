@@ -4,6 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useLogout } from '@/hooks/useLogout';
 import { RoleGuard } from '@/components/auth/RoleGuard';
 import { useTranslations } from 'next-intl';
+import { User, CheckCircle2, Clock, Lock, LogOut } from 'lucide-react';
 
 export default function BuyerProfilePage() {
   const { user } = useAuth();
@@ -45,16 +46,12 @@ export default function BuyerProfilePage() {
 
               {user?.isVerified ? (
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-50 dark:bg-green-950/20 text-green-800 dark:text-green-400 font-sans text-xs font-semibold border border-green-200/60 dark:border-green-800/40 shadow-sm">
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                  </svg>
+                  <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0" />
                   {t('verifiedAccount')}
                 </span>
               ) : (
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 dark:bg-amber-950/20 text-amber-800 dark:text-amber-400 font-sans text-xs font-semibold border border-amber-200/60 dark:border-amber-800/40 shadow-sm">
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
+                  <Clock className="w-3.5 h-3.5 flex-shrink-0" />
                   {t('pendingVerification')}
                 </span>
               )}
@@ -67,9 +64,7 @@ export default function BuyerProfilePage() {
             {/* Core Contact Parameters Grid */}
             <section className="bg-white dark:bg-stone-900 rounded-2xl p-6 md:p-8 border border-stone-200 dark:border-stone-800 shadow-sm space-y-6">
               <div className="flex items-center gap-2 border-b border-stone-100 dark:border-stone-800/60 pb-4">
-                <svg className="w-5 h-5 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" />
-                </svg>
+                <User className="w-5 h-5 text-stone-400" />
                 <h3 className="font-serif text-xl text-stone-800 dark:text-stone-100 font-medium">
                   {t('accountDetails')}
                 </h3>
@@ -108,9 +103,7 @@ export default function BuyerProfilePage() {
             {/* Device Session Management Controls Container */}
             <section className="bg-stone-50 dark:bg-stone-900/40 rounded-2xl p-6 md:p-8 border border-stone-200 dark:border-stone-800 shadow-sm flex flex-col gap-4">
               <div className="flex items-center gap-2 mb-1">
-                <svg className="w-5 h-5 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                </svg>
+                <Lock className="w-5 h-5 text-stone-400" />
                 <h3 className="font-serif text-xl text-stone-800 dark:text-stone-100 font-medium">{t('sessionManagement')}</h3>
               </div>
               <p className="font-sans text-sm text-stone-500 dark:text-stone-400 max-w-xl leading-relaxed">
@@ -122,9 +115,7 @@ export default function BuyerProfilePage() {
                 disabled={isLoading}
                 className="h-12 w-full sm:w-auto px-6 rounded-xl bg-white dark:bg-stone-800 border-2 border-stone-200 dark:border-stone-700 hover:border-red-200 dark:hover:border-red-900/40 hover:bg-red-50 dark:hover:bg-red-950/20 text-red-600 dark:text-red-400 font-sans font-semibold text-sm transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2 self-start shadow-sm"
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                </svg>
+                <LogOut className="w-4 h-4" />
                 {isLoading ? t('signingOut') : t('signOutSecurely')}
               </button>
             </section>

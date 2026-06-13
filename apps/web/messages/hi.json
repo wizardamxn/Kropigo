@@ -443,6 +443,7 @@
     "statusQcPassed": "QC पास",
     "statusQcFailed": "QC विफल",
     "statusPickupScheduled": "पिकअप निर्धारित",
+    "statusPendingContact": "संपर्क की प्रतीक्षा",
     "statusInTransit": "रास्ते में",
     "statusDelivered": "पहुंचा दिया"
   },

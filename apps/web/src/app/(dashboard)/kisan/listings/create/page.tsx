@@ -28,7 +28,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2 } from "lucide-react";
+import { Loader2, Clock, TrendingUp, Info, MapPin, ImageIcon, Camera, Video, Trash2 } from "lucide-react";
 
 const UNITS = ["kg", "quintal", "ton"];
 const MAX_IMAGES = 6;
@@ -207,9 +207,7 @@ export default function CreateListing() {
 
       {/* Time Constraint Warning */}
       <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/50 rounded-2xl p-4 flex gap-3 shadow-sm">
-        <svg className="w-6 h-6 text-amber-600 dark:text-amber-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
+        <Clock className="w-6 h-6 text-amber-600 dark:text-amber-500 flex-shrink-0" />
         <div className="font-sans text-sm text-amber-800 dark:text-amber-300">
           <strong className="font-medium block mb-0.5">{t("marketHoursNotice")}</strong>
           {t("marketHoursDesc")}{" "}
@@ -309,9 +307,7 @@ export default function CreateListing() {
         {latestRate && (
           <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800/50 rounded-2xl p-5 flex items-start gap-4 shadow-sm transition-all animate-in zoom-in-95">
             <div className="p-2 bg-white dark:bg-stone-800 rounded-full shadow-sm text-green-700 dark:text-green-500 mt-1">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-              </svg>
+              <TrendingUp className="w-6 h-6" />
             </div>
             <div>
               <h3 className="font-sans font-semibold text-green-900 dark:text-green-400 mb-1">
@@ -336,9 +332,7 @@ export default function CreateListing() {
           </h2>
 
           <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/50 rounded-xl p-3 flex gap-2">
-            <svg className="w-5 h-5 text-amber-600 dark:text-amber-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
+            <Info className="w-5 h-5 text-amber-600 dark:text-amber-500 flex-shrink-0 mt-0.5" />
             <p className="font-sans text-sm text-amber-800 dark:text-amber-300">
               {t("pricingNotice")}
             </p>
@@ -368,10 +362,7 @@ export default function CreateListing() {
         {/* Section 3: Location */}
         <section className="bg-stone-50 dark:bg-stone-900 rounded-2xl p-5 md:p-8 border border-stone-200 dark:border-stone-800 shadow-sm space-y-5">
           <div className="flex items-center gap-2 border-b border-stone-200 dark:border-stone-800 pb-3">
-            <svg className="w-6 h-6 text-stone-500 dark:text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
+            <MapPin className="w-6 h-6 text-stone-500 dark:text-stone-400" />
             <h2 className="font-serif text-2xl text-stone-800 dark:text-stone-100">
               {t("pickupLocation")}
             </h2>
@@ -407,9 +398,7 @@ export default function CreateListing() {
         <section className="bg-stone-50 dark:bg-stone-900 rounded-2xl p-5 md:p-8 border border-stone-200 dark:border-stone-800 shadow-sm space-y-5">
           <div className="flex items-center justify-between border-b border-stone-200 dark:border-stone-800 pb-3">
             <div className="flex items-center gap-2">
-              <svg className="w-6 h-6 text-stone-500 dark:text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
+              <ImageIcon className="w-6 h-6 text-stone-500 dark:text-stone-400" />
               <h2 className="font-serif text-2xl text-stone-800 dark:text-stone-100">
                 {t("mediaFiles")}
               </h2>
@@ -438,9 +427,7 @@ export default function CreateListing() {
                 }`}
               >
                 <div className="p-3 rounded-full bg-stone-100 dark:bg-stone-800">
-                  <svg className="w-6 h-6 text-stone-500 dark:text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
+                  <Camera className="w-6 h-6 text-stone-500 dark:text-stone-400" />
                 </div>
                 <div className="text-center">
                   <p className="font-sans text-sm font-medium text-stone-700 dark:text-stone-300">{t("addPhotos")}</p>
@@ -472,9 +459,7 @@ export default function CreateListing() {
                 }`}
               >
                 <div className="p-3 rounded-full bg-stone-100 dark:bg-stone-800">
-                  <svg className="w-6 h-6 text-stone-500 dark:text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.723v6.554a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                  </svg>
+                  <Video className="w-6 h-6 text-stone-500 dark:text-stone-400" />
                 </div>
                 <div className="text-center">
                   <p className="font-sans text-sm font-medium text-stone-700 dark:text-stone-300">{t("addVideo")}</p>
@@ -516,9 +501,7 @@ export default function CreateListing() {
                       className="p-2 bg-red-600 hover:bg-red-700 text-white rounded-full shadow-lg transform scale-90 group-hover:scale-100 transition-all cursor-pointer"
                       aria-label="Remove file"
                     >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
+                      <Trash2 className="w-5 h-5" />
                     </button>
                   </div>
 

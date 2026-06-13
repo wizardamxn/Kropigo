@@ -12,7 +12,7 @@ import EmptyState from '@/components/shared/EmptyState';
 import Pagination from '@/components/shared/Pagination';
 import { TableSkeleton } from '@/components/shared/Skeletons';
 import ConfirmDialog from '@/components/shared/ConfirmDialog';
-import { Users } from 'lucide-react';
+import { Users, User, CheckCircle2, XCircle } from 'lucide-react';
 
 // ─── HELPERS ──────────────────────────────────────────────────────────────────
 
@@ -149,9 +149,7 @@ function KisanRow({ kisan, t, tCommon }: { kisan: any; t: any; tCommon: any }) {
               </div>
             ) : (
               <div className="w-9 h-9 rounded-xl bg-stone-100 dark:bg-stone-800 flex items-center justify-center shrink-0 text-stone-400 border border-stone-200 dark:border-stone-700">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
+                <User className="w-4 h-4" />
               </div>
             )}
             <div className="min-w-0">
@@ -186,7 +184,7 @@ function KisanRow({ kisan, t, tCommon }: { kisan: any; t: any; tCommon: any }) {
           {kisan.isVerified ? (
             <div className="space-y-0.5">
               <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 border border-blue-100 dark:border-blue-800/30">
-                <svg className="w-3 h-3" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>
+                <CheckCircle2 className="w-3 h-3" />
                 {t('verified')}
               </span>
               {kisan.verifiedAt && (
@@ -195,7 +193,7 @@ function KisanRow({ kisan, t, tCommon }: { kisan: any; t: any; tCommon: any }) {
             </div>
           ) : (
             <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-500 border border-amber-100 dark:border-amber-800/30">
-              <svg className="w-3 h-3" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" /></svg>
+              <XCircle className="w-3 h-3" />
               {t('unverified')}
             </span>
           )}

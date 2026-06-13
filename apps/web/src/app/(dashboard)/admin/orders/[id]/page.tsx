@@ -11,6 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import type { OrderStatus } from '@kropi/schemas/enum';
 import { toast } from 'sonner';
+import { Phone, Mail, FileText, CreditCard, ArrowLeft } from 'lucide-react';
 
 const VALID_TRANSITIONS: Record<string, string[]> = {
   sale_confirmed:   ['admin_notified'],
@@ -104,13 +105,13 @@ function PartyCard({ person, role }: { person: any; role: 'kisan' | 'buyer' }) {
       <div className="space-y-2">
         {person?.phone && (
           <a href={`tel:${person.phone}`} className={`flex items-center gap-2 font-sans text-sm ${accent.link} hover:underline font-medium`}>
-            <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
+            <Phone className="w-4 h-4 shrink-0" />
             {person.phone}
           </a>
         )}
         {person?.email && (
           <a href={`mailto:${person.email}`} className="flex items-center gap-2 font-sans text-sm text-stone-500 dark:text-stone-400 hover:underline">
-            <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+            <Mail className="w-4 h-4 shrink-0" />
             {person.email}
           </a>
         )}
@@ -148,19 +149,19 @@ function PartyCard({ person, role }: { person: any; role: 'kisan' | 'buyer' }) {
           <div className="flex flex-wrap gap-2">
             {person.farmerIdPhoto && (
               <a href={person.farmerIdPhoto} target="_blank" rel="noreferrer" className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-sans font-medium border ${accent.section} ${accent.link} hover:opacity-80 transition-opacity`}>
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0" /></svg>
+                <FileText className="w-3.5 h-3.5" />
                 Farmer ID
               </a>
             )}
             {person.aadharCardPhoto && (
               <a href={person.aadharCardPhoto} target="_blank" rel="noreferrer" className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-sans font-medium border ${accent.section} ${accent.link} hover:opacity-80 transition-opacity`}>
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                <FileText className="w-3.5 h-3.5" />
                 Aadhaar
               </a>
             )}
             {person.bankPassbookPhoto && (
               <a href={person.bankPassbookPhoto} target="_blank" rel="noreferrer" className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-sans font-medium border ${accent.section} ${accent.link} hover:opacity-80 transition-opacity`}>
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg>
+                <CreditCard className="w-3.5 h-3.5" />
                 Passbook
               </a>
             )}
@@ -339,9 +340,7 @@ export default function AdminOrderDetailPage() {
           onClick={() => router.back()}
           className="flex items-center gap-2 text-stone-500 hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-100 font-sans text-sm font-medium transition-colors"
         >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-          </svg>
+          <ArrowLeft className="w-4 h-4" />
           Back to Orders
         </button>
 

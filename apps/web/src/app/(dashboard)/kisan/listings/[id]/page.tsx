@@ -27,6 +27,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { FormField } from "@/components/shared/FormField";
+import ConfirmDialog from "@/components/shared/ConfirmDialog";
 import {
   Select,
   SelectContent,
@@ -34,7 +35,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2 } from "lucide-react";
+import { 
+  Loader2, 
+  AlertTriangle, 
+  ArrowLeft, 
+  Eye, 
+  Info, 
+  TrendingUp, 
+  MapPin, 
+  ImageIcon, 
+  Video, 
+  Trash2, 
+  ExternalLink, 
+  UploadCloud 
+} from "lucide-react";
 
 const UNITS = ["kg", "quintal", "ton"];
 const EDITABLE_STATUSES = ["draft", "open"];
@@ -80,6 +94,7 @@ export default function ListingDetail() {
   const [isUploading, setIsUploading] = useState(false);
   const [mediaPreviews, setMediaPreviews] = useState<MediaPreview[]>([]);
   const isSubmitting = isUpdating || isUploading;
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const { register, handleSubmit, setValue, watch, reset, formState: { errors } } = useForm<UpdateListingFormValues>({
     resolver: zodResolver(updateListingFormSchema),
@@ -213,12 +228,6 @@ export default function ListingDetail() {
   };
 
   const handleDelete = async () => {
-    if (
-      !confirm(
-        "Are you sure you want to delete this listing? This action cannot be undone.",
-      )
-    )
-      return;
     try {
       await deleteListing(id).unwrap();
       toast.success("Listing deleted successfully!");
@@ -243,19 +252,7 @@ export default function ListingDetail() {
   if (isError || !listing) {
     return (
       <div className="max-w-3xl mx-auto p-8 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl flex flex-col items-center text-center space-y-4">
-        <svg
-          className="w-12 h-12 text-red-500 dark:text-red-400"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-          />
-        </svg>
+        <AlertTriangle className="w-12 h-12 text-red-500 dark:text-red-400" />
         <p className="font-sans text-lg text-red-800 dark:text-red-300 font-medium">
           Listing not found or access denied.
         </p>
@@ -278,25 +275,24 @@ export default function ListingDetail() {
 
   return (
     <div className="max-w-3xl mx-auto space-y-6 md:space-y-8 animate-in fade-in duration-500 pb-24">
+      <ConfirmDialog
+        isOpen={showDeleteConfirm}
+        onOpenChange={setShowDeleteConfirm}
+        onConfirm={handleDelete}
+        title="Delete Listing"
+        description="Are you sure you want to delete this listing? This action cannot be undone."
+        confirmText="Delete"
+        isLoading={isDeleting}
+        variant="destructive"
+      />
+
       {/* Navigation & Header */}
       <div>
         <button
           onClick={() => router.back()}
           className="mb-4 flex items-center gap-2 text-stone-500 hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-100 font-sans text-sm font-medium transition-colors w-fit cursor-pointer"
         >
-          <svg
-            className="w-4 h-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M10 19l-7-7m0 0l7-7m-7 7h18"
-            />
-          </svg>
+          <ArrowLeft className="w-4 h-4" />
           Back to Listings
         </button>
 
@@ -308,25 +304,7 @@ export default function ListingDetail() {
             <div className="flex items-center gap-3 mt-3">
               <StatusBadge status={listing.status} />
               <span className="flex items-center gap-1.5 text-stone-500 dark:text-stone-400 text-sm font-sans">
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                  />
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                  />
-                </svg>
+                <Eye className="w-4 h-4" />
                 {listing.viewCount || 0} views
               </span>
             </div>
@@ -337,19 +315,7 @@ export default function ListingDetail() {
       {/* Alerts & Insights */}
       {!canEdit && (
         <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800/50 rounded-2xl p-4 flex gap-3 shadow-sm">
-          <svg
-            className="w-6 h-6 text-blue-600 dark:text-blue-500 flex-shrink-0"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
+          <Info className="w-6 h-6 text-blue-600 dark:text-blue-500 flex-shrink-0" />
           <div className="font-sans text-sm text-blue-800 dark:text-blue-300">
             <strong className="font-medium block mb-0.5">Read-Only Mode</strong>
             This listing is currently marked as{" "}
@@ -368,19 +334,7 @@ export default function ListingDetail() {
       {latestRate && canEdit && (
         <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800/50 rounded-2xl p-5 flex items-start gap-4 shadow-sm">
           <div className="p-2 bg-white dark:bg-stone-800 rounded-full shadow-sm text-green-700 dark:text-green-500 mt-1">
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
-              />
-            </svg>
+            <TrendingUp className="w-6 h-6" />
           </div>
           <div>
             <h3 className="font-sans font-semibold text-green-900 dark:text-green-400 mb-1">
@@ -448,9 +402,7 @@ export default function ListingDetail() {
 
 
           <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/50 rounded-xl p-3 flex gap-2">
-            <svg className="w-5 h-5 text-amber-600 dark:text-amber-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
+            <Info className="w-5 h-5 text-amber-600 dark:text-amber-500 flex-shrink-0 mt-0.5" />
             <p className="font-sans text-sm text-amber-800 dark:text-amber-300">
               Pricing is managed by our team. Buyers submit their own offers which you can accept or reject.
             </p>
@@ -482,25 +434,7 @@ export default function ListingDetail() {
         {/* Section 2: Location */}
         <section className="bg-stone-50 dark:bg-stone-900 rounded-2xl p-5 md:p-8 border border-stone-200 dark:border-stone-800 shadow-sm space-y-5">
           <div className="flex items-center gap-2 border-b border-stone-200 dark:border-stone-800 pb-3">
-            <svg
-              className="w-6 h-6 text-stone-500 dark:text-stone-400"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-              />
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-              />
-            </svg>
+            <MapPin className="w-6 h-6 text-stone-500 dark:text-stone-400" />
             <h2 className="font-serif text-2xl text-stone-800 dark:text-stone-100">
               Pickup Location
             </h2>
@@ -560,19 +494,7 @@ export default function ListingDetail() {
         {(existingMedia.length > 0 || canEdit) && (
           <section className="bg-stone-50 dark:bg-stone-900 rounded-2xl p-5 md:p-8 border border-stone-200 dark:border-stone-800 shadow-sm space-y-5">
             <div className="flex items-center gap-2 border-b border-stone-200 dark:border-stone-800 pb-3">
-              <svg
-                className="w-6 h-6 text-stone-500 dark:text-stone-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                />
-              </svg>
+              <ImageIcon className="w-6 h-6 text-stone-500 dark:text-stone-400" />
               <h2 className="font-serif text-2xl text-stone-800 dark:text-stone-100">
                 Media Files
               </h2>
@@ -590,19 +512,7 @@ export default function ListingDetail() {
                     >
                       {isVideo ? (
                         <div className="w-full h-full flex flex-col items-center justify-center bg-stone-800 text-stone-400 p-4 text-center">
-                          <svg
-                            className="w-8 h-8 mb-2"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
-                            />
-                          </svg>
+                          <Video className="w-8 h-8 mb-2" />
                           <span className="text-xs break-all">
                             {url.split("/").pop()}
                           </span>
@@ -626,19 +536,7 @@ export default function ListingDetail() {
                             className="p-2 bg-red-600 hover:bg-red-700 text-white rounded-full shadow-lg transform scale-90 group-hover:scale-100 transition-all cursor-pointer"
                             aria-label="Remove image"
                           >
-                            <svg
-                              className="w-5 h-5"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                              />
-                            </svg>
+                            <Trash2 className="w-5 h-5" />
                           </button>
                         </div>
                       )}
@@ -649,19 +547,7 @@ export default function ListingDetail() {
                         rel="noreferrer"
                         className="absolute bottom-2 left-2 p-1.5 bg-black/60 hover:bg-black/80 text-white rounded-lg backdrop-blur-sm transition-colors"
                       >
-                        <svg
-                          className="w-4 h-4"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                          />
-                        </svg>
+                        <ExternalLink className="w-4 h-4" />
                       </a>
                     </div>
                   );
@@ -677,19 +563,7 @@ export default function ListingDetail() {
                 </label>
                 <div className="mt-2 flex justify-center px-6 py-8 border-2 border-stone-300 dark:border-stone-700 border-dashed rounded-xl bg-white dark:bg-stone-950 hover:bg-stone-50 dark:hover:bg-stone-900 transition-colors">
                   <div className="space-y-2 text-center flex flex-col items-center">
-                    <svg
-                      className="mx-auto h-12 w-12 text-stone-400 dark:text-stone-500"
-                      stroke="currentColor"
-                      fill="none"
-                      viewBox="0 0 48 48"
-                    >
-                      <path
-                        d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
-                        strokeWidth={2}
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
+                    <UploadCloud className="mx-auto h-12 w-12 text-stone-400 dark:text-stone-500" />
                     <div className="flex text-sm text-stone-600 dark:text-stone-400">
                       <label
                         htmlFor="file-upload"
@@ -781,13 +655,11 @@ export default function ListingDetail() {
             <Button
               type="button"
               variant="destructive"
-              onClick={handleDelete}
+              onClick={() => setShowDeleteConfirm(true)}
               disabled={isDeleting || isSubmitting}
-              className="md:w-1/3 h-14 rounded-xl cursor-pointer"
+              className="md:w-1/3 h-14 rounded-xl cursor-pointer flex items-center justify-center gap-2"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-              </svg>
+              <Trash2 className="w-5 h-5" />
               {isDeleting ? "Deleting..." : "Delete Listing"}
             </Button>
           </div>

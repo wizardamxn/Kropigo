@@ -443,6 +443,7 @@
     "statusQcPassed": "QC Passed",
     "statusQcFailed": "QC Failed",
     "statusPickupScheduled": "Pickup Scheduled",
+    "statusPendingContact": "Awaiting Contact",
     "statusInTransit": "In Transit",
     "statusDelivered": "Delivered"
   },
