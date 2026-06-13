@@ -61,7 +61,9 @@ export default function RegisterPage() {
 
       const userRole = response.data.user?.role;
       if (userRole === 'buyer') {
-        router.push('/buyer/marketplace');
+        router.push('/buyer/profile?registered=true');
+      } else if (userRole === 'kisan') {
+        router.push('/kisan/profile?registered=true');
       } else {
         router.push('/');
       }

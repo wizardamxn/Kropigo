@@ -12,7 +12,7 @@ import EmptyState from '@/components/shared/EmptyState';
 import Pagination from '@/components/shared/Pagination';
 import { TableSkeleton } from '@/components/shared/Skeletons';
 import ConfirmDialog from '@/components/shared/ConfirmDialog';
-import { Users, User, CheckCircle2, XCircle } from 'lucide-react';
+import { Users, User, CheckCircle2, XCircle, Sprout, ShoppingCart } from 'lucide-react';
 
 // ─── HELPERS ──────────────────────────────────────────────────────────────────
 
@@ -22,36 +22,46 @@ const fmtDate = (d: string) =>
 // ─── KYC DIALOG ───────────────────────────────────────────────────────────────
 
 function KycDialog({
-  kisan,
+  user,
+  role,
   open,
   onOpenChange,
   t,
   tCommon,
 }: {
-  kisan: any;
+  user: any;
+  role: 'kisan' | 'buyer';
   open: boolean;
   onOpenChange: (v: boolean) => void;
   t: any;
   tCommon: any;
 }) {
-  const docs = [
-    { label: t('kycFarmerId'), url: kisan.farmerIdPhoto },
-    { label: t('kycAadhar'), url: kisan.aadharCardPhoto },
-    { label: t('kycBankPassbook'), url: kisan.bankPassbookPhoto },
-  ];
-  const bank = kisan.bankDetails;
+  // Kisans show: Farmer ID, Aadhaar, Bank Passbook
+  // Buyers show: GST Certificate (stored in farmerIdPhoto), Aadhaar
+  const docs = role === 'kisan'
+    ? [
+        { label: t('kycFarmerId'), url: user.farmerIdPhoto },
+        { label: t('kycAadhar'), url: user.aadharCardPhoto },
+        { label: t('kycBankPassbook'), url: user.bankPassbookPhoto },
+      ]
+    : [
+        { label: t('kycGst'), url: user.farmerIdPhoto },
+        { label: t('kycAadhar'), url: user.aadharCardPhoto },
+      ];
+
+  const bank = user.bankDetails;
   const hasBankData = bank && (bank.bankName || bank.accountNumber || bank.ifscCode);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>{t('kycTitle', { name: kisan.name ?? kisan.email })}</DialogTitle>
+          <DialogTitle>{t('kycTitle', { name: user.name ?? user.email })}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 py-1">
           {/* Photo documents */}
-          <div className="grid grid-cols-3 gap-3">
+          <div className={`grid gap-3 ${role === 'kisan' ? 'grid-cols-3' : 'grid-cols-2'}`}>
             {docs.map(({ label, url }) => (
               <div key={label} className="space-y-1.5">
                 <p className="text-[10px] font-sans font-semibold uppercase tracking-wider text-stone-400 dark:text-stone-500">
@@ -73,36 +83,38 @@ function KycDialog({
             ))}
           </div>
 
-          {/* Bank details */}
-          <div className="bg-stone-50 dark:bg-stone-900 rounded-xl border border-stone-200 dark:border-stone-800 px-4 py-3 space-y-1.5">
-            <p className="text-xs font-sans font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wider">
-              {t('kycBankDetails')}
-            </p>
-            {hasBankData ? (
-              <dl className="grid grid-cols-2 gap-x-4 gap-y-1 font-sans text-sm">
-                {bank.bankName && (
-                  <>
-                    <dt className="text-stone-400 dark:text-stone-500 text-xs">{t('kycBankName')}</dt>
-                    <dd className="text-stone-800 dark:text-stone-200 font-medium">{bank.bankName}</dd>
-                  </>
-                )}
-                {bank.accountNumber && (
-                  <>
-                    <dt className="text-stone-400 dark:text-stone-500 text-xs">{t('kycAccountNo')}</dt>
-                    <dd className="text-stone-800 dark:text-stone-200 font-medium font-mono">{bank.accountNumber}</dd>
-                  </>
-                )}
-                {bank.ifscCode && (
-                  <>
-                    <dt className="text-stone-400 dark:text-stone-500 text-xs">{t('kycIfsc')}</dt>
-                    <dd className="text-stone-800 dark:text-stone-200 font-medium font-mono">{bank.ifscCode}</dd>
-                  </>
-                )}
-              </dl>
-            ) : (
-              <p className="text-sm text-stone-400 dark:text-stone-500 font-sans">{t('kycNoBankDetails')}</p>
-            )}
-          </div>
+          {/* Bank details — only for kisans */}
+          {role === 'kisan' && (
+            <div className="bg-stone-50 dark:bg-stone-900 rounded-xl border border-stone-200 dark:border-stone-800 px-4 py-3 space-y-1.5">
+              <p className="text-xs font-sans font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wider">
+                {t('kycBankDetails')}
+              </p>
+              {hasBankData ? (
+                <dl className="grid grid-cols-2 gap-x-4 gap-y-1 font-sans text-sm">
+                  {bank.bankName && (
+                    <>
+                      <dt className="text-stone-400 dark:text-stone-500 text-xs">{t('kycBankName')}</dt>
+                      <dd className="text-stone-800 dark:text-stone-200 font-medium">{bank.bankName}</dd>
+                    </>
+                  )}
+                  {bank.accountNumber && (
+                    <>
+                      <dt className="text-stone-400 dark:text-stone-500 text-xs">{t('kycAccountNo')}</dt>
+                      <dd className="text-stone-800 dark:text-stone-200 font-medium font-mono">{bank.accountNumber}</dd>
+                    </>
+                  )}
+                  {bank.ifscCode && (
+                    <>
+                      <dt className="text-stone-400 dark:text-stone-500 text-xs">{t('kycIfsc')}</dt>
+                      <dd className="text-stone-800 dark:text-stone-200 font-medium font-mono">{bank.ifscCode}</dd>
+                    </>
+                  )}
+                </dl>
+              ) : (
+                <p className="text-sm text-stone-400 dark:text-stone-500 font-sans">{t('kycNoBankDetails')}</p>
+              )}
+            </div>
+          )}
         </div>
 
         <div className="flex justify-end pt-2">
@@ -115,9 +127,9 @@ function KycDialog({
 
 
 
-// ─── KISAN ROW ────────────────────────────────────────────────────────────────
+// ─── USER ROW ─────────────────────────────────────────────────────────────────
 
-function KisanRow({ kisan, t, tCommon }: { kisan: any; t: any; tCommon: any }) {
+function UserRow({ user, role, t, tCommon }: { user: any; role: 'kisan' | 'buyer'; t: any; tCommon: any }) {
   const [kycOpen, setKycOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [targetVerified, setTargetVerified] = useState(false);
@@ -130,12 +142,25 @@ function KisanRow({ kisan, t, tCommon }: { kisan: any; t: any; tCommon: any }) {
 
   const handleConfirm = async () => {
     try {
-      await setVerification({ id: kisan._id, isVerified: targetVerified }).unwrap();
+      await setVerification({ id: user._id, isVerified: targetVerified }).unwrap();
       setConfirmOpen(false);
     } catch {
       setConfirmOpen(false);
     }
   };
+
+  // Pick confirm dialog strings based on role
+  const confirmTitle = role === 'kisan'
+    ? (targetVerified ? t('confirmVerifyTitle') : t('confirmRevokeTitle'))
+    : (targetVerified ? t('confirmVerifyTitleBuyer') : t('confirmRevokeTitleBuyer'));
+
+  const confirmDesc = role === 'kisan'
+    ? (targetVerified ? t('confirmVerifyDesc') : t('confirmRevokeDesc'))
+    : (targetVerified ? t('confirmVerifyDescBuyer') : t('confirmRevokeDescBuyer'));
+
+  const confirmYes = role === 'kisan'
+    ? (targetVerified ? t('confirmVerifyYes') : t('confirmRevokeYes'))
+    : (targetVerified ? t('confirmVerifyYesBuyer') : t('confirmRevokeYesBuyer'));
 
   return (
     <>
@@ -143,9 +168,9 @@ function KisanRow({ kisan, t, tCommon }: { kisan: any; t: any; tCommon: any }) {
         {/* Name + photo */}
         <td className="px-4 py-3">
           <div className="flex items-center gap-3">
-            {kisan.profilePhoto ? (
+            {user.profilePhoto ? (
               <div className="relative w-9 h-9 rounded-xl overflow-hidden shrink-0 border border-stone-200 dark:border-stone-700">
-                <Image src={kisan.profilePhoto} alt="" fill className="object-cover" sizes="36px" />
+                <Image src={user.profilePhoto} alt="" fill className="object-cover" sizes="36px" />
               </div>
             ) : (
               <div className="w-9 h-9 rounded-xl bg-stone-100 dark:bg-stone-800 flex items-center justify-center shrink-0 text-stone-400 border border-stone-200 dark:border-stone-700">
@@ -154,13 +179,10 @@ function KisanRow({ kisan, t, tCommon }: { kisan: any; t: any; tCommon: any }) {
             )}
             <div className="min-w-0">
               <p className="font-sans font-semibold text-sm text-stone-800 dark:text-stone-100 truncate">
-                {kisan.name ?? '—'}
+                {user.name ?? '—'}
               </p>
               <p className="text-xs text-stone-400 dark:text-stone-500 font-sans">
-                {t('verifiedOn', { date: fmtDate(kisan.createdAt) }).replace(
-                  t('verifiedOn', { date: fmtDate(kisan.createdAt) }),
-                  `Joined ${fmtDate(kisan.createdAt)}`
-                )}
+                Joined {fmtDate(user.createdAt)}
               </p>
             </div>
           </div>
@@ -168,27 +190,27 @@ function KisanRow({ kisan, t, tCommon }: { kisan: any; t: any; tCommon: any }) {
 
         {/* Contact */}
         <td className="px-4 py-3">
-          <p className="text-sm text-stone-700 dark:text-stone-300 font-sans">{kisan.email}</p>
-          {kisan.phone && (
-            <p className="text-xs text-stone-400 dark:text-stone-500 font-sans mt-0.5">{kisan.phone}</p>
+          <p className="text-sm text-stone-700 dark:text-stone-300 font-sans">{user.email}</p>
+          {user.phone && (
+            <p className="text-xs text-stone-400 dark:text-stone-500 font-sans mt-0.5">{user.phone}</p>
           )}
         </td>
 
         {/* Location */}
         <td className="px-4 py-3 text-sm text-stone-600 dark:text-stone-400 font-sans">
-          {kisan.location ?? '—'}
+          {user.location ?? '—'}
         </td>
 
         {/* Verification status */}
         <td className="px-4 py-3">
-          {kisan.isVerified ? (
+          {user.isVerified ? (
             <div className="space-y-0.5">
               <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 border border-blue-100 dark:border-blue-800/30">
                 <CheckCircle2 className="w-3 h-3" />
                 {t('verified')}
               </span>
-              {kisan.verifiedAt && (
-                <p className="text-[10px] text-stone-400 font-sans">{t('verifiedOn', { date: fmtDate(kisan.verifiedAt) })}</p>
+              {user.verifiedAt && (
+                <p className="text-[10px] text-stone-400 font-sans">{t('verifiedOn', { date: fmtDate(user.verifiedAt) })}</p>
               )}
             </div>
           ) : (
@@ -211,7 +233,7 @@ function KisanRow({ kisan, t, tCommon }: { kisan: any; t: any; tCommon: any }) {
 
         {/* Actions */}
         <td className="px-4 py-3">
-          {kisan.isVerified ? (
+          {user.isVerified ? (
             <Button
               size="sm"
               onClick={() => openConfirm(false)}
@@ -233,14 +255,14 @@ function KisanRow({ kisan, t, tCommon }: { kisan: any; t: any; tCommon: any }) {
         </td>
       </tr>
 
-      <KycDialog kisan={kisan} open={kycOpen} onOpenChange={setKycOpen} t={t} tCommon={tCommon} />
+      <KycDialog user={user} role={role} open={kycOpen} onOpenChange={setKycOpen} t={t} tCommon={tCommon} />
       <ConfirmDialog
         isOpen={confirmOpen}
         onOpenChange={setConfirmOpen}
-        title={targetVerified ? t('confirmVerifyTitle') : t('confirmRevokeTitle')}
-        description={targetVerified ? t('confirmVerifyDesc') : t('confirmRevokeDesc')}
+        title={confirmTitle}
+        description={confirmDesc}
         onConfirm={handleConfirm}
-        confirmText={targetVerified ? t('confirmVerifyYes') : t('confirmRevokeYes')}
+        confirmText={confirmYes}
         isLoading={isLoading}
         variant={targetVerified ? 'success' : 'destructive'}
       />
@@ -254,24 +276,34 @@ export default function AdminKisansPage() {
   const t = useTranslations('adminKisans');
   const tCommon = useTranslations('common');
 
+  const [activeRole, setActiveRole] = useState<'kisan' | 'buyer'>('kisan');
   const [search, setSearch] = useState('');
   const [appliedSearch, setAppliedSearch] = useState('');
   const [verified, setVerified] = useState('');
   const [page, setPage] = useState(1);
 
   const { data, isLoading, isError } = useGetKisansQuery({
+    role: activeRole,
     ...(appliedSearch ? { search: appliedSearch } : {}),
     ...(verified !== '' ? { verified } : {}),
     page,
     limit: 20,
   });
 
-  const kisans: any[] = data?.data ?? [];
+  const users: any[] = data?.data ?? [];
   const meta = data?.meta;
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     setAppliedSearch(search);
+    setPage(1);
+  };
+
+  const handleRoleSwitch = (role: 'kisan' | 'buyer') => {
+    setActiveRole(role);
+    setSearch('');
+    setAppliedSearch('');
+    setVerified('');
     setPage(1);
   };
 
@@ -289,9 +321,42 @@ export default function AdminKisansPage() {
     </button>
   );
 
+  const pageTitle = activeRole === 'kisan' ? t('title') : t('titleBuyer');
+  const pageSubtitle = activeRole === 'kisan' ? t('subtitle') : t('subtitleBuyer');
+  const emptyTitle = activeRole === 'kisan' ? t('noKisans') : t('noBuyers');
+  const emptySubtitle = activeRole === 'kisan' ? t('noKisansSub') : t('noBuyersSub');
+
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
-      <PageHeader title={t('title')} subtitle={t('subtitle')} />
+      <PageHeader title={pageTitle} subtitle={pageSubtitle} />
+
+      {/* Role Tab Switcher */}
+      <div className="flex gap-2">
+        <button
+          type="button"
+          onClick={() => handleRoleSwitch('kisan')}
+          className={`flex items-center gap-2 h-10 px-5 rounded-xl text-sm font-semibold font-sans transition-all border ${
+            activeRole === 'kisan'
+              ? 'bg-green-700 dark:bg-green-600 text-white border-green-700 dark:border-green-600 shadow-sm'
+              : 'bg-white dark:bg-stone-900 text-stone-600 dark:text-stone-400 border-stone-200 dark:border-stone-700 hover:bg-stone-50 dark:hover:bg-stone-800'
+          }`}
+        >
+          <Sprout className="w-4 h-4" />
+          {t('tabKisans')}
+        </button>
+        <button
+          type="button"
+          onClick={() => handleRoleSwitch('buyer')}
+          className={`flex items-center gap-2 h-10 px-5 rounded-xl text-sm font-semibold font-sans transition-all border ${
+            activeRole === 'buyer'
+              ? 'bg-amber-600 dark:bg-amber-500 text-white border-amber-600 dark:border-amber-500 shadow-sm'
+              : 'bg-white dark:bg-stone-900 text-stone-600 dark:text-stone-400 border-stone-200 dark:border-stone-700 hover:bg-stone-50 dark:hover:bg-stone-800'
+          }`}
+        >
+          <ShoppingCart className="w-4 h-4" />
+          {t('tabBuyers')}
+        </button>
+      </div>
 
       {/* Toolbar */}
       <div className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 p-4 shadow-sm flex flex-col sm:flex-row gap-3">
@@ -317,15 +382,15 @@ export default function AdminKisansPage() {
       <div className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 shadow-sm overflow-hidden">
         {isError ? (
           <div className="py-20 text-center text-stone-500 dark:text-stone-400 font-sans text-sm">
-            Failed to load kisans. Please try again.
+            Failed to load users. Please try again.
           </div>
         ) : isLoading ? (
           <TableSkeleton rows={6} cols={6} />
-        ) : kisans.length === 0 ? (
+        ) : users.length === 0 ? (
           <EmptyState
             icon={Users}
-            title={t('noKisans')}
-            subtitle={t('noKisansSub')}
+            title={emptyTitle}
+            subtitle={emptySubtitle}
           />
         ) : (
           <div className="overflow-x-auto">
@@ -338,8 +403,8 @@ export default function AdminKisansPage() {
                 </tr>
               </thead>
               <tbody>
-                {kisans.map((k) => (
-                  <KisanRow key={k._id} kisan={k} t={t} tCommon={tCommon} />
+                {users.map((u) => (
+                  <UserRow key={u._id} user={u} role={activeRole} t={t} tCommon={tCommon} />
                 ))}
               </tbody>
             </table>

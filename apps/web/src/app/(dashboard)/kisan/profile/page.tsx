@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { useUpdateProfileMutation } from '@/store/endpoints/authApi';
 import { useGetCloudinarySignatureMutation, useDeleteCloudinaryMediaMutation } from '@/store/endpoints/mediaApi';
@@ -164,6 +165,14 @@ export default function KisanProfile() {
   const [isUploading, setIsUploading] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const tAuth = useTranslations('auth');
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    if (searchParams.get('registered') === 'true') {
+      toast.success(tAuth('welcomeCompleteProfile'), { duration: 6000 });
+    }
+  }, [searchParams, tAuth]);
   const [urlsToDelete, setUrlsToDelete] = useState<string[]>([]);
   const [previewUrl, setPreviewUrl] = useState('');
   const [previewLabel, setPreviewLabel] = useState('');

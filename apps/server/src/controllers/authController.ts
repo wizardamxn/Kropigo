@@ -73,7 +73,7 @@ export const register: RequestHandler = asyncHandler(
       phone,
       password: hashedPassword,
       role,
-      isVerified: role !== 'kisan',
+      isVerified: role === 'admin' || role === 'driver',
     });
 
     const token = signToken(user.id, user.role);

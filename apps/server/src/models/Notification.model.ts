@@ -23,7 +23,11 @@ const NotificationSchema = new Schema<INotification>({
       'new_offer_received',
       'payment_received',
       'payout_sent',
-      'dispute_raised'
+      'dispute_raised',
+      'kisan_verified',
+      'kisan_unverified',
+      'buyer_verified',
+      'buyer_unverified',
     ],
     required: true 
   },
