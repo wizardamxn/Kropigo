@@ -9,6 +9,7 @@ import {
   acceptInterest,
   rejectInterest,
   submitInterest,
+  withdrawInterest,
   getMyInterestForListing,
 } from "../controllers/listing.controller";
 import { authenticate, requireRole } from "../middleware/authMiddleware";
@@ -45,8 +46,9 @@ router.get("/:id/interests", authenticate, requireRole("kisan"), getListingInter
 router.patch("/:id/interests/:interestId/accept", authenticate, requireRole("kisan"), acceptInterest);
 router.patch("/:id/interests/:interestId/reject", authenticate, requireRole("kisan"), rejectInterest);
 
-// Buyer: Submit interest & check own interest
+// Buyer: Submit / withdraw interest & check own interest
 router.post("/:id/interests", authenticate, requireRole("buyer"), validate(submitInterestSchema), submitInterest);
+router.delete("/:id/interests/:interestId", authenticate, requireRole("buyer"), withdrawInterest);
 router.get("/:id/interests/mine", authenticate, requireRole("buyer"), getMyInterestForListing);
 
 export default router;

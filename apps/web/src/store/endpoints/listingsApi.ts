@@ -31,6 +31,14 @@ export const listingsApi = baseApi.injectEndpoints({
       }),
       providesTags: ['Listing'],
     }),
+    // Marketplace map view — slim, unpaginated, geocoded listings only
+    getListingsForMap: builder.query<any, Record<string, any>>({
+      query: (params) => ({
+        url: '/listings',
+        params: { ...params, forMap: 'true' },
+      }),
+      providesTags: ['Listing'],
+    }),
     getListingById: builder.query<any, string>({
       query: (id) => `/listings/${id}`,
       providesTags: (result, error, id) => [{ type: 'Listing', id }],
@@ -99,6 +107,18 @@ export const listingsApi = baseApi.injectEndpoints({
         { type: 'Listing', id: listingId },
       ],
     }),
+    // Buyer: withdraw a pending interest
+    withdrawInterest: builder.mutation<any, { listingId: string; interestId: string }>({
+      query: ({ listingId, interestId }) => ({
+        url: `/listings/${listingId}/interests/${interestId}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: (result, error, { listingId }) => [
+        { type: 'Interest', id: `mine-${listingId}` },
+        'Interest',
+        { type: 'Listing', id: listingId },
+      ],
+    }),
     // Buyer: get their own interest for a specific listing
     getMyInterestForListing: builder.query<any, string>({
       query: (listingId) => `/listings/${listingId}/interests/mine`,
@@ -109,6 +129,7 @@ export const listingsApi = baseApi.injectEndpoints({
 
 export const {
   useGetListingsQuery,
+  useGetListingsForMapQuery,
   useGetListingByIdQuery,
   useCreateListingMutation,
   useUpdateListingMutation,
@@ -117,5 +138,6 @@ export const {
   useAcceptInterestMutation,
   useRejectInterestMutation,
   useSubmitInterestMutation,
+  useWithdrawInterestMutation,
   useGetMyInterestForListingQuery,
 } = listingsApi;

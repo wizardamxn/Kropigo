@@ -15,38 +15,19 @@ import {
   useGetCloudinarySignatureMutation,
 } from "@/store/endpoints/mediaApi";
 import { uploadListingMedia, validateMediaFiles } from "@/lib/cloudinaryUpload";
+import Image from "next/image";
 import Link from "next/link";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { StatusBadge } from "@/components/shared/StatusBadge";
 
 const UNITS = ["kg", "quintal", "ton"];
 const EDITABLE_STATUSES = ["draft", "open"];
 type MediaPreview = { url: string; name: string; type: string };
 
-// Helper functions for consistent styling
-const formatStatus = (status: string) => {
-  if (!status) return "";
-  return status
-    .replace("_", " ")
-    .replace(/\b\w/g, (char) => char.toUpperCase());
-};
-
-const getStatusBadge = (status: string) => {
-  switch (status?.toLowerCase()) {
-    case "open":
-      return "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 border-green-200 dark:border-green-800/50";
-    case "draft":
-      return "bg-stone-100 text-stone-700 dark:bg-stone-800 dark:text-stone-300 border-stone-200 dark:border-stone-700";
-    case "sale_confirmed":
-    case "closed":
-      return "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 border-blue-200 dark:border-blue-800/50";
-    case "cancelled":
-    case "expired":
-      return "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 border-red-200 dark:border-red-800/50";
-    case "interest_received":
-      return "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 border-amber-200 dark:border-amber-800/50";
-    default:
-      return "bg-stone-100 text-stone-700 dark:bg-stone-800 dark:text-stone-300 border-stone-200 dark:border-stone-700";
-  }
-};
 
 export default function ListingDetail() {
   const { id } = useParams<{ id: string }>();
@@ -255,14 +236,7 @@ export default function ListingDetail() {
     (u: string) => !removedMediaUrls.includes(u),
   );
 
-  // Helper styles
-  const inputBaseClass = `h-12 w-full rounded-xl border px-4 font-sans focus:outline-none focus:ring-2 focus:ring-green-800 dark:focus:ring-green-700 transition-all shadow-sm ${
-    canEdit
-      ? "bg-white dark:bg-stone-950 border-stone-300 dark:border-stone-700 text-stone-800 dark:text-stone-100 placeholder-stone-400 dark:placeholder-stone-500"
-      : "bg-stone-100 dark:bg-stone-900/50 border-stone-200 dark:border-stone-800 text-stone-500 dark:text-stone-400 cursor-not-allowed"
-  }`;
-  const labelBaseClass =
-    "block font-sans text-sm font-medium text-stone-800 dark:text-stone-300 mb-1.5 ml-1";
+  const inputCls = `h-12 rounded-xl${!canEdit ? ' opacity-60 cursor-not-allowed' : ''}`;
 
   return (
     <div className="max-w-3xl mx-auto space-y-6 md:space-y-8 animate-in fade-in duration-500 pb-24">
@@ -294,11 +268,7 @@ export default function ListingDetail() {
               {listing.cropId?.name ?? listing.cropId}
             </h1>
             <div className="flex items-center gap-3 mt-3">
-              <span
-                className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getStatusBadge(listing.status)}`}
-              >
-                {formatStatus(listing.status)}
-              </span>
+              <StatusBadge status={listing.status} />
               <span className="flex items-center gap-1.5 text-stone-500 dark:text-stone-400 text-sm font-sans">
                 <svg
                   className="w-4 h-4"
@@ -345,31 +315,16 @@ export default function ListingDetail() {
           <div className="font-sans text-sm text-blue-800 dark:text-blue-300">
             <strong className="font-medium block mb-0.5">Read-Only Mode</strong>
             This listing is currently marked as{" "}
-            <strong>{formatStatus(listing.status)}</strong>. Editing is disabled
+            <strong>{listing.status.replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase())}</strong>. Editing is disabled
             to preserve the record of the transaction.
           </div>
         </div>
       )}
 
       {error && (
-        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/50 rounded-2xl p-4 flex gap-3 shadow-sm">
-          <svg
-            className="w-6 h-6 text-red-600 dark:text-red-500 flex-shrink-0"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-            />
-          </svg>
-          <span className="font-sans text-sm font-medium text-red-800 dark:text-red-300">
-            {error}
-          </span>
-        </div>
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       )}
 
       {latestRate && canEdit && (
@@ -413,12 +368,12 @@ export default function ListingDetail() {
 
           <div className="flex flex-col sm:flex-row gap-5">
             <div className="sm:w-1/3">
-              <label className={labelBaseClass}>Unit *</label>
+              <Label className="mb-1.5 ml-1 text-stone-800 dark:text-stone-300">Unit *</Label>
               <select
                 value={unit}
                 onChange={(e) => setUnit(e.target.value)}
                 disabled={!canEdit}
-                className={`${inputBaseClass} ${canEdit ? "appearance-none cursor-pointer" : ""}`}
+                className={`h-12 w-full rounded-xl border px-4 font-sans focus:outline-none focus:ring-2 focus:ring-green-800 transition-all shadow-sm ${canEdit ? "bg-white dark:bg-stone-950 border-stone-300 dark:border-stone-700 text-stone-800 dark:text-stone-100 appearance-none cursor-pointer" : "bg-stone-100 dark:bg-stone-900/50 border-stone-200 dark:border-stone-800 text-stone-500 dark:text-stone-400 cursor-not-allowed"}`}
               >
                 {UNITS.map((u) => (
                   <option key={u} value={u}>
@@ -428,8 +383,8 @@ export default function ListingDetail() {
               </select>
             </div>
             <div className="flex-1">
-              <label className={labelBaseClass}>Quantity *</label>
-              <input
+              <Label className="mb-1.5 ml-1 text-stone-800 dark:text-stone-300">Quantity *</Label>
+              <Input
                 type="number"
                 min="0"
                 step="any"
@@ -437,7 +392,7 @@ export default function ListingDetail() {
                 onChange={(e) => setQuantity(e.target.value)}
                 required
                 disabled={!canEdit}
-                className={inputBaseClass}
+                className={inputCls}
               />
             </div>
           </div>
@@ -453,18 +408,14 @@ export default function ListingDetail() {
           </div>
 
           <div>
-            <label className={labelBaseClass}>Description</label>
-            <textarea
+            <Label className="mb-1.5 ml-1 text-stone-800 dark:text-stone-300">Description</Label>
+            <Textarea
               maxLength={1000}
               rows={4}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               disabled={!canEdit}
-              className={`w-full rounded-xl border p-4 font-sans focus:outline-none focus:ring-2 focus:ring-green-800 dark:focus:ring-green-700 transition-all shadow-sm resize-y ${
-                canEdit
-                  ? "bg-white dark:bg-stone-950 border-stone-300 dark:border-stone-700 text-stone-800 dark:text-stone-100 placeholder-stone-400 dark:placeholder-stone-500"
-                  : "bg-stone-100 dark:bg-stone-900/50 border-stone-200 dark:border-stone-800 text-stone-500 dark:text-stone-400 cursor-not-allowed"
-              }`}
+              className={`rounded-xl resize-y${!canEdit ? ' cursor-not-allowed opacity-60' : ''}`}
             />
             {canEdit && (
               <div className="text-right mt-1 text-xs text-stone-500 dark:text-stone-400 font-sans">
@@ -502,39 +453,18 @@ export default function ListingDetail() {
           </div>
 
           <div>
-            <label className={labelBaseClass}>Farm Address / Village *</label>
-            <input
-              type="text"
-              value={farmAddress}
-              onChange={(e) => setFarmAddress(e.target.value)}
-              required
-              disabled={!canEdit}
-              className={inputBaseClass}
-            />
+            <Label className="mb-1.5 ml-1 text-stone-800 dark:text-stone-300">Farm Address / Village *</Label>
+            <Input type="text" value={farmAddress} onChange={(e) => setFarmAddress(e.target.value)} required disabled={!canEdit} className={inputCls} />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div>
-              <label className={labelBaseClass}>District *</label>
-              <input
-                type="text"
-                value={farmDistrict}
-                onChange={(e) => setFarmDistrict(e.target.value)}
-                required
-                disabled={!canEdit}
-                className={inputBaseClass}
-              />
+              <Label className="mb-1.5 ml-1 text-stone-800 dark:text-stone-300">District *</Label>
+              <Input type="text" value={farmDistrict} onChange={(e) => setFarmDistrict(e.target.value)} required disabled={!canEdit} className={inputCls} />
             </div>
             <div>
-              <label className={labelBaseClass}>State *</label>
-              <input
-                type="text"
-                value={farmState}
-                onChange={(e) => setFarmState(e.target.value)}
-                required
-                disabled={!canEdit}
-                className={inputBaseClass}
-              />
+              <Label className="mb-1.5 ml-1 text-stone-800 dark:text-stone-300">State *</Label>
+              <Input type="text" value={farmState} onChange={(e) => setFarmState(e.target.value)} required disabled={!canEdit} className={inputCls} />
             </div>
           </div>
         </section>
@@ -591,10 +521,12 @@ export default function ListingDetail() {
                           </span>
                         </div>
                       ) : (
-                        <img
+                        <Image
                           src={url}
                           alt="Crop"
-                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                          fill
+                          className="object-cover transition-transform duration-300 group-hover:scale-105"
+                          sizes="(max-width: 768px) 50vw, 25vw"
                         />
                       )}
 
@@ -653,9 +585,9 @@ export default function ListingDetail() {
             {/* New Media Upload */}
             {canEdit && existingMedia.length < 6 && (
               <div>
-                <label className={labelBaseClass}>
+                <Label className="mb-1.5 ml-1 text-stone-800 dark:text-stone-300">
                   Add New Media (Up to {6 - existingMedia.length} more)
-                </label>
+                </Label>
                 <div className="mt-2 flex justify-center px-6 py-8 border-2 border-stone-300 dark:border-stone-700 border-dashed rounded-xl bg-white dark:bg-stone-950 hover:bg-stone-50 dark:hover:bg-stone-900 transition-colors">
                   <div className="space-y-2 text-center flex flex-col items-center">
                     <svg
@@ -748,60 +680,34 @@ export default function ListingDetail() {
         {/* Action Buttons (Visible only if editable) */}
         {canEdit && (
           <div className="pt-6 flex flex-col md:flex-row gap-4 border-t border-stone-200 dark:border-stone-800">
-            <button
+            <Button
               type="submit"
               disabled={isSubmitting}
-              className="flex-1 h-14 rounded-xl bg-green-800 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white font-sans text-lg font-medium transition-colors shadow-md disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="flex-1 h-14 rounded-xl bg-green-800 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white font-sans text-lg font-medium shadow-md"
             >
               {isSubmitting ? (
-                <>
-                  <svg
-                    className="animate-spin h-5 w-5 text-white"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
+                <span className="flex items-center gap-2">
+                  <svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                   </svg>
                   {isUploading ? "Uploading Media..." : "Saving Changes..."}
-                </>
-              ) : (
-                "Save Changes"
-              )}
-            </button>
+                </span>
+              ) : "Save Changes"}
+            </Button>
 
-            <button
+            <Button
               type="button"
+              variant="destructive"
               onClick={handleDelete}
               disabled={isDeleting || isSubmitting}
-              className="md:w-1/3 h-14 rounded-xl bg-white dark:bg-stone-800 border-2 border-red-200 dark:border-red-900/50 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 font-sans font-medium transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              className="md:w-1/3 h-14 rounded-xl"
             >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                />
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
               </svg>
               {isDeleting ? "Deleting..." : "Delete Listing"}
-            </button>
+            </Button>
           </div>
         )}
       </form>

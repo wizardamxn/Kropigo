@@ -4,26 +4,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { useGetListingsQuery } from '@/store/endpoints/listingsApi';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-
-// Helper function to color-code status badges
-const getStatusBadge = (status: string) => {
-  switch (status.toLowerCase()) {
-    case 'open':
-      return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 border-green-200 dark:border-green-800/50';
-    case 'draft':
-      return 'bg-stone-100 text-stone-700 dark:bg-stone-800 dark:text-stone-300 border-stone-200 dark:border-stone-700';
-    case 'sale_confirmed':
-    case 'closed':
-      return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 border-blue-200 dark:border-blue-800/50';
-    default:
-      return 'bg-stone-100 text-stone-700 dark:bg-stone-800 dark:text-stone-300 border-stone-200 dark:border-stone-700';
-  }
-};
-
-// Helper function to format status text nicely
-const formatStatus = (status: string) => {
-  return status.replace('_', ' ').replace(/\b\w/g, (char) => char.toUpperCase());
-};
+import { StatusBadge } from '@/components/shared/StatusBadge';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function KisanDashboard() {
   const { user } = useAuth();
@@ -36,17 +18,17 @@ export default function KisanDashboard() {
 
   if (isLoading) {
     return (
-      <div className="animate-pulse space-y-8">
+      <div className="space-y-8">
         <div className="space-y-3">
-          <div className="h-10 bg-stone-200 dark:bg-stone-800 rounded-lg w-1/3"></div>
-          <div className="h-5 bg-stone-200 dark:bg-stone-800 rounded-lg w-1/4"></div>
+          <Skeleton className="h-10 w-1/3 rounded-lg" />
+          <Skeleton className="h-5 w-1/4 rounded-lg" />
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-28 bg-stone-200 dark:bg-stone-800 rounded-2xl"></div>
+            <Skeleton key={i} className="h-28 rounded-2xl" />
           ))}
         </div>
-        <div className="h-64 bg-stone-200 dark:bg-stone-800 rounded-2xl w-full"></div>
+        <Skeleton className="h-64 w-full rounded-2xl" />
       </div>
     );
   }
@@ -152,9 +134,7 @@ export default function KisanDashboard() {
                         {l.quantity} <span className="text-stone-400 text-sm">{l.unit}</span>
                       </td>
                       <td className="px-6 py-4">
-                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${getStatusBadge(l.status)}`}>
-                          {formatStatus(l.status)}
-                        </span>
+                        <StatusBadge status={l.status} />
                       </td>
                       <td className="px-6 py-4 text-center">
                         {l.interestCount > 0 ? (
@@ -197,9 +177,7 @@ export default function KisanDashboard() {
                         {new Date(l.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                       </p>
                     </div>
-                    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${getStatusBadge(l.status)}`}>
-                      {formatStatus(l.status)}
-                    </span>
+                    <StatusBadge status={l.status} />
                   </div>
                   <div className="flex justify-between items-end bg-stone-50 dark:bg-stone-950/50 p-3 rounded-xl border border-stone-100 dark:border-stone-800">
                     <div className="flex flex-col">

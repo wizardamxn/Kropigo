@@ -2,16 +2,22 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { useAppDispatch } from '@/store/hooks';
 import { updateUser } from '@/store/slices/authSlice';
 import { useAuth } from '@/hooks/useAuth';
 import { useUpdateProfileMutation } from '@/store/endpoints/authApi';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useTranslations } from 'next-intl';
 
 export default function ProfileSetupPage() {
   const router = useRouter();
   const dispatch = useAppDispatch();
-  // role comes from the JWT already stored in Redux — no need to ask again
   const { isAuthenticated, hasCompletedProfile, role } = useAuth();
+  const t = useTranslations('profileSetup');
 
   const [name, setName] = useState('');
   const [location, setLocation] = useState('');
@@ -24,72 +30,116 @@ export default function ProfileSetupPage() {
       router.replace('/login');
       return;
     }
-    // Already completed — skip to correct home
     if (hasCompletedProfile && role) {
       const dest = role === 'buyer' ? '/buyer/marketplace' : `/${role}/dashboard`;
       router.replace(dest);
     }
-  }, [isAuthenticated, hasCompletedProfile, role]);
+  }, [isAuthenticated, hasCompletedProfile, role, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     try {
-      // role is already set from registration; pass it through unchanged
       await updateProfile({ name, role: role!, location }).unwrap();
-      // Sync Redux so RoleGuard picks up hasCompletedProfile = true immediately
       dispatch(updateUser({ name, location }));
       const dest = role === 'buyer' ? '/buyer/marketplace' : `/${role}/dashboard`;
       router.push(dest);
     } catch (err: any) {
-      setError(err?.data?.message || 'Failed to save profile. Please try again.');
+      setError(err?.data?.message || t('failed'));
     }
   };
 
-  // Don't render while redirecting
   if (!isAuthenticated || hasCompletedProfile) return null;
 
+  const isKisan = role === 'kisan';
+
   return (
-    <div style={{ maxWidth: 480, margin: '80px auto', padding: 24 }}>
-      <h1>Complete Your Profile</h1>
-      <p>You're almost in — just tell us your name.</p>
+    <div className="min-h-screen bg-stone-50 dark:bg-stone-950 font-sans flex flex-col transition-colors duration-300">
+      <main className="flex-grow flex w-full">
 
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16, marginTop: 24 }}>
-        <div>
-          <label htmlFor="name">Full Name *</label>
-          <br />
-          <input
-            id="name"
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-            placeholder="e.g. Ramesh Kumar"
-            disabled={isLoading}
-            style={{ width: '100%', padding: 8, marginTop: 4 }}
+        {/* Left: hero image */}
+        <div className="hidden md:flex md:w-1/2 relative">
+          <div className="absolute inset-0 bg-stone-900/50 dark:bg-stone-950/70 z-10" />
+          <Image
+            src="/LANDINGFARMER.jpeg"
+            alt="Fresh agricultural produce"
+            fill
+            className="object-cover"
+            priority
           />
+          <div className="absolute bottom-16 left-12 z-20 max-w-lg text-stone-50">
+            <h2 className="font-serif text-5xl mb-4 font-medium drop-shadow-md">
+              {t('heroTitle')}
+            </h2>
+            <p className="font-sans text-lg text-stone-200 drop-shadow-md leading-relaxed">
+              {isKisan ? t('heroSubtitleKisan') : t('heroSubtitleBuyer')}
+            </p>
+          </div>
         </div>
 
-        <div>
-          <label htmlFor="location">Location (optional)</label>
-          <br />
-          <input
-            id="location"
-            type="text"
-            value={location}
-            onChange={(e) => setLocation(e.target.value)}
-            placeholder="e.g. Nashik, Maharashtra"
-            disabled={isLoading}
-            style={{ width: '100%', padding: 8, marginTop: 4 }}
-          />
+        {/* Right: form card */}
+        <div className="w-full md:w-1/2 flex items-center justify-center p-6 md:p-12">
+          <div className="w-full max-w-md bg-white dark:bg-stone-900 rounded-2xl shadow-lg dark:shadow-none dark:border dark:border-stone-800 p-8 flex flex-col gap-6">
+
+            <div className="text-center flex flex-col gap-2">
+              <h1 className="font-serif text-3xl text-stone-800 dark:text-stone-100">
+                {t('title')}
+              </h1>
+              <p className="font-sans text-stone-600 dark:text-stone-300">
+                {t('subtitle')}
+              </p>
+            </div>
+
+            {error && (
+              <Alert variant="destructive">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+
+            <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="name" className="ml-1 text-stone-800 dark:text-stone-300">
+                  {t('nameLabel')} *
+                </Label>
+                <Input
+                  id="name"
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                  placeholder={t('namePlaceholder')}
+                  disabled={isLoading}
+                  className="h-12 rounded-xl"
+                />
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="location" className="ml-1 text-stone-800 dark:text-stone-300">
+                  {t('locationLabel')}
+                </Label>
+                <Input
+                  id="location"
+                  type="text"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  placeholder={t('locationPlaceholder')}
+                  disabled={isLoading}
+                  className="h-12 rounded-xl"
+                />
+              </div>
+
+              <Button
+                type="submit"
+                disabled={isLoading || !name.trim()}
+                className="mt-2 h-12 w-full rounded-xl bg-green-800 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white font-sans font-medium transition-colors"
+              >
+                {isLoading ? t('saving') : t('submit')}
+              </Button>
+            </form>
+          </div>
         </div>
 
-        <button type="submit" disabled={isLoading || !name.trim()}>
-          {isLoading ? 'Saving...' : 'Enter the Marketplace'}
-        </button>
-      </form>
+      </main>
     </div>
   );
 }

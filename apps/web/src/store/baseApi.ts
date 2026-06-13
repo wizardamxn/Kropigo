@@ -7,6 +7,6 @@ export const baseApi = createApi({
     baseUrl: API_URL,
     credentials: 'include', // sends the httpOnly cookie automatically on every request
   }),
-  tagTypes: ['User', 'Listing', 'Crop', 'MandiRate', 'Interest', 'Order', 'Notifications', 'NotificationCount'],
+  tagTypes: ['User', 'Listing', 'Crop', 'MandiRate', 'Interest', 'Order', 'Notifications', 'NotificationCount', 'AdminKisan'],
   endpoints: () => ({}),
 });

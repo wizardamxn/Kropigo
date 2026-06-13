@@ -38,7 +38,7 @@ const envSchema = z.object({
         .transform((v) => parseInt(v, 10)),
     RATE_LIMIT_MAX: z
         .string()
-        .default('100')
+        .default('1000')
         .transform((v) => parseInt(v, 10)),
 
     // MSG91

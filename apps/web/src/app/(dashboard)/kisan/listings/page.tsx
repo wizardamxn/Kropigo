@@ -1,38 +1,15 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { useGetListingsQuery, useDeleteListingMutation } from '@/store/endpoints/listingsApi';
 import { useTranslations } from 'next-intl';
+import { StatusBadge } from '@/components/shared/StatusBadge';
 
 const STATUS_OPTIONS = ['', 'draft', 'open', 'interest_received', 'sale_confirmed', 'cancelled', 'expired', 'closed'];
-
-// We pass t to formatStatus to translate "All Statuses"
-const formatStatus = (status: string, t: any) => {
-  if (!status) return t('allStatuses');
-  return status.replace('_', ' ').replace(/\b\w/g, (char) => char.toUpperCase());
-};
-
-const getStatusBadge = (status: string) => {
-  switch (status.toLowerCase()) {
-    case 'open':
-      return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 border-green-200 dark:border-green-800/50';
-    case 'draft':
-      return 'bg-stone-100 text-stone-700 dark:bg-stone-800 dark:text-stone-300 border-stone-200 dark:border-stone-700';
-    case 'sale_confirmed':
-    case 'closed':
-      return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 border-blue-200 dark:border-blue-800/50';
-    case 'cancelled':
-    case 'expired':
-      return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 border-red-200 dark:border-red-800/50';
-    case 'interest_received':
-      return 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 border-amber-200 dark:border-amber-800/50';
-    default:
-      return 'bg-stone-100 text-stone-700 dark:bg-stone-800 dark:text-stone-300 border-stone-200 dark:border-stone-700';
-  }
-};
 
 export default function KisanListings() {
   const { user } = useAuth();
@@ -105,7 +82,7 @@ export default function KisanListings() {
               className="appearance-none h-12 w-full sm:w-48 px-4 pr-10 rounded-xl bg-white dark:bg-stone-900 border border-stone-300 dark:border-stone-700 text-stone-800 dark:text-stone-100 font-sans shadow-sm focus:outline-none focus:ring-2 focus:ring-green-800 dark:focus:ring-green-700 transition-colors cursor-pointer"
             >
               {STATUS_OPTIONS.map((s) => (
-                <option key={s} value={s}>{formatStatus(s, t)}</option>
+                <option key={s} value={s}>{s ? s.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) : t('allStatuses')}</option>
               ))}
             </select>
             <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-stone-500">
@@ -133,7 +110,7 @@ export default function KisanListings() {
             <div>
               <p className="font-serif text-xl text-stone-800 dark:text-stone-100 mb-1">{t('noListingsFound')}</p>
               <p className="font-sans text-sm text-stone-500 dark:text-stone-400">
-                {status ? t('noListingsForStatus', { status: formatStatus(status, t) }) : t('noListingsYet')}
+                {status ? t('noListingsForStatus', { status: status.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) }) : t('noListingsYet')}
               </p>
             </div>
           </div>
@@ -162,13 +139,15 @@ export default function KisanListings() {
                           <td className="px-6 py-3.5">
                             <div className="flex items-center gap-3">
                               {thumbUrl ? (
-                                <img
+                                <Image
                                   src={thumbUrl}
                                   alt={l.cropId?.name ?? ''}
-                                  className="w-12 h-12 rounded-xl object-cover flex-shrink-0 border border-stone-200 dark:border-stone-800 shadow-sm"
+                                  width={48}
+                                  height={48}
+                                  className="rounded-xl object-cover shrink-0 border border-stone-200 dark:border-stone-800 shadow-sm"
                                 />
                               ) : (
-                                <div className="w-12 h-12 rounded-xl bg-stone-100 dark:bg-stone-800 flex items-center justify-center flex-shrink-0 border border-stone-200 dark:border-stone-800">
+                                <div className="w-12 h-12 rounded-xl bg-stone-100 dark:bg-stone-800 flex items-center justify-center shrink-0 border border-stone-200 dark:border-stone-800">
                                   <svg className="w-5 h-5 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                   </svg>
@@ -183,9 +162,7 @@ export default function KisanListings() {
                             {l.quantity} <span className="text-stone-400 text-xs font-normal">{l.unit}</span>
                           </td>
                           <td className="px-6 py-3.5">
-                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusBadge(l.status)}`}>
-                              {formatStatus(l.status, t)}
-                            </span>
+                            <StatusBadge status={l.status} />
                           </td>
                           <td className="px-6 py-3.5 text-center">
                             {l.interestCount > 0 ? (
@@ -258,11 +235,13 @@ export default function KisanListings() {
                     className="bg-white dark:bg-stone-900 rounded-2xl shadow-sm border border-stone-200 dark:border-stone-800 overflow-hidden flex flex-col cursor-pointer hover:shadow-md hover:border-stone-300 dark:hover:border-stone-700 active:scale-[0.99] transition-all duration-200"
                   >
                     {thumbUrl ? (
-                      <div className="w-full h-32 overflow-hidden border-b border-stone-100 dark:border-stone-800">
-                        <img
+                      <div className="relative w-full h-32 overflow-hidden border-b border-stone-100 dark:border-stone-800">
+                        <Image
                           src={thumbUrl}
                           alt={l.cropId?.name ?? ''}
-                          className="w-full h-full object-cover"
+                          fill
+                          className="object-cover"
+                          sizes="(max-width: 768px) 100vw, 400px"
                         />
                       </div>
                     ) : (
@@ -281,9 +260,7 @@ export default function KisanListings() {
                             {new Date(l.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                           </p>
                         </div>
-                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${getStatusBadge(l.status)}`}>
-                          {formatStatus(l.status, t)}
-                        </span>
+                        <StatusBadge status={l.status} />
                       </div>
 
                       <div className="grid grid-cols-1 gap-3 bg-stone-50 dark:bg-stone-950/50 p-3 rounded-xl border border-stone-100 dark:border-stone-800">

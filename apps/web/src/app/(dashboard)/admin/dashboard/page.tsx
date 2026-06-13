@@ -7,21 +7,8 @@ import { useRouter } from 'next/navigation';
 import { DealNotificationCard } from '@/components/admin/DealNotificationCard';
 import { useDispatch } from 'react-redux';
 import { markOneRead } from '@/store/notificationSlice';
-
-// Comprehensive status badge token map matching the global design framework
-const getStatusBadge = (status: string) => {
-  const s = status?.toLowerCase() || '';
-  if (s.includes('delivered')) {
-    return 'bg-green-50 text-green-800 dark:bg-green-900/20 dark:text-green-400 border-green-200/60 dark:border-green-800/40';
-  }
-  if (s.includes('failed') || s.includes('cancelled')) {
-    return 'bg-red-50 text-red-800 dark:bg-red-900/20 dark:text-red-400 border-red-200/60 dark:border-red-800/40';
-  }
-  if (s.includes('pending') || s.includes('scheduled')) {
-    return 'bg-amber-50 text-amber-800 dark:bg-amber-900/20 dark:text-amber-400 border-amber-200/60 dark:border-amber-800/40';
-  }
-  return 'bg-blue-50 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400 border-blue-200/60 dark:border-blue-800/40';
-};
+import { StatusBadge } from '@/components/shared/StatusBadge';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface SummaryCardProps {
   label: string;
@@ -98,9 +85,7 @@ function OrdersTable({ orders }: { orders: IOrder[] }) {
                   ₹{order.totalAmount?.toLocaleString('en-IN')}
                 </td>
                 <td className="px-6 py-4 text-center">
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border shadow-sm ${getStatusBadge(order.status)}`}>
-                    {order.status.replace('_', ' ').toUpperCase()}
-                  </span>
+                  <StatusBadge status={order.status} />
                 </td>
               </tr>
             ))}
@@ -121,9 +106,7 @@ function OrdersTable({ orders }: { orders: IOrder[] }) {
                 <p className="font-mono text-[10px] text-stone-400 mb-0.5">#{order._id.slice(-6).toUpperCase()}</p>
                 <p className="font-sans font-semibold text-stone-800 dark:text-stone-100 truncate">{(order.listingId as any)?.cropId?.name || '—'}</p>
               </div>
-              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wider border whitespace-nowrap shadow-sm ${getStatusBadge(order.status)}`}>
-                {order.status.replace('_', ' ').toUpperCase()}
-              </span>
+              <StatusBadge status={order.status} />
             </div>
             <div className="flex justify-between items-center pt-2.5 border-t border-stone-100 dark:border-stone-800/60">
               <span className="font-sans text-xs text-stone-400 uppercase tracking-wider font-medium">Gross Total</span>
@@ -222,7 +205,7 @@ export default function AdminDashboard() {
           {ordersLoading ? (
             <div className="space-y-3">
               {[1, 2, 3].map(i => (
-                <div key={i} className="h-16 bg-stone-100 dark:bg-stone-900 rounded-xl w-full animate-pulse" />
+                <Skeleton key={i} className="h-16 w-full rounded-xl" />
               ))}
             </div>
           ) : (
@@ -257,10 +240,10 @@ export default function AdminDashboard() {
           {notifLoading ? (
             <div className="space-y-3">
               {[1, 2].map(i => (
-                <div key={i} className="h-20 bg-stone-100 dark:bg-stone-900 rounded-xl w-full animate-pulse" />
+                <Skeleton key={i} className="h-20 w-full rounded-xl" />
               ))}
             </div>
-          ) : newDealNotifications.length === 0 ? (
+          ) :newDealNotifications.length === 0 ? (
             <div className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 p-8 flex flex-col items-center justify-center text-center gap-3 shadow-sm">
               <div className="w-10 h-10 rounded-full bg-stone-50 dark:bg-stone-950 flex items-center justify-center text-stone-400">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 13l4 4L19 7" /></svg>

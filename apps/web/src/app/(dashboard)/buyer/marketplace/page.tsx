@@ -1,10 +1,14 @@
 'use client';
 
 import { useState, useMemo, useCallback } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
-import { useGetListingsQuery } from '@/store/endpoints/listingsApi';
+import { useGetListingsQuery, useGetListingsForMapQuery } from '@/store/endpoints/listingsApi';
 import { useGetCropsQuery } from '@/store/endpoints/cropsApi';
 import { useTranslations } from 'next-intl';
+import { Input } from '@/components/ui/input';
+import { Skeleton } from '@/components/ui/skeleton';
+import ListingsMapView from '@/components/marketplace/ListingsMapView';
 
 // ─── HELPERS ────────────────────────────────────────────────────────────────
 
@@ -62,10 +66,12 @@ function CropCard({ listing }: { listing: any }) {
     >
       <div className="relative w-full aspect-[4/3] overflow-hidden bg-stone-100 dark:bg-stone-950">
         {thumb ? (
-          <img
+          <Image
             src={thumb}
             alt={crop?.name ?? 'Crop'}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            fill
+            className="object-cover group-hover:scale-105 transition-transform duration-500"
+            sizes="(max-width: 768px) 50vw, 25vw"
           />
         ) : (
           <div className="w-full h-full flex flex-col items-center justify-center text-stone-400 dark:text-stone-600 gap-2">
@@ -121,12 +127,12 @@ function CropCard({ listing }: { listing: any }) {
 
 function CardSkeleton() {
   return (
-    <div className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 overflow-hidden animate-pulse">
-      <div className="w-full aspect-[4/3] bg-stone-200 dark:bg-stone-800" />
+    <div className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 overflow-hidden">
+      <Skeleton className="w-full aspect-4/3 rounded-none" />
       <div className="p-4 space-y-3">
-        <div className="h-5 bg-stone-200 dark:bg-stone-800 rounded w-3/4" />
-        <div className="h-6 bg-stone-200 dark:bg-stone-800 rounded w-1/2" />
-        <div className="h-4 bg-stone-200 dark:bg-stone-800 rounded w-full" />
+        <Skeleton className="h-5 w-3/4" />
+        <Skeleton className="h-6 w-1/2" />
+        <Skeleton className="h-4 w-full" />
       </div>
     </div>
   );
@@ -155,6 +161,7 @@ export default function MarketplacePage() {
   const [localFilters, setLocalFilters] = useState<Filters>(EMPTY_FILTERS);
   const [page, setPage] = useState(1);
   const [filterOpen, setFilterOpen] = useState(false);
+  const [view, setView] = useState<'grid' | 'map'>('grid');
   const tBuyer = useTranslations('buyerMarketplace');
   const tCommon = useTranslations('common');
 
@@ -174,6 +181,22 @@ export default function MarketplacePage() {
   const { data, isLoading, isFetching, isError } = useGetListingsQuery(queryParams);
   const listings: any[] = data?.data ?? [];
   const meta = data?.meta;
+
+  // Map view reuses the active filters (no pagination — slim geocoded set).
+  const mapParams = useMemo(() => {
+    const p: Record<string, any> = {};
+    if (appliedFilters.cropId) p.cropId = appliedFilters.cropId;
+    if (appliedFilters.state) p.state = appliedFilters.state;
+    if (appliedFilters.district) p.district = appliedFilters.district;
+    return p;
+  }, [appliedFilters]);
+
+  const {
+    data: mapData,
+    isLoading: isMapLoading,
+    isError: isMapError,
+  } = useGetListingsForMapQuery(mapParams, { skip: view !== 'map' });
+  const mapListings: any[] = mapData?.data ?? [];
 
   const handleApplyFilters = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -228,7 +251,6 @@ export default function MarketplacePage() {
   }, [appliedFilters, crops]);
 
   const selectStyles = "h-12 px-4 rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 text-stone-800 dark:text-stone-100 font-sans text-sm focus:outline-none focus:ring-2 focus:ring-green-800 transition-colors shadow-sm cursor-pointer appearance-none pr-10";
-  const inputStyles = "h-12 px-4 rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 text-stone-800 dark:text-stone-100 font-sans text-sm focus:outline-none focus:ring-2 focus:ring-green-800 transition-colors shadow-sm placeholder-stone-400";
 
   return (
     <div className="space-y-6 md:space-y-8 animate-in fade-in duration-500 w-full overflow-hidden">
@@ -241,13 +263,13 @@ export default function MarketplacePage() {
               <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
-              <input
+              <Input
                 id="marketplace-search"
                 type="text"
                 value={localFilters.search}
                 onChange={(e) => handleUpdateLocalFilter('search', e.target.value)}
                 placeholder={tBuyer('searchPlaceholder')}
-                className="w-full h-12 pl-12 pr-4 rounded-xl border border-stone-300 dark:border-stone-700 bg-stone-50 dark:bg-stone-950 text-stone-800 dark:text-stone-100 placeholder-stone-400 font-sans text-sm focus:outline-none focus:ring-2 focus:ring-green-800 transition-colors"
+                className="h-12 pl-12 rounded-xl bg-stone-50 dark:bg-stone-950"
               />
             </div>
 
@@ -294,20 +316,20 @@ export default function MarketplacePage() {
               </div>
             </div>
 
-            <input
+            <Input
               type="text"
               value={localFilters.state}
               onChange={(e) => handleUpdateLocalFilter('state', e.target.value)}
               placeholder={tBuyer('state')}
-              className={`${inputStyles} w-32`}
+              className="h-12 rounded-xl w-32"
             />
 
-            <input
+            <Input
               type="text"
               value={localFilters.district}
               onChange={(e) => handleUpdateLocalFilter('district', e.target.value)}
               placeholder={tBuyer('district')}
-              className={`${inputStyles} w-34`}
+              className="h-12 rounded-xl w-36"
             />
 
             <div className="relative ml-auto">
@@ -353,19 +375,19 @@ export default function MarketplacePage() {
                 </div>
               </div>
               
-              <input
+              <Input
                 type="text"
                 value={localFilters.state}
                 onChange={(e) => handleUpdateLocalFilter('state', e.target.value)}
                 placeholder={tBuyer('state')}
-                className={inputStyles}
+                className="h-12 rounded-xl"
               />
-              <input
+              <Input
                 type="text"
                 value={localFilters.district}
                 onChange={(e) => handleUpdateLocalFilter('district', e.target.value)}
                 placeholder={tBuyer('district')}
-                className={inputStyles}
+                className="h-12 rounded-xl"
               />
               
               <div className="relative col-span-2">
@@ -409,15 +431,45 @@ export default function MarketplacePage() {
         
         {/* Metric Response Summary Area */}
         <div className="flex flex-col gap-2.5">
-          <p className="text-sm text-stone-600 dark:text-stone-400 font-sans font-medium">
-            {isLoading ? (
-              <span className="inline-block h-4 w-44 bg-stone-200 dark:bg-stone-800 rounded animate-pulse" />
-            ) : (
-              activeFilterCount > 0 
-                ? tBuyer('cropsAvailableFiltered', { total: meta?.total?.toLocaleString('en-IN') ?? 0 })
-                : tBuyer('cropsAvailable', { total: meta?.total?.toLocaleString('en-IN') ?? 0 })
-            )}
-          </p>
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-sm text-stone-600 dark:text-stone-400 font-sans font-medium">
+              {isLoading ? (
+                <span className="inline-block h-4 w-44 bg-stone-200 dark:bg-stone-800 rounded animate-pulse" />
+              ) : (
+                activeFilterCount > 0
+                  ? tBuyer('cropsAvailableFiltered', { total: meta?.total?.toLocaleString('en-IN') ?? 0 })
+                  : tBuyer('cropsAvailable', { total: meta?.total?.toLocaleString('en-IN') ?? 0 })
+              )}
+            </p>
+
+            {/* Grid / Map view toggle */}
+            <div className="flex rounded-xl border border-stone-200 dark:border-stone-700 bg-stone-100 dark:bg-stone-800 p-0.5 shadow-sm flex-shrink-0">
+              <button
+                type="button"
+                onClick={() => setView('grid')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-[0.65rem] text-xs font-medium font-sans transition-colors ${
+                  view === 'grid'
+                    ? 'bg-white dark:bg-stone-950 text-stone-900 dark:text-stone-100 shadow-sm'
+                    : 'text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-200'
+                }`}
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
+                {tBuyer('gridView')}
+              </button>
+              <button
+                type="button"
+                onClick={() => setView('map')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-[0.65rem] text-xs font-medium font-sans transition-colors ${
+                  view === 'map'
+                    ? 'bg-white dark:bg-stone-950 text-stone-900 dark:text-stone-100 shadow-sm'
+                    : 'text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-200'
+                }`}
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6-10l6-3m0 13l5.447 2.724A1 1 0 0021 18.382V7.618a1 1 0 00-1.447-.894L15 10m0 3V7" /></svg>
+                {tBuyer('mapView')}
+              </button>
+            </div>
+          </div>
 
           {/* Dynamic Active Filter Validation Chips */}
           {activeChips.length > 0 && (
@@ -429,6 +481,33 @@ export default function MarketplacePage() {
           )}
         </div>
 
+        {/* ── MAP VIEW ─────────────────────────────────────────────────────────── */}
+        {view === 'map' ? (
+          isMapError ? (
+            <div className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 py-16 text-center space-y-4 shadow-sm">
+              <svg className="w-12 h-12 mx-auto text-red-500 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+              <p className="text-stone-600 dark:text-stone-400 font-sans font-medium">{tBuyer('errorLoading')}</p>
+            </div>
+          ) : (
+            <div className="relative">
+              <ListingsMapView listings={mapListings} />
+              {isMapLoading && (
+                <div className="absolute top-3 left-1/2 -translate-x-1/2 z-[500] bg-white dark:bg-stone-900 rounded-full px-3 py-1.5 shadow-md flex items-center gap-2 text-xs font-sans text-stone-600 dark:text-stone-300 border border-stone-200 dark:border-stone-700">
+                  <svg className="animate-spin h-3.5 w-3.5 text-green-700" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" /></svg>
+                  {tBuyer('loadingMap')}
+                </div>
+              )}
+              {!isMapLoading && mapListings.length === 0 && (
+                <div className="absolute top-3 left-1/2 -translate-x-1/2 z-[500] bg-white dark:bg-stone-900 rounded-full px-4 py-1.5 shadow-md text-xs font-sans font-medium text-stone-600 dark:text-stone-300 border border-stone-200 dark:border-stone-700">
+                  {tBuyer('noMappedCrops')}
+                </div>
+              )}
+            </div>
+          )
+        ) : (
+        <>
         {/* Main Interface Content Delivery State Guard */}
         {isError ? (
           <div className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 py-16 text-center space-y-4 shadow-sm">
@@ -512,6 +591,8 @@ export default function MarketplacePage() {
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
             </button>
           </div>
+        )}
+        </>
         )}
       </div>
     </div>

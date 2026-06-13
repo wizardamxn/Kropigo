@@ -125,6 +125,9 @@ app.use('/api/v1/orders', orderRoutes);
 import notificationRoutes from './routes/notification.routes';
 app.use('/api/v1/notifications', notificationRoutes);
 
+import adminRoutes from './routes/admin.routes';
+app.use('/api/v1/admin', adminRoutes);
+
 // ─── Cron Jobs ────────────────────────────────────────────────────────────────
 import { registerJobs } from './jobs/cronJobs';
 registerJobs();

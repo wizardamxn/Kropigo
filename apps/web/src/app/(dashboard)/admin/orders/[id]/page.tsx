@@ -1,31 +1,15 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
 import { useGetOrderByIdQuery, useUpdateOrderStatusMutation } from '@/store/endpoints/ordersApi';
 import { RoleGuard } from '@/components/auth/RoleGuard';
-
-const STATUS_LABELS: Record<string, string> = {
-  sale_confirmed: 'Deal Confirmed',
-  admin_notified: 'Admin Notified',
-  qc_scheduled: 'QC Scheduled',
-  qc_passed: 'QC Passed',
-  qc_failed: 'QC Failed',
-  pickup_scheduled: 'Pickup Scheduled',
-  in_transit: 'In Transit',
-  delivered: 'Delivered',
-};
-
-const STATUS_STYLES: Record<string, string> = {
-  sale_confirmed: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 border-amber-200 dark:border-amber-800/50',
-  admin_notified: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 border-blue-200 dark:border-blue-800/50',
-  qc_scheduled: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400 border-purple-200 dark:border-purple-800/50',
-  qc_passed: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 border-green-200 dark:border-green-800/50',
-  qc_failed: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 border-red-200 dark:border-red-800/50',
-  pickup_scheduled: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-400 border-indigo-200 dark:border-indigo-800/50',
-  in_transit: 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400 border-orange-200 dark:border-orange-800/50',
-  delivered: 'bg-green-200 text-green-900 dark:bg-green-900/50 dark:text-green-300 border-green-300 dark:border-green-700',
-};
+import { useTranslations } from 'next-intl';
+import { StatusBadge } from '@/components/shared/StatusBadge';
+import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
+import type { OrderStatus } from '@kropi/schemas/enum';
 
 const VALID_TRANSITIONS: Record<string, string[]> = {
   sale_confirmed:   ['admin_notified'],
@@ -87,7 +71,7 @@ function PartyCard({ person, role }: { person: any; role: 'kisan' | 'buyer' }) {
       {/* Identity row */}
       <div className="flex items-center gap-4">
         {person?.profilePhoto ? (
-          <img src={person.profilePhoto} alt={person.name} className="w-14 h-14 rounded-2xl object-cover ring-2 ring-white dark:ring-stone-800 shadow-sm shrink-0" />
+          <Image src={person.profilePhoto} alt={person.name ?? ''} width={56} height={56} className="rounded-2xl object-cover ring-2 ring-white dark:ring-stone-800 shadow-sm shrink-0" />
         ) : (
           <div className={`w-14 h-14 rounded-2xl flex items-center justify-center font-sans font-bold text-xl shrink-0 ${isKisan ? 'bg-green-200 dark:bg-green-800/50 text-green-800 dark:text-green-300' : 'bg-amber-200 dark:bg-amber-800/50 text-amber-800 dark:text-amber-300'}`}>
             {person?.name?.[0]?.toUpperCase() ?? initial}
@@ -192,6 +176,7 @@ function StatusUpdatePanel({ orderId, currentStatus }: { orderId: string; curren
   const [selectedStatus, setSelectedStatus] = useState('');
   const [note, setNote] = useState('');
   const [updateStatus, { isLoading, isError, error }] = useUpdateOrderStatusMutation();
+  const tStatus = useTranslations('status');
 
   const availableTransitions = VALID_TRANSITIONS[currentStatus] || [];
   const isTerminal = availableTransitions.length === 0;
@@ -240,9 +225,7 @@ function StatusUpdatePanel({ orderId, currentStatus }: { orderId: string; curren
       {/* Current status */}
       <div className="flex items-center gap-2">
         <span className="font-sans text-xs text-stone-500 dark:text-stone-400">Current:</span>
-        <span className={`text-xs font-medium px-2.5 py-1 rounded-lg border ${STATUS_STYLES[currentStatus] ?? ''}` }>
-          {STATUS_LABELS[currentStatus]}
-        </span>
+        <StatusBadge status={currentStatus as OrderStatus} />
       </div>
 
       {/* Available transitions */}
@@ -252,18 +235,15 @@ function StatusUpdatePanel({ orderId, currentStatus }: { orderId: string; curren
         </label>
         <div className="flex gap-2 flex-wrap">
           {availableTransitions.map((nextStatus) => (
-            <button
+            <Button
               key={nextStatus}
               id={`status-btn-${nextStatus}`}
+              variant={selectedStatus === nextStatus ? 'default' : 'outline'}
               onClick={() => setSelectedStatus(nextStatus)}
-              className={`px-3 py-1.5 rounded-lg font-sans text-sm font-medium border transition-all ${
-                selectedStatus === nextStatus
-                  ? `${STATUS_STYLES[nextStatus]} ring-2 ring-offset-1 ring-current`
-                  : 'border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-400 hover:border-stone-400 dark:hover:border-stone-500'
-              }`}
+              className="rounded-lg text-sm"
             >
-              {STATUS_LABELS[nextStatus]}
-            </button>
+              {tStatus(nextStatus as OrderStatus)}
+            </Button>
           ))}
         </div>
       </div>
@@ -273,7 +253,7 @@ function StatusUpdatePanel({ orderId, currentStatus }: { orderId: string; curren
         <label className="block font-sans text-xs font-medium text-stone-500 dark:text-stone-400 uppercase tracking-wider mb-2">
           Note{' '}<span className="normal-case font-normal text-stone-400">(optional — buyer aur kisan ko dikhega)</span>
         </label>
-        <textarea
+        <Textarea
           id="order-status-note"
           value={note}
           onChange={(e) => setNote(e.target.value)}
@@ -288,7 +268,7 @@ function StatusUpdatePanel({ orderId, currentStatus }: { orderId: string; curren
           }
           rows={3}
           maxLength={500}
-          className="w-full rounded-lg border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 text-stone-800 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 px-3 py-2 font-sans text-sm resize-none focus:outline-none focus:ring-2 focus:ring-green-600 dark:focus:ring-green-500"
+          className="rounded-lg resize-none"
         />
         <p className="font-sans text-xs text-stone-400 mt-1 text-right">{note.length}/500</p>
       </div>
@@ -301,14 +281,14 @@ function StatusUpdatePanel({ orderId, currentStatus }: { orderId: string; curren
       )}
 
       {/* Submit */}
-      <button
+      <Button
         id="update-order-status-btn"
         onClick={handleSubmit}
         disabled={!selectedStatus || isLoading}
-        className="w-full py-2.5 px-4 rounded-lg font-sans font-medium text-sm bg-stone-800 hover:bg-stone-700 dark:bg-stone-100 dark:hover:bg-white text-white dark:text-stone-900 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+        className="w-full rounded-lg bg-stone-800 hover:bg-stone-700 dark:bg-stone-100 dark:hover:bg-white text-white dark:text-stone-900"
       >
-        {isLoading ? 'Updating…' : selectedStatus ? `Update to ${STATUS_LABELS[selectedStatus]}` : 'Select a status'}
-      </button>
+        {isLoading ? 'Updating…' : selectedStatus ? `Update to ${tStatus(selectedStatus as OrderStatus)}` : 'Select a status'}
+      </Button>
     </div>
   );
 }
@@ -320,6 +300,7 @@ export default function AdminOrderDetailPage() {
 
   const { data, isLoading, isError } = useGetOrderByIdQuery(id);
   const order = data?.data;
+  const tStatus = useTranslations('status');
 
   if (isLoading) {
     return (
@@ -370,9 +351,7 @@ export default function AdminOrderDetailPage() {
             </h1>
             <p className="font-mono text-sm text-stone-500 dark:text-stone-400 mt-1">{order._id}</p>
           </div>
-          <span className={`inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-medium border ${STATUS_STYLES[order.status] ?? ''}`}>
-            {STATUS_LABELS[order.status] ?? order.status}
-          </span>
+          <StatusBadge status={order.status} className="text-sm px-3 py-1" />
         </div>
 
         {/* Two-column layout: left = detail sections, right = status update panel */}
@@ -395,7 +374,7 @@ export default function AdminOrderDetailPage() {
                     <div key={step} className="flex-1 flex flex-col items-center gap-1.5">
                       <div className={`h-2 w-full rounded-full ${idx <= currentStep ? 'bg-red-600 dark:bg-red-500' : 'bg-stone-200 dark:bg-stone-700'}`} />
                       <span className="text-[9px] font-sans text-stone-400 dark:text-stone-500 text-center hidden md:block leading-tight">
-                        {STATUS_LABELS[step]}
+                        {tStatus(step as OrderStatus)}
                       </span>
                     </div>
                   ))}
@@ -447,7 +426,7 @@ export default function AdminOrderDetailPage() {
                       <span className="absolute -left-1.5 w-3 h-3 rounded-full bg-stone-400 dark:bg-stone-500 border-2 border-white dark:border-stone-900" />
                       <div>
                         <p className="font-sans font-semibold text-stone-800 dark:text-stone-100 text-sm">
-                          {STATUS_LABELS[event.status] ?? event.status}
+                          {tStatus((event.status ?? 'sale_confirmed') as OrderStatus)}
                         </p>
                         {event.note && (
                           <p className="font-sans text-xs text-stone-500 dark:text-stone-400 mt-0.5 italic">"{event.note}"</p>

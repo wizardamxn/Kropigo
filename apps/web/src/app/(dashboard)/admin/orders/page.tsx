@@ -4,31 +4,18 @@ import { useState } from 'react';
 import { useGetOrdersQuery } from '@/store/endpoints/ordersApi';
 import { useRouter } from 'next/navigation';
 import { RoleGuard } from '@/components/auth/RoleGuard';
+import { useTranslations } from 'next-intl';
+import { StatusBadge } from '@/components/shared/StatusBadge';
+import type { OrderStatus } from '@kropi/schemas/enum';
 
-const STATUS_LABELS: Record<string, string> = {
-  sale_confirmed: 'Deal Confirmed',
-  admin_notified: 'Admin Notified',
-  qc_scheduled: 'QC Scheduled',
-  qc_passed: 'QC Passed',
-  qc_failed: 'QC Failed',
-  pickup_scheduled: 'Pickup Scheduled',
-  in_transit: 'In Transit',
-  delivered: 'Delivered',
-};
-
-const STATUS_STYLES: Record<string, string> = {
-  sale_confirmed: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 border-amber-200 dark:border-amber-800/50',
-  admin_notified: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 border-blue-200 dark:border-blue-800/50',
-  qc_scheduled: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400 border-purple-200 dark:border-purple-800/50',
-  qc_passed: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 border-green-200 dark:border-green-800/50',
-  qc_failed: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 border-red-200 dark:border-red-800/50',
-  pickup_scheduled: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-400 border-indigo-200 dark:border-indigo-800/50',
-  in_transit: 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400 border-orange-200 dark:border-orange-800/50',
-  delivered: 'bg-green-200 text-green-900 dark:bg-green-900/50 dark:text-green-300 border-green-300 dark:border-green-700',
-};
+const ORDER_STATUS_FILTERS = [
+  'sale_confirmed', 'admin_notified', 'qc_scheduled', 'qc_passed',
+  'qc_failed', 'pickup_scheduled', 'in_transit', 'delivered',
+] as const;
 
 export default function AdminOrdersPage() {
   const router = useRouter();
+  const tStatus = useTranslations('status');
   const [statusFilter, setStatusFilter] = useState('');
   const [page, setPage] = useState(1);
 
@@ -56,7 +43,7 @@ export default function AdminOrdersPage() {
 
         {/* Status Filters */}
         <div className="flex gap-2 flex-wrap">
-          {['', ...Object.keys(STATUS_LABELS)].map((status) => (
+          {(['', ...ORDER_STATUS_FILTERS] as const).map((status) => (
             <button
               key={status}
               onClick={() => { setStatusFilter(status); setPage(1); }}
@@ -66,7 +53,7 @@ export default function AdminOrdersPage() {
                   : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400 hover:bg-stone-200 dark:hover:bg-stone-700'
               }`}
             >
-              {status === '' ? 'All Orders' : STATUS_LABELS[status]}
+              {status === '' ? 'All Orders' : tStatus(status as OrderStatus)}
             </button>
           ))}
         </div>
@@ -128,9 +115,7 @@ export default function AdminOrdersPage() {
                           ₹{order.totalAmount?.toLocaleString('en-IN')}
                         </td>
                         <td className="px-5 py-4 text-center">
-                          <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${STATUS_STYLES[order.status] ?? 'bg-stone-100 text-stone-700 border-stone-200'}`}>
-                            {STATUS_LABELS[order.status] ?? order.status}
-                          </span>
+                          <StatusBadge status={order.status} />
                         </td>
                         <td className="px-5 py-4 font-sans text-sm text-stone-400">
                           {new Date(order.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
@@ -157,9 +142,7 @@ export default function AdminOrdersPage() {
                       </p>
                       <p className="font-mono text-xs text-stone-400">#{order._id.slice(-6).toUpperCase()}</p>
                     </div>
-                    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold border ${STATUS_STYLES[order.status] ?? ''}`}>
-                      {STATUS_LABELS[order.status] ?? order.status}
-                    </span>
+                    <StatusBadge status={order.status} />
                   </div>
                   <div className="grid grid-cols-2 gap-2 text-sm mb-3">
                     <div className="bg-green-50 dark:bg-green-900/10 rounded-lg p-2">

@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useState } from 'react';
@@ -9,7 +10,16 @@ import {
   useAcceptInterestMutation,
   useRejectInterestMutation,
 } from '@/store/endpoints/listingsApi';
-import { Modal } from '@/components/ui/modal';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { StatusBadge } from '@/components/shared/StatusBadge';
 import { useTranslations } from 'next-intl';
 
 /*
@@ -141,11 +151,14 @@ export default function ListingViewPage() {
       {hasImages ? (
         <section>
           {/* Main image — data.data.mediaUrls[activeImage] */}
-          <div className="w-full aspect-video rounded-2xl overflow-hidden bg-stone-100 dark:bg-stone-900 border border-stone-200 dark:border-stone-800">
-            <img
+          <div className="relative w-full aspect-video rounded-2xl overflow-hidden bg-stone-100 dark:bg-stone-900 border border-stone-200 dark:border-stone-800">
+            <Image
               src={images[activeImage]}
               alt={`Crop image ${activeImage + 1}`}
-              className="w-full h-full object-cover"
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, 768px"
+              priority
             />
           </div>
           {/* Thumbnails — data.data.mediaUrls.map(...) */}
@@ -155,13 +168,13 @@ export default function ListingViewPage() {
                 <button
                   key={url}
                   onClick={() => setActiveImage(i)}
-                  className={`flex-shrink-0 w-16 h-16 rounded-xl overflow-hidden border-2 transition-colors ${
+                  className={`relative shrink-0 w-16 h-16 rounded-xl overflow-hidden border-2 transition-colors ${
                     i === activeImage
                       ? 'border-green-600 dark:border-green-500'
                       : 'border-transparent opacity-60 hover:opacity-100'
                   }`}
                 >
-                  <img src={url} alt="" className="w-full h-full object-cover" />
+                  <Image src={url} alt="" fill className="object-cover" sizes="64px" />
                 </button>
               ))}
             </div>
@@ -191,9 +204,7 @@ export default function ListingViewPage() {
               {listing.cropId?.category}
             </p>
           </div>
-          <span className="inline-block px-3 py-1 rounded-full text-sm font-medium font-sans border border-stone-300 dark:border-stone-700 text-stone-700 dark:text-stone-300 bg-white dark:bg-stone-900 capitalize">
-            {listing.status.replace('_', ' ')}
-          </span>
+          <StatusBadge status={listing.status} />
         </div>
 
         <div className="flex items-center gap-4 mt-3 text-sm text-stone-500 dark:text-stone-400 font-sans">
@@ -350,22 +361,7 @@ export default function ListingViewPage() {
                       </div>
                     </div>
 
-                    {/* Badge status */}
-                    <div>
-                      <span
-                        className={`inline-block px-2.5 py-1 rounded-full text-xs font-semibold font-sans border capitalize ${
-                          isAccepted
-                            ? 'bg-green-100 dark:bg-green-950/30 text-green-800 dark:text-green-400 border-green-200 dark:border-green-800'
-                            : isRejected
-                            ? 'bg-red-50 dark:bg-red-950/20 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800'
-                            : isWithdrawn
-                            ? 'bg-stone-100 dark:bg-stone-800 text-stone-500 dark:text-stone-400 border-stone-200 dark:border-stone-700'
-                            : 'bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800'
-                        }`}
-                      >
-                        {tDetail(interest.status)}
-                      </span>
-                    </div>
+                    <StatusBadge status={interest.status} />
                   </div>
 
                   {/* Bid price details */}
@@ -402,20 +398,21 @@ export default function ListingViewPage() {
                   {/* Accept / Reject actions */}
                   {isPending && listing.status !== 'sale_confirmed' && (
                     <div className="flex gap-3 mt-4">
-                      <button
+                      <Button
                         type="button"
                         onClick={() => setModalState({ isOpen: true, type: 'accept', interestId: interest._id, buyerName: interest.buyerId?.name || 'this buyer' })}
-                        className="flex-1 h-11 rounded-xl bg-green-800 hover:bg-green-700 text-white font-sans text-sm font-medium transition-colors"
+                        className="flex-1 h-11 rounded-xl bg-green-800 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white"
                       >
                         {t('acceptOffer')}
-                      </button>
-                      <button
+                      </Button>
+                      <Button
                         type="button"
+                        variant="destructive"
                         onClick={() => setModalState({ isOpen: true, type: 'reject', interestId: interest._id, buyerName: interest.buyerId?.name || 'this buyer' })}
-                        className="h-11 px-6 rounded-xl bg-red-50 hover:bg-red-100 dark:bg-red-950/20 dark:hover:bg-red-950/30 text-red-700 dark:text-red-400 font-sans text-sm font-medium border border-red-200 dark:border-red-800/40 transition-colors"
+                        className="h-11 px-6 rounded-xl"
                       >
                         {t('reject')}
-                      </button>
+                      </Button>
                     </div>
                   )}
 
@@ -447,57 +444,52 @@ export default function ListingViewPage() {
         )}
       </section>
 
-      {/* Confirmation Modal */}
-      <Modal
-        isOpen={modalState.isOpen}
-        onClose={closeActionModal}
-        title={modalState.type === 'accept' ? t('acceptOfferTitle') : t('rejectOfferTitle')}
-        description={
-          modalState.type === 'accept' 
-            ? t('acceptConfirmDesc', { buyerName: modalState.buyerName })
-            : t('rejectConfirmDesc', { buyerName: modalState.buyerName })
-        }
-        footer={
-          <>
-            <button
-              onClick={closeActionModal}
-              disabled={isAccepting || isRejecting}
-              className="px-4 py-2 text-sm font-medium text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-lg transition-colors disabled:opacity-50"
-            >
+      {/* Confirmation Dialog */}
+      <Dialog open={modalState.isOpen} onOpenChange={(open) => { if (!open) closeActionModal(); }}>
+        <DialogContent showCloseButton={false}>
+          <DialogHeader>
+            <DialogTitle>
+              {modalState.type === 'accept' ? t('acceptOfferTitle') : t('rejectOfferTitle')}
+            </DialogTitle>
+            <DialogDescription>
+              {modalState.type === 'accept'
+                ? t('acceptConfirmDesc', { buyerName: modalState.buyerName })
+                : t('rejectConfirmDesc', { buyerName: modalState.buyerName })}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="flex items-center gap-3 p-4 bg-stone-50 dark:bg-stone-800/50 border border-stone-200 dark:border-stone-700 rounded-xl">
+            <div className={`p-2 rounded-full ${modalState.type === 'accept' ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400' : 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400'}`}>
+              {modalState.type === 'accept' ? (
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+              ) : (
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+              )}
+            </div>
+            <p className="text-sm text-stone-600 dark:text-stone-300">
+              {modalState.type === 'accept' ? t('acceptWarning') : t('rejectWarning')}
+            </p>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={closeActionModal} disabled={isAccepting || isRejecting}>
               {tCommon('cancel')}
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={handleConfirmAction}
               disabled={isAccepting || isRejecting}
-              className={`px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors shadow-sm disabled:opacity-50 flex items-center gap-2 ${
-                modalState.type === 'accept'
-                  ? 'bg-green-700 hover:bg-green-800'
-                  : 'bg-red-600 hover:bg-red-700'
-              }`}
+              className={modalState.type === 'accept'
+                ? 'bg-green-700 hover:bg-green-800 text-white'
+                : 'bg-red-600 hover:bg-red-700 text-white'}
             >
               {(isAccepting || isRejecting) && (
-                <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                <svg className="animate-spin h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" /></svg>
               )}
               {modalState.type === 'accept' ? t('yesAccept') : t('yesReject')}
-            </button>
-          </>
-        }
-      >
-        <div className="flex items-center gap-3 p-4 bg-stone-50 dark:bg-stone-800/50 border border-stone-200 dark:border-stone-700 rounded-xl">
-          <div className={`p-2 rounded-full ${modalState.type === 'accept' ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400' : 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400'}`}>
-            {modalState.type === 'accept' ? (
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-            ) : (
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-            )}
-          </div>
-          <p className="text-sm text-stone-600 dark:text-stone-300">
-            {modalState.type === 'accept' 
-              ? t('acceptWarning')
-              : t('rejectWarning')}
-          </p>
-        </div>
-      </Modal>
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
     </div>
   );

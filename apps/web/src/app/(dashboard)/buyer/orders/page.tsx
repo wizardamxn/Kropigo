@@ -6,19 +6,7 @@ import { useState } from 'react';
 import { RoleGuard } from '@/components/auth/RoleGuard';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
-
-// We will fetch STATUS_LABELS from translations in the component
-
-const STATUS_STYLES: Record<string, string> = {
-  sale_confirmed: 'bg-stone-100 text-stone-700 dark:bg-stone-800 dark:text-stone-300 border-stone-200 dark:border-stone-700',
-  admin_notified: 'bg-blue-50 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400 border-blue-100 dark:border-blue-900/30',
-  qc_scheduled: 'bg-purple-50 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400 border-purple-100 dark:border-purple-900/30',
-  qc_passed: 'bg-green-50 text-green-800 dark:bg-green-900/20 dark:text-green-400 border-green-100 dark:border-green-900/30',
-  qc_failed: 'bg-red-50 text-red-800 dark:bg-red-900/20 dark:text-red-400 border-red-100 dark:border-red-900/30',
-  pickup_scheduled: 'bg-indigo-50 text-indigo-800 dark:bg-indigo-900/20 dark:text-indigo-400 border-indigo-100 dark:border-indigo-900/30',
-  in_transit: 'bg-orange-50 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400 border-orange-100 dark:border-orange-900/30',
-  delivered: 'bg-green-100 text-green-900 dark:bg-green-900/40 dark:text-green-300 border-green-200/50 dark:border-green-800/40',
-};
+import { StatusBadge } from '@/components/shared/StatusBadge';
 
 const PROGRESS_STEPS = [
   'sale_confirmed',
@@ -176,9 +164,7 @@ export default function BuyerOrdersPage() {
                     </div>
                     
                     <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold border tracking-wide uppercase shadow-sm ${STATUS_STYLES[order.status] ?? 'bg-stone-100 text-stone-700'}`}>
-                        {t(`status${order.status.split('_').map((s: string) => s.charAt(0).toUpperCase() + s.slice(1)).join('')}`)}
-                      </span>
+                      <StatusBadge status={order.status} />
                       <p className="font-sans text-base font-bold text-stone-800 dark:text-stone-200">
                         ₹{order.totalAmount?.toLocaleString('en-IN')}
                       </p>

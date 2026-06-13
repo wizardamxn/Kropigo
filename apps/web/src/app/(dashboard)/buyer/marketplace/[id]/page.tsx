@@ -1,12 +1,19 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useGetListingByIdQuery, useSubmitInterestMutation, useGetMyInterestForListingQuery } from '@/store/endpoints/listingsApi';
+import { useGetListingByIdQuery, useSubmitInterestMutation, useWithdrawInterestMutation, useGetMyInterestForListingQuery } from '@/store/endpoints/listingsApi';
 import { useGetMandiRatesQuery } from '@/store/endpoints/mandiApi';
 import { useAuth } from '@/hooks/useAuth';
 import { useTranslations } from 'next-intl';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { StatusBadge } from '@/components/shared/StatusBadge';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 
 // ─── HELPERS ─────────────────────────────────────────────────────────────────
 
@@ -115,14 +122,26 @@ function MandiRateTable({ cropId, unit, t }: { cropId: string; unit: string; t: 
 // ─── INTEREST PANEL COMPONENT ─────────────────────────────────────────────────
 
 function InterestPanel({ listing, t }: { listing: any, t: any }) {
+  const tCommon = useTranslations('common');
   const { isAuthenticated, isInitialized } = useAuth();
   const [price, setPrice] = useState('');
   const [quantity, setQuantity] = useState('');
   const [notes, setNotes] = useState('');
   const [localError, setLocalError] = useState('');
   const [showReSubmit, setShowReSubmit] = useState(false);
+  const [withdrawOpen, setWithdrawOpen] = useState(false);
 
   const [submitInterest, { isLoading: isSubmitting }] = useSubmitInterestMutation();
+  const [withdrawInterest, { isLoading: isWithdrawing }] = useWithdrawInterestMutation();
+
+  const handleWithdraw = async () => {
+    try {
+      await withdrawInterest({ listingId: listing._id, interestId: myInterest._id }).unwrap();
+      setWithdrawOpen(false);
+    } catch {
+      setWithdrawOpen(false);
+    }
+  };
 
   const { data: myInterestData, isLoading: interestLoading } = useGetMyInterestForListingQuery(
     listing._id,
@@ -307,6 +326,43 @@ function InterestPanel({ listing, t }: { listing: any, t: any }) {
             {myInterest.notes}
           </div>
         )}
+
+        <Button
+          variant="outline"
+          className="w-full border-amber-300 dark:border-amber-800/60 text-amber-700 dark:text-amber-400 hover:bg-amber-100/60 dark:hover:bg-amber-900/20"
+          onClick={() => setWithdrawOpen(true)}
+          disabled={isWithdrawing}
+        >
+          {isWithdrawing ? t('withdrawing') : t('withdrawBtn')}
+        </Button>
+
+        <Dialog open={withdrawOpen} onOpenChange={setWithdrawOpen}>
+          <DialogContent showCloseButton={false}>
+            <div className="flex flex-col items-center gap-4 py-1 text-center">
+              <div className="w-12 h-12 rounded-full bg-red-50 dark:bg-red-900/20 flex items-center justify-center shrink-0">
+                <svg className="w-6 h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+              <div className="space-y-1">
+                <h3 className="font-serif text-lg font-semibold text-stone-900 dark:text-stone-100">{t('withdrawConfirmTitle')}</h3>
+                <p className="text-sm text-stone-500 dark:text-stone-400 font-sans leading-relaxed">{t('withdrawConfirmDesc')}</p>
+              </div>
+              <div className="flex gap-3 w-full pt-1">
+                <Button variant="outline" className="flex-1" onClick={() => setWithdrawOpen(false)} disabled={isWithdrawing}>
+                  {tCommon('cancel')}
+                </Button>
+                <button
+                  onClick={handleWithdraw}
+                  disabled={isWithdrawing}
+                  className="flex-1 h-8 px-3 rounded-lg bg-red-600 hover:bg-red-700 text-white text-sm font-medium font-sans transition-colors disabled:opacity-60"
+                >
+                  {isWithdrawing ? t('withdrawing') : t('withdrawConfirmYes')}
+                </button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     );
   }
@@ -337,12 +393,13 @@ function InterestPanel({ listing, t }: { listing: any, t: any }) {
             </span>
           </div>
           {(listing.status === 'open' || listing.status === 'interest_received') && (
-            <button
+            <Button
+              variant="outline"
               onClick={() => setShowReSubmit(true)}
-              className="w-full h-12 rounded-xl bg-white dark:bg-stone-800 border-2 border-stone-200 dark:border-stone-700 text-stone-700 dark:text-stone-200 text-sm font-medium hover:bg-stone-50 dark:hover:bg-stone-700 transition-all active:scale-[0.99] shadow-sm"
+              className="w-full h-12 rounded-xl"
             >
               {t('submitNewOffer')}
-            </button>
+            </Button>
           )}
         </div>
       )}
@@ -361,9 +418,9 @@ function InterestPanel({ listing, t }: { listing: any, t: any }) {
           </div>
 
           {localError && (
-            <div className="text-sm font-sans font-medium text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800/40 rounded-xl px-4 py-3 animate-in fade-in">
-              {localError}
-            </div>
+            <Alert variant="destructive">
+              <AlertDescription>{localError}</AlertDescription>
+            </Alert>
           )}
 
           <div className="space-y-4">
@@ -372,8 +429,8 @@ function InterestPanel({ listing, t }: { listing: any, t: any }) {
                 {t('offerPriceLabel', { unit: listing.unit })} <span className="text-red-500">*</span>
               </label>
               <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-400 font-sans text-sm">₹</span>
-                <input
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 font-sans text-sm z-10">₹</span>
+                <Input
                   id="interest-price-input"
                   type="number"
                   value={price}
@@ -381,7 +438,7 @@ function InterestPanel({ listing, t }: { listing: any, t: any }) {
                   placeholder="Enter your offer price"
                   min="1"
                   required
-                  className="w-full h-12 pl-9 pr-4 rounded-xl border border-stone-300 dark:border-stone-700 bg-stone-50 dark:bg-stone-950 text-stone-800 dark:text-stone-100 text-sm focus:outline-none focus:ring-2 focus:ring-green-800 dark:focus:ring-green-700 transition-all shadow-sm"
+                  className="h-12 pl-7 rounded-xl"
                 />
               </div>
             </div>
@@ -390,7 +447,7 @@ function InterestPanel({ listing, t }: { listing: any, t: any }) {
               <label className="block text-xs font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wider mb-2 font-sans" htmlFor="interest-qty-input">
                 {t('qtyLabel', { unit: listing.unit })} <span className="text-stone-400 font-normal">{t('optional')}</span>
               </label>
-              <input
+              <Input
                 id="interest-qty-input"
                 type="number"
                 value={quantity}
@@ -398,7 +455,7 @@ function InterestPanel({ listing, t }: { listing: any, t: any }) {
                 placeholder={t('maxLimit', { limit: listing.quantity })}
                 min="1"
                 max={listing.quantity}
-                className="w-full h-12 px-4 rounded-xl border border-stone-300 dark:border-stone-700 bg-stone-50 dark:bg-stone-950 text-stone-800 dark:text-stone-100 text-sm focus:outline-none focus:ring-2 focus:ring-green-800 dark:focus:ring-green-700 transition-all shadow-sm"
+                className="h-12 rounded-xl"
               />
             </div>
 
@@ -406,36 +463,37 @@ function InterestPanel({ listing, t }: { listing: any, t: any }) {
               <label className="block text-xs font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wider mb-2 font-sans" htmlFor="interest-notes-input">
                 {t('notesLabel')} <span className="text-stone-400 font-normal">{t('optional')}</span>
               </label>
-              <textarea
+              <Textarea
                 id="interest-notes-input"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder={t('notesPlaceholder')}
                 rows={3}
                 maxLength={500}
-                className="w-full px-4 py-3 rounded-xl border border-stone-300 dark:border-stone-700 bg-stone-50 dark:bg-stone-950 text-stone-800 dark:text-stone-100 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-green-800 dark:focus:ring-green-700 transition-all shadow-sm font-sans"
+                className="rounded-xl resize-none"
               />
             </div>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-3 pt-2">
             {showReSubmit && (
-              <button
+              <Button
                 type="button"
+                variant="outline"
                 onClick={() => setShowReSubmit(false)}
-                className="h-12 flex-1 rounded-xl border-2 border-stone-300 dark:border-stone-700 text-stone-700 dark:text-stone-300 text-sm font-medium hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors"
+                className="h-12 flex-1 rounded-xl"
               >
                 {t('cancelBtn')}
-              </button>
+              </Button>
             )}
-            <button
+            <Button
               id="submit-interest-btn"
               type="submit"
               disabled={isSubmitting}
-              className="h-12 flex-[2] rounded-xl bg-green-800 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 disabled:opacity-50 text-white font-sans font-medium text-sm transition-colors shadow-sm active:scale-[0.99]"
+              className="h-12 flex-[2] rounded-xl bg-green-800 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white"
             >
               {isSubmitting ? t('submittingBtn') : showReSubmit ? t('submitAdjustedBtn') : t('expressInterestBtn')}
-            </button>
+            </Button>
           </div>
         </form>
       )}
@@ -507,11 +565,14 @@ export default function ListingDetailPage() {
       {/* Image Carousel Panel Section */}
       {images.length > 0 ? (
         <section className="space-y-3">
-          <div className="w-full aspect-video rounded-2xl overflow-hidden bg-stone-100 dark:bg-stone-950 border border-stone-200 dark:border-stone-800 shadow-sm">
-            <img
+          <div className="relative w-full aspect-video rounded-2xl overflow-hidden bg-stone-100 dark:bg-stone-950 border border-stone-200 dark:border-stone-800 shadow-sm">
+            <Image
               src={images[activeImage]}
               alt={`${crop?.name ?? 'Harvest Specimen'} — view ${activeImage + 1}`}
-              className="w-full h-full object-cover transition-opacity duration-300"
+              fill
+              className="object-cover transition-opacity duration-300"
+              sizes="(max-width: 768px) 100vw, 768px"
+              priority
             />
           </div>
           {images.length > 1 && (
@@ -520,13 +581,13 @@ export default function ListingDetailPage() {
                 <button
                   key={url}
                   onClick={() => setActiveImage(i)}
-                  className={`flex-shrink-0 w-16 h-16 rounded-xl overflow-hidden border-2 transition-all active:scale-95 ${
+                  className={`relative shrink-0 w-16 h-16 rounded-xl overflow-hidden border-2 transition-all active:scale-95 ${
                     i === activeImage
                       ? 'border-green-800 dark:border-green-500 opacity-100'
                       : 'border-transparent opacity-50 hover:opacity-90'
                   }`}
                 >
-                  <img src={url} alt="" className="w-full h-full object-cover" />
+                  <Image src={url} alt="" fill className="object-cover" sizes="64px" />
                 </button>
               ))}
             </div>
@@ -559,9 +620,7 @@ export default function ListingDetailPage() {
               <p className="text-sm font-sans text-stone-500 dark:text-stone-400 mt-1 font-medium capitalize">{t('varietyStrain')}: <span className="text-stone-700 dark:text-stone-300">{listing.variety}</span></p>
             )}
           </div>
-          <span className="text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full border border-stone-300 dark:border-stone-700 text-stone-600 dark:text-stone-400 font-sans bg-stone-50 dark:bg-stone-950 shadow-sm">
-            {listing.status?.replace(/_/g, ' ')}
-          </span>
+          <StatusBadge status={listing.status} />
         </div>
         
         <div className="flex items-center gap-4 text-xs font-medium text-stone-500 dark:text-stone-400 font-sans flex-wrap pt-2 border-t border-stone-100 dark:border-stone-800/60">

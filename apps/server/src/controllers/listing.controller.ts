@@ -91,6 +91,7 @@ export const getListings = asyncHandler(async (req: Request, res: Response) => {
     state,
     status,
     sellerId,
+    forMap,
     page = 1,
     limit = 10,
   } = req.query;
@@ -102,6 +103,18 @@ export const getListings = asyncHandler(async (req: Request, res: Response) => {
   if (sellerId) query.sellerId = sellerId;
   if (status) query.status = status;
   else if (!sellerId) query.status = { $in: ["open", "interest_received"] }; // Public sees both open and listings with interests
+
+  // Map view: return a slim, unpaginated projection of geocoded listings only.
+  if (forMap === "true") {
+    query["farmCoordinates.lat"] = { $exists: true };
+    const mapListings = await Listing.find(query)
+      .populate("cropId", "name")
+      .select("cropId variety quantity unit farmDistrict farmState farmCoordinates status")
+      .sort({ createdAt: -1 })
+      .limit(200);
+    res.status(200).json({ success: true, data: mapListings });
+    return;
+  }
 
   const listings = await Listing.find(query)
     .populate("cropId", "name category unit")
@@ -529,6 +542,53 @@ export const submitInterest = asyncHandler(async (req: Request, res: Response) =
     });
 
   res.status(201).json({ success: true, data: interest });
+});
+
+// ─── Buyer: Withdraw a Pending Interest ───────────────────────────────────────
+export const withdrawInterest = asyncHandler(async (req: Request, res: Response) => {
+  const buyerId = req.user?.userId;
+  if (!buyerId) throw new ApiError(401, 'Unauthorized');
+
+  const { id: listingId, interestId } = req.params;
+
+  const interest = await Interest.findOne({
+    _id: interestId,
+    listingId,
+    buyerId,
+    status: 'pending',
+  });
+
+  if (!interest) throw new ApiError(404, 'Pending interest not found or already processed');
+
+  interest.status = 'withdrawn';
+  await interest.save();
+
+  const listing = await Listing.findById(listingId)
+    .populate<{ cropId: { name: string } }>('cropId', 'name');
+
+  if (listing) {
+    listing.interestedBuyerCount = Math.max(0, (listing.interestedBuyerCount || 0) - 1);
+
+    const otherPending = await Interest.exists({ listingId, status: 'pending' });
+    if (!otherPending && listing.status === 'interest_received') {
+      listing.status = 'open';
+    }
+    await listing.save();
+
+    const cropName = (listing.cropId as any)?.name ?? 'Fasal';
+    createAndEmitNotification({
+      type: SOCKET_EVENTS.INTEREST_WITHDRAWN,
+      message: `Ek buyer ne apna offer wapas le liya: ${cropName}`,
+      payload: { listingId: listing._id.toString(), cropName },
+      targetRole: 'kisan',
+      targetUserId: listing.sellerId.toString(),
+      listingId: listing._id.toString(),
+    }).catch((err) => {
+      console.error('Withdraw notification failed:', err);
+    });
+  }
+
+  res.status(200).json({ success: true, message: 'Interest withdrawn successfully' });
 });
 
 // ─── Buyer: Get My Interest for a Listing ─────────────────────────────────────

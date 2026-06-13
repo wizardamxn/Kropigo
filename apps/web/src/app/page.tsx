@@ -105,10 +105,12 @@ export default function LandingPage() {
         <section className="relative w-full min-h-[90vh] flex items-center justify-center pt-20 overflow-hidden">
           {/* Background Image with Overlay */}
           <div className="absolute inset-0 z-0">
-            <img 
-              src="https://images.unsplash.com/photo-1500937386664-56d1dfef3854?q=80&w=2940&auto=format&fit=crop" 
-              alt="Beautiful sunlit agricultural field" 
-              className="w-full h-full object-cover object-center"
+            <Image
+              src="https://images.unsplash.com/photo-1500937386664-56d1dfef3854?q=80&w=2940&auto=format&fit=crop"
+              alt="Beautiful sunlit agricultural field"
+              fill
+              className="object-cover object-center"
+              priority
             />
             <div className="absolute inset-0 bg-stone-900/60 dark:bg-stone-950/80 mix-blend-multiply"></div>
             {/* Gradient fade to match background at bottom */}

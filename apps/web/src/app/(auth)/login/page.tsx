@@ -1,13 +1,18 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
+import Link from 'next/link';
 import { useAppDispatch } from '@/store/hooks';
 import { setUser } from '@/store/slices/authSlice';
 import { useRouter } from 'next/navigation';
 import { useLoginMutation } from '@/store/endpoints/authApi';
-import Link from 'next/link';
 import { useTheme } from '@/components/providers/ThemeProvider';
 import { LanguageSwitcher } from '@/components/shared/LanguageSwitcher';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useTranslations } from 'next-intl';
 
 export default function LoginPage() {
@@ -21,7 +26,6 @@ export default function LoginPage() {
   const [login, { isLoading: isLoggingIn }] = useLoginMutation();
   const tAuth = useTranslations('auth');
 
-  // Read ?redirect=... so we can return buyer to the listing they were on
   const redirectParam = typeof window !== 'undefined'
     ? new URLSearchParams(window.location.search).get('redirect')
     : null;
@@ -35,7 +39,6 @@ export default function LoginPage() {
 
       const userRole = response.data.user?.role;
 
-      // Honor ?redirect param (e.g. from listing detail page)
       if (redirectParam) {
         router.push(redirectParam);
         return;
@@ -53,7 +56,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-stone-50 dark:bg-stone-950 font-sans flex flex-col transition-colors duration-300">
-      
+
       {/* Top Header */}
       <header className="w-full p-4 flex justify-between items-center absolute top-0 z-50">
         <div className="font-serif text-2xl font-bold text-green-600 dark:text-green-600 pl-4 md:pl-8 drop-shadow-sm">
@@ -77,14 +80,16 @@ export default function LoginPage() {
 
       {/* Main Split Layout */}
       <main className="flex-grow flex w-full">
-        
-        {/* Left Side: Agricultural Hero Image (Hidden on Mobile) */}
+
+        {/* Left: hero image */}
         <div className="hidden md:flex md:w-1/2 relative">
-          <div className="absolute inset-0 bg-stone-900/40 dark:bg-stone-950/60 z-10"></div>
-          <img
-            alt="Warm farmer's market with fresh produce"
-            className="w-full h-full object-cover"
+          <div className="absolute inset-0 bg-stone-900/40 dark:bg-stone-950/60 z-10" />
+          <Image
             src="https://lh3.googleusercontent.com/aida-public/AB6AXuAK_Bvj9Fe1UF15IZG7FYg93hoEFFXofVh54H91rutY0g-nmAw7oAs3XZsCgeNlTVCrCR2tAiuFEVT2FmBhAAnE4Lkmop8kMJzSsmeXHnZgyPWR1k64qBcAW4dbzPKyITfnOTFIvJ5Ddt_MQXysPHAncldDzvbUqY2m94CBurjWIXFJyaX4u5cfCmFJ23KGbwvY9yprec_02Sc95MnJB_8FH7OusrTG04IM0gntHiOBr-Rl1vOhT0SxrvP9jB2V63XA0ZConH4aY3n1"
+            alt="Warm farmer's market with fresh produce"
+            fill
+            className="object-cover"
+            priority
           />
           <div className="absolute bottom-30 left-12 z-20 max-w-lg text-stone-50">
             <h2 className="font-serif text-5xl mb-4 font-medium drop-shadow-md">{tAuth('welcomeBack')}</h2>
@@ -94,10 +99,10 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* Right Side: Centered Auth Form */}
+        {/* Right: form card */}
         <div className="w-full md:w-1/2 flex items-center justify-center p-6 md:p-12 pt-24 md:pt-12">
           <div className="w-full max-w-md bg-white dark:bg-stone-900 rounded-2xl shadow-lg dark:shadow-none dark:border dark:border-stone-800 p-8 flex flex-col gap-6">
-            
+
             <div className="text-center flex flex-col gap-2">
               <h1 className="font-serif text-3xl text-stone-800 dark:text-stone-100">
                 {tAuth('signIn')}
@@ -108,18 +113,18 @@ export default function LoginPage() {
             </div>
 
             {error && (
-              <div className="p-3 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800/50 rounded-xl text-sm text-center font-medium">
-                {error}
-              </div>
+              <Alert variant="destructive">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
             )}
 
             <form onSubmit={handleLogin} className="flex flex-col gap-5">
-              
+
               <div className="flex flex-col gap-1.5">
-                <label className="font-sans text-sm text-stone-800 dark:text-stone-300 ml-1" htmlFor="email">
+                <Label htmlFor="email" className="ml-1 text-stone-800 dark:text-stone-300">
                   {tAuth('email')}
-                </label>
-                <input
+                </Label>
+                <Input
                   id="email"
                   type="email"
                   value={email}
@@ -127,15 +132,15 @@ export default function LoginPage() {
                   disabled={isLoggingIn}
                   required
                   placeholder="jane@example.com"
-                  className="h-12 w-full rounded-xl bg-transparent border border-stone-300 dark:border-stone-700 text-stone-800 dark:text-stone-100 placeholder-stone-400 dark:placeholder-stone-500 px-4 font-sans focus:outline-none focus:ring-2 focus:ring-green-800 dark:focus:ring-green-700 focus:border-transparent transition-all"
+                  className="h-12 rounded-xl"
                 />
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label className="font-sans text-sm text-stone-800 dark:text-stone-300 ml-1" htmlFor="password">
+                <Label htmlFor="password" className="ml-1 text-stone-800 dark:text-stone-300">
                   {tAuth('password')}
-                </label>
-                <input
+                </Label>
+                <Input
                   id="password"
                   type="password"
                   value={password}
@@ -143,31 +148,28 @@ export default function LoginPage() {
                   disabled={isLoggingIn}
                   required
                   placeholder="Your password"
-                  className="h-12 w-full rounded-xl bg-transparent border border-stone-300 dark:border-stone-700 text-stone-800 dark:text-stone-100 placeholder-stone-400 dark:placeholder-stone-500 px-4 font-sans focus:outline-none focus:ring-2 focus:ring-green-800 dark:focus:ring-green-700 focus:border-transparent transition-all"
+                  className="h-12 rounded-xl"
                 />
               </div>
 
-              <button
+              <Button
                 type="submit"
                 disabled={isLoggingIn}
-                className="mt-2 h-12 w-full rounded-xl bg-green-800 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white font-sans font-medium transition-colors disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center shadow-sm"
+                className="mt-2 h-12 w-full rounded-xl bg-green-800 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white font-sans font-medium transition-colors"
               >
                 {isLoggingIn ? tAuth('signingIn') : tAuth('signIn')}
-              </button>
+              </Button>
             </form>
 
             <div className="text-center mt-2">
               <p className="font-sans text-sm text-stone-600 dark:text-stone-400">
                 {tAuth('noAccount')}{' '}
-                <Link
-                  href="/register"
-                  className="text-green-800 dark:text-green-500 font-medium hover:underline"
-                >
+                <Link href="/register" className="text-green-800 dark:text-green-500 font-medium hover:underline">
                   {tAuth('createAccount')}
                 </Link>
               </p>
             </div>
-            
+
           </div>
         </div>
       </main>

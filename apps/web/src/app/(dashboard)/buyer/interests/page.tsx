@@ -1,10 +1,15 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { RoleGuard } from '@/components/auth/RoleGuard';
 import { useGetMyInterestsQuery } from '@/store/endpoints/interestsApi';
+import { useWithdrawInterestMutation } from '@/store/endpoints/listingsApi';
 import { useTranslations } from 'next-intl';
+import { StatusBadge } from '@/components/shared/StatusBadge';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 
 // ─── HELPERS ─────────────────────────────────────────────────────────────────
 
@@ -32,33 +37,29 @@ const STATUS_TABS: { value: '' | Status; labelKey: string }[] = [
   { value: 'withdrawn', labelKey: 'tabWithdrawn' },
 ];
 
-const statusConfig: Record<Status, { badge: string; labelKey: string }> = {
-  pending: {
-    badge: 'bg-amber-50 dark:bg-amber-950/20 text-amber-800 dark:text-amber-400 border-amber-200/60 dark:border-amber-800/40',
-    labelKey: 'badgePending',
-  },
-  accepted: {
-    badge: 'bg-green-50 dark:bg-green-950/20 text-green-800 dark:text-green-400 border-green-200/60 dark:border-green-800/40',
-    labelKey: 'badgeAccepted',
-  },
-  rejected: {
-    badge: 'bg-red-50 dark:bg-red-950/20 text-red-700 dark:text-red-400 border-red-200/60 dark:border-red-800/40',
-    labelKey: 'badgeDeclined',
-  },
-  withdrawn: {
-    badge: 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400 border-stone-200 dark:border-stone-700',
-    labelKey: 'badgeWithdrawn',
-  },
-};
 
 // ─── RE-ENGINEERED INTEREST CARD ─────────────────────────────────────────────
 
 function InterestCard({ interest, t }: { interest: any, t: any }) {
+  const tCommon = useTranslations('common');
   const listing = interest.listingId;
   const crop = listing?.cropId;
   const thumb = listing?.mediaUrls?.[0];
-  const cfg = statusConfig[interest.status as Status] ?? statusConfig.pending;
   const totalValue = interest.quantity ? interest.price * interest.quantity : null;
+  const listingId = typeof listing === 'string' ? listing : listing?._id;
+
+  const [withdrawOpen, setWithdrawOpen] = useState(false);
+  const [withdrawInterest, { isLoading: isWithdrawing }] = useWithdrawInterestMutation();
+
+  const handleWithdraw = async () => {
+    if (!listingId) return;
+    try {
+      await withdrawInterest({ listingId, interestId: interest._id }).unwrap();
+      setWithdrawOpen(false);
+    } catch {
+      setWithdrawOpen(false);
+    }
+  };
 
   return (
     <div className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 p-4 sm:p-5 flex flex-col gap-4 shadow-sm hover:shadow-md transition-shadow duration-200">
@@ -67,9 +68,9 @@ function InterestCard({ interest, t }: { interest: any, t: any }) {
       <div className="flex items-start justify-between gap-3 w-full">
         <div className="flex items-center gap-3 min-w-0">
           {/* Compact, Uniform Thumbnail Box */}
-          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-stone-100 dark:bg-stone-950 border border-stone-200/60 dark:border-stone-800 flex-shrink-0 overflow-hidden">
+          <div className="relative w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-stone-100 dark:bg-stone-950 border border-stone-200/60 dark:border-stone-800 shrink-0 overflow-hidden">
             {thumb ? (
-              <img src={thumb} alt="" className="w-full h-full object-cover" />
+              <Image src={thumb} alt="" fill className="object-cover" sizes="56px" />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-stone-400">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -91,10 +92,7 @@ function InterestCard({ interest, t }: { interest: any, t: any }) {
           </div>
         </div>
 
-        {/* Crisp text-only status badge (No animation dots) */}
-        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border whitespace-nowrap shadow-sm h-7 ${cfg.badge}`}>
-          {t(cfg.labelKey)}
-        </span>
+        <StatusBadge status={interest.status} />
       </div>
 
       {/* Grid Layout: Completely replaces formatting layout wraps */}
@@ -152,8 +150,45 @@ function InterestCard({ interest, t }: { interest: any, t: any }) {
               </svg>
             </Link>
           )}
+          {interest.status === 'pending' && listingId && (
+            <button
+              onClick={() => setWithdrawOpen(true)}
+              disabled={isWithdrawing}
+              className="h-10 px-4 text-xs font-semibold bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/30 text-red-700 dark:text-red-400 rounded-xl font-sans flex items-center justify-center gap-1.5 transition-colors border border-red-200/60 dark:border-red-800/40 order-3 disabled:opacity-60"
+            >
+              {isWithdrawing ? t('withdrawing') : t('withdrawBtn')}
+            </button>
+          )}
         </div>
       </div>
+
+      <Dialog open={withdrawOpen} onOpenChange={setWithdrawOpen}>
+        <DialogContent showCloseButton={false}>
+          <div className="flex flex-col items-center gap-4 py-1 text-center">
+            <div className="w-12 h-12 rounded-full bg-red-50 dark:bg-red-900/20 flex items-center justify-center shrink-0">
+              <svg className="w-6 h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <div className="space-y-1">
+              <h3 className="font-serif text-lg font-semibold text-stone-900 dark:text-stone-100">{t('withdrawConfirmTitle')}</h3>
+              <p className="text-sm text-stone-500 dark:text-stone-400 font-sans leading-relaxed">{t('withdrawConfirmDesc')}</p>
+            </div>
+            <div className="flex gap-3 w-full pt-1">
+              <Button variant="outline" className="flex-1" onClick={() => setWithdrawOpen(false)} disabled={isWithdrawing}>
+                {tCommon('cancel')}
+              </Button>
+              <button
+                onClick={handleWithdraw}
+                disabled={isWithdrawing}
+                className="flex-1 h-8 px-3 rounded-lg bg-red-600 hover:bg-red-700 text-white text-sm font-medium font-sans transition-colors disabled:opacity-60"
+              >
+                {isWithdrawing ? t('withdrawing') : t('withdrawConfirmYes')}
+              </button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
     </div>
   );

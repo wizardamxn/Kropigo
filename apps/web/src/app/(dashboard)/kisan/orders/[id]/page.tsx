@@ -136,10 +136,21 @@ export default function KisanOrderViewPage() {
         </div>
       </section>
       
-      <div className="flex justify-center pt-4">
-         <Link href={`/kisan/listings/${typeof order.listingId === 'object' ? order.listingId._id : order.listingId}/view`} className="text-sm text-stone-500 hover:text-stone-800 dark:hover:text-stone-200 underline font-sans transition-colors">
-           Back to Listing
-         </Link>
+      <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
+        <Link href={`/kisan/listings/${typeof order.listingId === 'object' ? order.listingId._id : order.listingId}/view`} className="text-sm text-stone-500 hover:text-stone-800 dark:hover:text-stone-200 underline font-sans transition-colors">
+          Back to Listing
+        </Link>
+        {order.status === 'delivered' && (
+          <Link
+            href={`/kisan/orders/${order._id}/invoice`}
+            className="flex items-center gap-2 h-10 px-5 rounded-xl bg-green-800 hover:bg-green-700 text-white font-sans text-sm font-medium transition-colors shadow-sm"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            Download Invoice
+          </Link>
+        )}
       </div>
     </div>
   );

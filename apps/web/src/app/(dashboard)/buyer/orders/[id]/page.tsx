@@ -4,6 +4,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useGetOrderByIdQuery } from '@/store/endpoints/ordersApi';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
+import { StatusBadge } from '@/components/shared/StatusBadge';
 
 export default function BuyerOrderViewPage() {
   const { id } = useParams<{ id: string }>();
@@ -12,7 +13,6 @@ export default function BuyerOrderViewPage() {
 
   const { data, isLoading, isError } = useGetOrderByIdQuery(id);
   const order = data?.data;
-  const tOrders = useTranslations('buyerOrders');
 
   if (isLoading) {
     return (
@@ -59,9 +59,7 @@ export default function BuyerOrderViewPage() {
               {t('orderId')}<span className="font-mono">{order._id}</span>
             </p>
           </div>
-          <span className="inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-medium border bg-green-100 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800/50 capitalize">
-            {tOrders(`status${order.status.split('_').map((s: string) => s.charAt(0).toUpperCase() + s.slice(1)).join('')}`)}
-          </span>
+          <StatusBadge status={order.status} className="text-sm px-3 py-1" />
         </div>
       </div>
 
@@ -138,10 +136,21 @@ export default function BuyerOrderViewPage() {
         </div>
       </section>
       
-      <div className="flex justify-center pt-4">
-         <Link href={`/buyer/marketplace/${typeof order.listingId === 'object' ? order.listingId._id : order.listingId}`} className="text-sm text-stone-500 hover:text-stone-800 dark:hover:text-stone-200 underline font-sans transition-colors">
-           {t('viewOriginalListing')}
-         </Link>
+      <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
+        <Link href={`/buyer/marketplace/${typeof order.listingId === 'object' ? order.listingId._id : order.listingId}`} className="text-sm text-stone-500 hover:text-stone-800 dark:hover:text-stone-200 underline font-sans transition-colors">
+          {t('viewOriginalListing')}
+        </Link>
+        {order.status === 'delivered' && (
+          <Link
+            href={`/buyer/orders/${order._id}/invoice`}
+            className="flex items-center gap-2 h-10 px-5 rounded-xl bg-green-800 hover:bg-green-700 text-white font-sans text-sm font-medium transition-colors shadow-sm"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            {t('downloadInvoice')}
+          </Link>
+        )}
       </div>
     </div>
   );

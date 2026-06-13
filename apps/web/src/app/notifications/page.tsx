@@ -13,6 +13,10 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '@/store';
 import { markAllRead, markOneRead } from '@/store/notificationSlice';
 import { SOCKET_EVENTS } from '@/lib/socketEvents';
+import { API_URL } from '@/lib/config';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
 
 const LIMIT = 10;
 
@@ -112,7 +116,7 @@ export default function NotificationsPage() {
     setError('');
     try {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1'}/notifications?page=${pageNum}&limit=${LIMIT}&unreadOnly=false`,
+        `${API_URL}/notifications?page=${pageNum}&limit=${LIMIT}&unreadOnly=false`,
         { credentials: 'include' }
       );
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -230,12 +234,12 @@ export default function NotificationsPage() {
           <h2 className="font-serif text-2xl font-medium text-stone-800 dark:text-stone-100">Access Denied</h2>
           <p className="font-sans text-stone-500 dark:text-stone-400 text-sm mt-1">Please sign in to view your real-time notification records index feed.</p>
         </div>
-        <button
+        <Button
           onClick={() => router.replace('/login')}
-          className="w-full h-12 rounded-xl bg-green-800 hover:bg-green-700 text-white text-sm font-semibold transition-colors shadow-sm active:scale-95"
+          className="w-full h-12 rounded-xl bg-green-800 hover:bg-green-700 text-white font-semibold"
         >
           Proceed to Login
-        </button>
+        </Button>
       </div>
     );
   }
@@ -261,34 +265,26 @@ export default function NotificationsPage() {
 
         <div className="flex items-center gap-2 self-end sm:self-center">
           {unreadCount > 0 && (
-            <button
-              onClick={handleMarkAllRead}
-              className="h-10 px-4 text-xs font-semibold bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 text-stone-700 dark:text-stone-300 rounded-xl hover:bg-stone-50 dark:hover:bg-stone-800 shadow-sm transition-all active:scale-95"
-            >
+            <Button variant="outline" size="sm" onClick={handleMarkAllRead} className="rounded-xl text-xs">
               Mark All Read
-            </button>
+            </Button>
           )}
-          <button
-            onClick={handleRefresh}
-            className="h-10 px-4 text-xs font-semibold bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-700 text-stone-700 dark:text-stone-300 rounded-xl hover:bg-stone-50 dark:hover:bg-stone-800 shadow-sm transition-all active:scale-95"
-          >
+          <Button variant="outline" size="sm" onClick={handleRefresh} className="rounded-xl text-xs">
             Refresh Feed
-          </button>
+          </Button>
         </div>
       </div>
 
-      {/* Internal Exception Alerts Tracer */}
       {error && (
-        <div className="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800/40 rounded-xl px-4 py-3 text-sm font-sans font-medium text-red-700 dark:text-red-400 animate-in fade-in">
-          {error}
-        </div>
+        <Alert variant="destructive" className="animate-in fade-in">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       )}
 
-      {/* Infinite Scroll Render Matrix Node */}
       {initialLoad && loading ? (
         <div className="space-y-3">
           {[1, 2, 3, 4, 5].map(i => (
-            <div key={i} className="h-20 bg-stone-200 dark:bg-stone-800 rounded-xl w-full animate-pulse" />
+            <Skeleton key={i} className="h-20 w-full rounded-xl" />
           ))}
         </div>
       ) : items.length === 0 ? (
@@ -335,13 +331,15 @@ export default function NotificationsPage() {
                 {/* Action Frame Mark-Read Option Trigger */}
                 <div className="flex items-center self-center flex-shrink-0 h-full">
                   {isUnread ? (
-                    <button
+                    <Button
                       type="button"
+                      variant="outline"
+                      size="sm"
                       onClick={(e) => handleMarkOneRead(n._id, e)}
-                      className="h-9 px-3 text-xs font-semibold bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-700 dark:text-stone-300 rounded-lg hover:bg-stone-50 dark:hover:bg-stone-700 shadow-sm transition-colors md:opacity-0 group-hover:opacity-100 focus:opacity-100"
+                      className="rounded-lg text-xs md:opacity-0 group-hover:opacity-100 focus:opacity-100"
                     >
                       Acknowledge
-                    </button>
+                    </Button>
                   ) : (
                     <div className="w-2 h-2 border border-transparent mr-2" />
                   )}

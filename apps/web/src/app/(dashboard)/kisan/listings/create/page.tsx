@@ -12,6 +12,11 @@ import {
 } from "@/store/endpoints/mediaApi";
 import { uploadListingMedia, validateMediaFiles } from "@/lib/cloudinaryUpload";
 import { useTranslations } from "next-intl";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const UNITS = ["kg", "quintal", "ton"];
 const MAX_IMAGES = 6;
@@ -148,10 +153,6 @@ export default function CreateListing() {
     }
   };
 
-  const inputBaseClass =
-    "h-12 w-full rounded-xl bg-white dark:bg-stone-950 border border-stone-300 dark:border-stone-700 text-stone-800 dark:text-stone-100 placeholder-stone-400 dark:placeholder-stone-500 px-4 font-sans focus:outline-none focus:ring-2 focus:ring-green-800 dark:focus:ring-green-700 focus:border-transparent transition-all shadow-sm";
-  const labelBaseClass =
-    "block font-sans text-sm font-medium text-stone-800 dark:text-stone-300 mb-1.5 ml-1";
 
   return (
     <div className="max-w-3xl mx-auto space-y-6 md:space-y-8 animate-in fade-in duration-500 pb-12">
@@ -179,14 +180,9 @@ export default function CreateListing() {
       </div>
 
       {error && (
-        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/50 rounded-2xl p-4 flex gap-3 shadow-sm animate-in slide-in-from-top-2">
-          <svg className="w-6 h-6 text-red-600 dark:text-red-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-          </svg>
-          <span className="font-sans text-sm font-medium text-red-800 dark:text-red-300">
-            {error}
-          </span>
-        </div>
+        <Alert variant="destructive" className="animate-in slide-in-from-top-2">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -200,25 +196,25 @@ export default function CreateListing() {
           <CropSelector cropId={cropId} setCropId={setCropId} />
 
           <div>
-            <label className={labelBaseClass}>{t("variety")}</label>
-            <input
+            <Label className="mb-1.5 ml-1 text-stone-800 dark:text-stone-300">{t("variety")}</Label>
+            <Input
               type="text"
               value={variety}
               onChange={(e) => setVariety(e.target.value)}
               placeholder={t("varietyPlaceholder")}
-              className={inputBaseClass}
+              className="h-12 rounded-xl"
             />
           </div>
 
 
           <div className="flex flex-col sm:flex-row gap-5">
             <div className="sm:w-1/3">
-              <label className={labelBaseClass}>{t("unit")}</label>
+              <Label className="mb-1.5 ml-1 text-stone-800 dark:text-stone-300">{t("unit")}</Label>
               <select
                 value={unit}
                 onChange={(e) => setUnit(e.target.value)}
                 required
-                className={`${inputBaseClass} appearance-none cursor-pointer`}
+                className="h-12 w-full rounded-xl bg-white dark:bg-stone-950 border border-stone-300 dark:border-stone-700 text-stone-800 dark:text-stone-100 px-4 font-sans focus:outline-none focus:ring-2 focus:ring-green-800 dark:focus:ring-green-700 transition-all shadow-sm appearance-none cursor-pointer"
               >
                 <option value="" disabled>{t("selectUnit")}</option>
                 {UNITS.map((u) => (
@@ -227,8 +223,8 @@ export default function CreateListing() {
               </select>
             </div>
             <div className="flex-1">
-              <label className={labelBaseClass}>{t("quantity")}</label>
-              <input
+              <Label className="mb-1.5 ml-1 text-stone-800 dark:text-stone-300">{t("quantity")}</Label>
+              <Input
                 type="number"
                 min="0"
                 step="any"
@@ -237,7 +233,7 @@ export default function CreateListing() {
                 required
                 placeholder={unit ? `e.g. 50 ${unit}` : t("selectUnitFirst")}
                 disabled={!unit}
-                className={`${inputBaseClass} ${!unit ? 'opacity-60 cursor-not-allowed' : ''}`}
+                className={`h-12 rounded-xl${!unit ? ' opacity-60 cursor-not-allowed' : ''}`}
               />
             </div>
           </div>
@@ -283,14 +279,14 @@ export default function CreateListing() {
           </div>
 
           <div>
-            <label className={labelBaseClass}>{t("descriptionLabel")}</label>
-            <textarea
+            <Label className="mb-1.5 ml-1 text-stone-800 dark:text-stone-300">{t("descriptionLabel")}</Label>
+            <Textarea
               maxLength={1000}
               rows={4}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder={t("descriptionPlaceholder")}
-              className="w-full rounded-xl bg-white dark:bg-stone-950 border border-stone-300 dark:border-stone-700 text-stone-800 dark:text-stone-100 placeholder-stone-400 dark:placeholder-stone-500 p-4 font-sans focus:outline-none focus:ring-2 focus:ring-green-800 dark:focus:ring-green-700 focus:border-transparent transition-all shadow-sm resize-y"
+              className="rounded-xl resize-y"
             />
             <div className="text-right mt-1 text-xs text-stone-500 dark:text-stone-400 font-sans">
               {description.length}/1000
@@ -350,7 +346,7 @@ export default function CreateListing() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Photos upload */}
             <div>
-              <label className={labelBaseClass}>{t("photos")}</label>
+              <Label className="mb-1.5 ml-1 text-stone-800 dark:text-stone-300">{t("photos")}</Label>
               <button
                 type="button"
                 disabled={mediaPreviews.length >= MAX_IMAGES || isSubmitting}
@@ -384,7 +380,7 @@ export default function CreateListing() {
 
             {/* Video upload */}
             <div>
-              <label className={labelBaseClass}>{t("video")}</label>
+              <Label className="mb-1.5 ml-1 text-stone-800 dark:text-stone-300">{t("video")}</Label>
               <button
                 type="button"
                 disabled={mediaPreviews.length >= MAX_IMAGES || isSubmitting}
@@ -482,32 +478,33 @@ export default function CreateListing() {
 
         {/* Submit Actions */}
         <div className="pt-4 flex flex-col gap-3">
-          <button
+          <Button
             type="submit"
             disabled={isSubmitting}
-            className="h-14 w-full rounded-xl bg-green-800 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white font-sans text-lg font-medium transition-colors shadow-md disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="h-14 w-full rounded-xl bg-green-800 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white font-sans text-lg font-medium shadow-md"
           >
             {isSubmitting ? (
-              <>
+              <span className="flex items-center gap-2">
                 <svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
                 {isUploading ? t("uploadingMedia") : t("publishingListing")}
-              </>
+              </span>
             ) : (
               t("publishListing")
             )}
-          </button>
+          </Button>
 
-          <button
+          <Button
             type="button"
+            variant="outline"
             onClick={() => router.back()}
             disabled={isSubmitting}
-            className="h-12 w-full rounded-xl bg-transparent border-2 border-stone-300 dark:border-stone-700 text-stone-700 dark:text-stone-300 font-sans font-medium hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors disabled:opacity-50"
+            className="h-12 w-full rounded-xl"
           >
             {tCommon("cancel")}
-          </button>
+          </Button>
         </div>
       </form>
     </div>
