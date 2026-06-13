@@ -8,8 +8,12 @@ import { useGetMyInterestsQuery } from '@/store/endpoints/interestsApi';
 import { useWithdrawInterestMutation } from '@/store/endpoints/listingsApi';
 import { useTranslations } from 'next-intl';
 import { StatusBadge } from '@/components/shared/StatusBadge';
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import PageHeader from '@/components/shared/PageHeader';
+import EmptyState from '@/components/shared/EmptyState';
+import Pagination from '@/components/shared/Pagination';
+import { ListSkeleton } from '@/components/shared/Skeletons';
+import ConfirmDialog from '@/components/shared/ConfirmDialog';
+import { FileText, AlertTriangle } from 'lucide-react';
 
 // ─── HELPERS ─────────────────────────────────────────────────────────────────
 
@@ -162,57 +166,22 @@ function InterestCard({ interest, t }: { interest: any, t: any }) {
         </div>
       </div>
 
-      <Dialog open={withdrawOpen} onOpenChange={setWithdrawOpen}>
-        <DialogContent showCloseButton={false}>
-          <div className="flex flex-col items-center gap-4 py-1 text-center">
-            <div className="w-12 h-12 rounded-full bg-red-50 dark:bg-red-900/20 flex items-center justify-center shrink-0">
-              <svg className="w-6 h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-              </svg>
-            </div>
-            <div className="space-y-1">
-              <h3 className="font-serif text-lg font-semibold text-stone-900 dark:text-stone-100">{t('withdrawConfirmTitle')}</h3>
-              <p className="text-sm text-stone-500 dark:text-stone-400 font-sans leading-relaxed">{t('withdrawConfirmDesc')}</p>
-            </div>
-            <div className="flex gap-3 w-full pt-1">
-              <Button variant="outline" className="flex-1" onClick={() => setWithdrawOpen(false)} disabled={isWithdrawing}>
-                {tCommon('cancel')}
-              </Button>
-              <button
-                onClick={handleWithdraw}
-                disabled={isWithdrawing}
-                className="flex-1 h-8 px-3 rounded-lg bg-red-600 hover:bg-red-700 text-white text-sm font-medium font-sans transition-colors disabled:opacity-60"
-              >
-                {isWithdrawing ? t('withdrawing') : t('withdrawConfirmYes')}
-              </button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <ConfirmDialog
+        isOpen={withdrawOpen}
+        onOpenChange={setWithdrawOpen}
+        title={t('withdrawConfirmTitle')}
+        description={t('withdrawConfirmDesc')}
+        onConfirm={handleWithdraw}
+        confirmText={isWithdrawing ? t('withdrawing') : t('withdrawConfirmYes')}
+        isLoading={isWithdrawing}
+        variant="destructive"
+      />
 
     </div>
   );
 }
 
-// ─── SKELETON COMPONENT ──────────────────────────────────────────────────────
 
-function CardSkeleton() {
-  return (
-    <div className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 p-4 space-y-4 animate-pulse">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3 w-1/2">
-          <div className="w-12 h-12 bg-stone-200 dark:bg-stone-800 rounded-xl flex-shrink-0" />
-          <div className="space-y-1.5 w-full">
-            <div className="h-4 bg-stone-200 dark:bg-stone-800 rounded w-3/4" />
-            <div className="h-3 bg-stone-200 dark:bg-stone-800 rounded w-1/2" />
-          </div>
-        </div>
-        <div className="h-7 bg-stone-200 dark:bg-stone-800 rounded-full w-24" />
-      </div>
-      <div className="h-14 bg-stone-50 dark:bg-stone-950/40 rounded-xl w-full" />
-    </div>
-  );
-}
 
 const EMPTY_KEYS: Record<string, { titleKey: string; subKey: string }> = {
   '': { titleKey: 'noInterestsTitle', subKey: 'noInterestsSub' },
@@ -242,15 +211,7 @@ export default function MyInterestsPage() {
     <RoleGuard allowedRoles={['buyer']}>
       <div className="max-w-3xl mx-auto space-y-6 md:space-y-8 animate-in fade-in duration-500 w-full overflow-hidden">
 
-        {/* Header Block */}
-        <div>
-          <h1 className="font-serif text-3xl md:text-4xl text-stone-800 dark:text-stone-100 font-medium tracking-tight">
-            {t('title')}
-          </h1>
-          <p className="font-sans text-stone-600 dark:text-stone-400 mt-1 text-sm md:text-base">
-            {t('subtitle')}
-          </p>
-        </div>
+        <PageHeader title={t('title')} subtitle={t('subtitle')} />
 
         {/* Tab Selection Filter System */}
         <div className="flex overflow-x-auto gap-2 pb-2 scrollbar-none -mx-4 px-4 sm:mx-0 sm:px-0">
@@ -275,42 +236,38 @@ export default function MyInterestsPage() {
 
         {/* Main Content Render Gate */}
         {isError ? (
-          <div className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 py-16 text-center space-y-4 shadow-sm">
-            <svg className="w-12 h-12 mx-auto text-red-500 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
-            <p className="text-stone-600 dark:text-stone-400 font-sans font-medium">{t('failedToLoad')}</p>
-            <button
-              onClick={() => window.location.reload()}
-              className="h-11 px-6 bg-stone-100 dark:bg-stone-800 text-stone-800 dark:text-stone-200 rounded-xl text-sm font-medium hover:bg-stone-200 dark:hover:bg-stone-700 transition-colors shadow-sm"
-            >
-              {t('retry')}
-            </button>
-          </div>
+          <EmptyState
+            icon={AlertTriangle}
+            title={t('failedToLoad')}
+            action={
+              <button
+                onClick={() => window.location.reload()}
+                className="h-11 px-6 bg-stone-100 dark:bg-stone-800 text-stone-800 dark:text-stone-200 rounded-xl text-sm font-medium hover:bg-stone-200 dark:hover:bg-stone-700 transition-colors shadow-sm cursor-pointer"
+              >
+                {t('retry')}
+              </button>
+            }
+          />
         ) : (
           <div className={`space-y-4 transition-opacity duration-300 ${isFetching && !isLoading ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
             {isLoading ? (
-              Array.from({ length: 4 }).map((_, i) => <CardSkeleton key={i} />)
+              <ListSkeleton count={4} />
             ) : interests.length === 0 ? (
-              <div className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 py-16 text-center flex flex-col items-center justify-center gap-4 shadow-sm px-4">
-                <div className="w-16 h-16 rounded-full bg-stone-50 dark:bg-stone-950 flex items-center justify-center text-stone-400">
-                  <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                  </svg>
-                </div>
-                <div>
-                  <p className="font-serif text-xl font-semibold text-stone-800 dark:text-stone-100">{t(emptyKeys.titleKey)}</p>
-                  <p className="text-sm text-stone-500 dark:text-stone-400 font-sans mt-1 max-w-xs mx-auto leading-relaxed">{t(emptyKeys.subKey)}</p>
-                </div>
-                {activeTab === '' && (
-                  <Link
-                    href="/buyer/marketplace"
-                    className="h-12 px-6 rounded-xl bg-green-800 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white text-sm font-semibold transition-colors flex items-center justify-center shadow-sm w-full sm:w-auto mt-2"
-                  >
-                    {t('browseMarketplace')}
-                  </Link>
-                )}
-              </div>
+              <EmptyState
+                icon={FileText}
+                title={t(emptyKeys.titleKey)}
+                subtitle={t(emptyKeys.subKey)}
+                action={
+                  activeTab === '' ? (
+                    <Link
+                      href="/buyer/marketplace"
+                      className="h-12 px-6 rounded-xl bg-green-800 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white text-sm font-semibold transition-colors flex items-center justify-center shadow-sm w-full sm:w-auto mt-2"
+                    >
+                      {t('browseMarketplace')}
+                    </Link>
+                  ) : undefined
+                }
+              />
             ) : (
               interests.map((interest) => (
                 <InterestCard key={interest._id} interest={interest} t={t} />
@@ -320,36 +277,13 @@ export default function MyInterestsPage() {
         )}
 
         {/* Pagination Row Block */}
-        {meta && meta.totalPages > 1 && (
-          <div className="flex items-center justify-between bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 px-5 py-3.5 shadow-sm mt-4">
-            <button
-              id="interests-prev-btn"
-              disabled={page === 1 || isFetching}
-              onClick={() => setPage((p) => p - 1)}
-              className="flex items-center gap-2 h-10 px-4 rounded-xl text-sm font-medium text-stone-700 dark:text-stone-300 bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-95 shadow-sm"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
-              {t('prev')}
-            </button>
-            
-            <span className="font-sans text-xs sm:text-sm text-stone-600 dark:text-stone-400">
-              {t.rich('pageIndicator', {
-                current: meta.page,
-                total: meta.totalPages,
-                bold: (chunks) => <span className="font-semibold text-stone-800 dark:text-stone-100">{chunks}</span>
-              })}
-            </span>
-            
-            <button
-              id="interests-next-btn"
-              disabled={page >= meta.totalPages || isFetching}
-              onClick={() => setPage((p) => p + 1)}
-              className="flex items-center gap-2 h-10 px-4 rounded-xl text-sm font-medium text-stone-700 dark:text-stone-300 bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-95 shadow-sm"
-            >
-              {t('next')}
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
-            </button>
-          </div>
+        {meta && (
+          <Pagination
+            page={page}
+            totalPages={meta.totalPages}
+            onPageChange={setPage}
+            isFetching={isFetching}
+          />
         )}
 
       </div>

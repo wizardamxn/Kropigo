@@ -7,6 +7,11 @@ import { RoleGuard } from '@/components/auth/RoleGuard';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { StatusBadge } from '@/components/shared/StatusBadge';
+import PageHeader from '@/components/shared/PageHeader';
+import EmptyState from '@/components/shared/EmptyState';
+import Pagination from '@/components/shared/Pagination';
+import { ListSkeleton } from '@/components/shared/Skeletons';
+import { FileText } from 'lucide-react';
 
 const PROGRESS_STEPS = [
   'sale_confirmed',
@@ -82,15 +87,7 @@ export default function BuyerOrdersPage() {
     <RoleGuard allowedRoles={['buyer']}>
       <div className="max-w-3xl mx-auto space-y-6 md:space-y-8 animate-in fade-in duration-500 w-full overflow-hidden">
 
-        {/* Page Title Header */}
-        <div>
-          <h1 className="font-serif text-3xl md:text-4xl text-stone-800 dark:text-stone-100 font-medium tracking-tight">
-            {t('title')}
-          </h1>
-          <p className="font-sans text-stone-600 dark:text-stone-400 mt-1 text-sm md:text-base">
-            {t('subtitle')}
-          </p>
-        </div>
+        <PageHeader title={t('title')} subtitle={t('subtitle')} />
 
         {/* Scrollable Status Filter Track */}
         <div className="flex overflow-x-auto gap-2 pb-2 scrollbar-none -mx-4 px-4 sm:mx-0 sm:px-0">
@@ -124,28 +121,18 @@ export default function BuyerOrdersPage() {
 
         {/* Master Response Delivery Canvas */}
         {isLoading ? (
-          <div className="space-y-4 animate-pulse">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="h-44 bg-stone-200 dark:bg-stone-800 rounded-2xl w-full" />
-            ))}
-          </div>
+          <ListSkeleton count={3} />
         ) : orders.length === 0 ? (
-          <div className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 p-16 flex flex-col items-center justify-center text-center gap-4 shadow-sm px-4">
-            <div className="w-16 h-16 bg-stone-50 dark:bg-stone-950 flex items-center justify-center text-stone-400 rounded-full border border-stone-100 dark:border-stone-800">
-              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-              </svg>
-            </div>
-            <div>
-              <p className="font-serif text-xl font-semibold text-stone-800 dark:text-stone-100">{t('noOrdersFound')}</p>
-              <p className="font-sans text-sm text-stone-500 dark:text-stone-400 mt-1 max-w-xs mx-auto leading-relaxed">
-                {t('noOrdersDesc')}
-              </p>
-            </div>
-            <Link href="/buyer/marketplace" className="mt-2 h-12 px-6 rounded-xl bg-green-800 hover:bg-green-700 text-white font-sans text-sm font-semibold transition-all shadow-sm flex items-center justify-center w-full sm:w-auto">
-              {t('browseMarketplace')}
-            </Link>
-          </div>
+          <EmptyState
+            icon={FileText}
+            title={t('noOrdersFound')}
+            subtitle={t('noOrdersDesc')}
+            action={
+              <Link href="/buyer/marketplace" className="mt-2 h-12 px-6 rounded-xl bg-green-800 hover:bg-green-700 text-white font-sans text-sm font-semibold transition-all shadow-sm flex items-center justify-center w-full sm:w-auto">
+                {t('browseMarketplace')}
+              </Link>
+            }
+          />
         ) : (
           <>
             <div className={`space-y-4 transition-opacity duration-300 ${isFetching ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
@@ -188,35 +175,12 @@ export default function BuyerOrdersPage() {
             </div>
 
             {/* Pagination Controls Section */}
-            <div className="flex flex-col sm:flex-row items-center justify-between bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 px-5 py-3.5 shadow-sm gap-4">
-              <span className="font-sans text-xs sm:text-sm text-stone-500">
-                {t.rich('showingRecords', {
-                  count: orders.length,
-                  total: data?.pagination.total ?? 0,
-                  bold: (chunks) => <span className="font-semibold text-stone-800 dark:text-stone-100">{chunks}</span>
-                })}
-              </span>
-              
-              <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
-                <button
-                  onClick={(e) => { e.stopPropagation(); setPage((p) => Math.max(1, p - 1)); }}
-                  disabled={page === 1 || isFetching}
-                  className="h-10 px-4 rounded-xl text-xs font-semibold font-sans border border-stone-200 dark:border-stone-700 bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 disabled:opacity-40 hover:bg-stone-200 dark:hover:bg-stone-700 transition-all active:scale-95 shadow-sm"
-                >
-                  {t('prev')}
-                </button>
-                <span className="text-xs font-sans font-semibold text-stone-500 dark:text-stone-400 min-w-[36px] text-center">
-                  {page} / {data?.pagination.pages ?? 1}
-                </span>
-                <button
-                  onClick={(e) => { e.stopPropagation(); setPage((p) => p + 1); }}
-                  disabled={page === (data?.pagination.pages ?? 1) || isFetching}
-                  className="h-10 px-4 rounded-xl text-xs font-semibold font-sans border border-stone-200 dark:border-stone-700 bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 disabled:opacity-40 hover:bg-stone-200 dark:hover:bg-stone-700 transition-all active:scale-95 shadow-sm"
-                >
-                  {t('next')}
-                </button>
-              </div>
-            </div>
+            <Pagination
+              page={page}
+              totalPages={data?.pagination.pages ?? 1}
+              onPageChange={setPage}
+              isFetching={isFetching}
+            />
           </>
         )}
       </div>

@@ -1,56 +1,37 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect } from 'react';
-
-interface ThemeContextType {
-  darkMode: boolean;
-  setDarkMode: (val: boolean) => void;
-  toggleTheme: () => void;
-}
-
-const ThemeContext = createContext<ThemeContextType>({
-  darkMode: false,
-  setDarkMode: () => {},
-  toggleTheme: () => {},
-});
-
-export function useTheme() {
-  return useContext(ThemeContext);
-}
+import * as React from 'react';
+import { ThemeProvider as NextThemesProvider, useTheme as useNextTheme } from 'next-themes';
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [darkMode, setDarkMode] = useState(false);
+  return (
+    <NextThemesProvider
+      attribute="class"
+      defaultTheme="system"
+      enableSystem
+      disableTransitionOnChange
+    >
+      {children}
+    </NextThemesProvider>
+  );
+}
 
-  const themeCheck = () => {
-    if (
-      localStorage.theme === 'dark' ||
-      (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)
-    ) {
-      document.documentElement.classList.add('dark');
-      setDarkMode(true);
-    } else {
-      document.documentElement.classList.remove('dark');
-      setDarkMode(false);
-    }
-  };
+export function useTheme() {
+  const { setTheme, resolvedTheme } = useNextTheme();
 
-  useEffect(() => {
-    themeCheck();
-  }, []);
-
-  useEffect(() => {
-    themeCheck();
-  }, [darkMode]);
+  const darkMode = resolvedTheme === 'dark';
 
   const toggleTheme = () => {
-    const current = localStorage.getItem('theme');
-    localStorage.setItem('theme', current === 'dark' ? 'light' : 'dark');
-    setDarkMode(!darkMode);
+    setTheme(resolvedTheme === 'dark' ? 'light' : 'dark');
   };
 
-  return (
-    <ThemeContext.Provider value={{ darkMode, setDarkMode, toggleTheme }}>
-      {children}
-    </ThemeContext.Provider>
-  );
+  const setDarkMode = (val: boolean) => {
+    setTheme(val ? 'dark' : 'light');
+  };
+
+  return {
+    darkMode,
+    toggleTheme,
+    setDarkMode,
+  };
 }

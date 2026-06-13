@@ -1,17 +1,19 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useGetCropsQuery } from '@/store/endpoints/cropsApi';
 import { useTranslations } from 'next-intl';
+import { Globe, Carrot, Apple, Wheat, Flame, Flower2, Sprout, Search, Check } from 'lucide-react';
+import Pagination from '@/components/shared/Pagination';
 
 const CATEGORIES = [
-  { id: '', labelKey: 'allCrops', icon: '🌍' },
-  { id: 'vegetable', labelKey: 'vegetables', icon: '🥦' },
-  { id: 'fruit', labelKey: 'fruits', icon: '🍎' },
-  { id: 'grain', labelKey: 'grains', icon: '🌾' },
-  { id: 'spice', labelKey: 'spices', icon: '🌶️' },
-  { id: 'flower', labelKey: 'flowers', icon: '🌸' },
-  { id: 'other', labelKey: 'other', icon: '🌱' },
+  { id: '', labelKey: 'allCrops', icon: Globe },
+  { id: 'vegetable', labelKey: 'vegetables', icon: Carrot },
+  { id: 'fruit', labelKey: 'fruits', icon: Apple },
+  { id: 'grain', labelKey: 'grains', icon: Wheat },
+  { id: 'spice', labelKey: 'spices', icon: Flame },
+  { id: 'flower', labelKey: 'flowers', icon: Flower2 },
+  { id: 'other', labelKey: 'other', icon: Sprout },
 ];
 
 export default function CropSelector({ cropId, setCropId }: { cropId: string, setCropId: (id: string) => void }) {
@@ -64,13 +66,13 @@ export default function CropSelector({ cropId, setCropId }: { cropId: string, se
                 setDebouncedSearch('');
                 setPage(1);
               }}
-              className={`px-4 py-2.5 rounded-xl font-sans text-sm font-medium transition-all ${
+              className={`px-4 py-2.5 rounded-xl font-sans text-sm font-medium transition-all inline-flex items-center ${
                 selectedCategory === cat.id
                   ? 'bg-green-800 text-white shadow-md'
                   : 'bg-white dark:bg-stone-950 border border-stone-300 dark:border-stone-700 text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-900'
               }`}
             >
-              <span className="mr-2">{cat.icon}</span>
+              {React.createElement(cat.icon, { className: "mr-2 h-4 w-4 shrink-0" })}
               {t(cat.labelKey as any)}
             </button>
           ))}
@@ -86,9 +88,7 @@ export default function CropSelector({ cropId, setCropId }: { cropId: string, se
         {/* Search Bar */}
         <div className="relative mb-5">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <svg className="w-5 h-5 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
+            <Search className="w-5 h-5 text-stone-400" />
           </div>
           <input
             type="text"
@@ -123,9 +123,7 @@ export default function CropSelector({ cropId, setCropId }: { cropId: string, se
                 {/* Active Checkmark */}
                 {cropId === crop._id && (
                   <div className="absolute top-2 right-2 bg-green-600 text-white p-1 rounded-full z-10 shadow-sm animate-in zoom-in">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                    </svg>
+                    <Check className="w-4 h-4" strokeWidth={3} />
                   </div>
                 )}
                 
@@ -164,29 +162,12 @@ export default function CropSelector({ cropId, setCropId }: { cropId: string, se
         )}
 
         {/* Pagination */}
-        {pagination.totalPages > 1 && (
-          <div className="mt-6 flex items-center justify-between border-t border-stone-200 dark:border-stone-800 pt-4">
-            <button
-              type="button"
-              onClick={() => setPage(p => Math.max(1, p - 1))}
-              disabled={page === 1 || isFetching}
-              className="px-4 py-2 rounded-lg text-sm font-medium text-stone-700 dark:text-stone-300 border border-stone-300 dark:border-stone-700 hover:bg-stone-50 dark:hover:bg-stone-900 disabled:opacity-50 transition-colors"
-            >
-              {t('previous')}
-            </button>
-            <span className="text-sm text-stone-500 font-sans">
-              {tCommon('page', { current: page, total: pagination.totalPages })}
-            </span>
-            <button
-              type="button"
-              onClick={() => setPage(p => Math.min(pagination.totalPages, p + 1))}
-              disabled={page === pagination.totalPages || isFetching}
-              className="px-4 py-2 rounded-lg text-sm font-medium text-stone-700 dark:text-stone-300 border border-stone-300 dark:border-stone-700 hover:bg-stone-50 dark:hover:bg-stone-900 disabled:opacity-50 transition-colors"
-            >
-              {tCommon('next')}
-            </button>
-          </div>
-        )}
+        <Pagination
+          page={page}
+          totalPages={pagination.totalPages}
+          onPageChange={setPage}
+          isFetching={isFetching}
+        />
       </div>
     </div>
   );

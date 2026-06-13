@@ -14,6 +14,9 @@ import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { toast } from 'sonner';
+import { INTEREST_STATUS_COLORS } from '@/components/shared/statusHelper';
+import ConfirmDialog from '@/components/shared/ConfirmDialog';
 
 // ─── HELPERS ─────────────────────────────────────────────────────────────────
 
@@ -25,32 +28,7 @@ const fmtDate = (d: string) =>
 const fmtShortDate = (d: string) =>
   new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
 
-const interestStatusConfig: Record<string, { bg: string; border: string; text: string; labelKey: string }> = {
-  pending: {
-    bg: 'bg-amber-50 dark:bg-amber-950/20',
-    border: 'border-amber-200 dark:border-amber-800/50',
-    text: 'text-amber-800 dark:text-amber-400',
-    labelKey: 'statusPending',
-  },
-  accepted: {
-    bg: 'bg-green-50 dark:bg-green-950/20',
-    border: 'border-green-200 dark:border-green-800/50',
-    text: 'text-green-800 dark:text-green-400',
-    labelKey: 'statusAccepted',
-  },
-  rejected: {
-    bg: 'bg-red-50 dark:bg-red-950/20',
-    border: 'border-red-200 dark:border-red-800/50',
-    text: 'text-red-700 dark:text-red-400',
-    labelKey: 'statusRejected',
-  },
-  withdrawn: {
-    bg: 'bg-stone-50 dark:bg-stone-900',
-    border: 'border-stone-200 dark:border-stone-700',
-    text: 'text-stone-600 dark:text-stone-400',
-    labelKey: 'statusWithdrawn',
-  },
-};
+// Removed local interestStatusConfig - using INTEREST_STATUS_COLORS from statusHelper
 
 // ─── MANDI RATE TABLE COMPONENT ───────────────────────────────────────────────
 
@@ -137,6 +115,7 @@ function InterestPanel({ listing, t }: { listing: any, t: any }) {
   const handleWithdraw = async () => {
     try {
       await withdrawInterest({ listingId: listing._id, interestId: myInterest._id }).unwrap();
+      toast.success("Offer withdrawn successfully!");
       setWithdrawOpen(false);
     } catch {
       setWithdrawOpen(false);
@@ -167,6 +146,7 @@ function InterestPanel({ listing, t }: { listing: any, t: any }) {
           notes: notes || undefined,
         },
       }).unwrap();
+      toast.success("Offer submitted successfully!");
       setPrice('');
       setQuantity('');
       setNotes('');
@@ -331,44 +311,27 @@ function InterestPanel({ listing, t }: { listing: any, t: any }) {
           variant="outline"
           className="w-full border-amber-300 dark:border-amber-800/60 text-amber-700 dark:text-amber-400 hover:bg-amber-100/60 dark:hover:bg-amber-900/20"
           onClick={() => setWithdrawOpen(true)}
-          disabled={isWithdrawing}
         >
-          {isWithdrawing ? t('withdrawing') : t('withdrawBtn')}
+          {t('withdrawBtn')}
         </Button>
 
-        <Dialog open={withdrawOpen} onOpenChange={setWithdrawOpen}>
-          <DialogContent showCloseButton={false}>
-            <div className="flex flex-col items-center gap-4 py-1 text-center">
-              <div className="w-12 h-12 rounded-full bg-red-50 dark:bg-red-900/20 flex items-center justify-center shrink-0">
-                <svg className="w-6 h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
-              </div>
-              <div className="space-y-1">
-                <h3 className="font-serif text-lg font-semibold text-stone-900 dark:text-stone-100">{t('withdrawConfirmTitle')}</h3>
-                <p className="text-sm text-stone-500 dark:text-stone-400 font-sans leading-relaxed">{t('withdrawConfirmDesc')}</p>
-              </div>
-              <div className="flex gap-3 w-full pt-1">
-                <Button variant="outline" className="flex-1" onClick={() => setWithdrawOpen(false)} disabled={isWithdrawing}>
-                  {tCommon('cancel')}
-                </Button>
-                <button
-                  onClick={handleWithdraw}
-                  disabled={isWithdrawing}
-                  className="flex-1 h-8 px-3 rounded-lg bg-red-600 hover:bg-red-700 text-white text-sm font-medium font-sans transition-colors disabled:opacity-60"
-                >
-                  {isWithdrawing ? t('withdrawing') : t('withdrawConfirmYes')}
-                </button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
+        <ConfirmDialog
+          isOpen={withdrawOpen}
+          onOpenChange={setWithdrawOpen}
+          title={t('withdrawConfirmTitle')}
+          description={t('withdrawConfirmDesc')}
+          onConfirm={handleWithdraw}
+          confirmText={t('withdrawConfirmYes')}
+          cancelText={tCommon('cancel')}
+          isLoading={isWithdrawing}
+          variant="destructive"
+        />
       </div>
     );
   }
 
   const showBanner = myInterest?.status === 'rejected' || myInterest?.status === 'withdrawn';
-  const statusCfg = myInterest ? interestStatusConfig[myInterest.status] : null;
+  const statusCfg = myInterest ? INTEREST_STATUS_COLORS[myInterest.status] : null;
 
   return (
     <div className="space-y-4">

@@ -18,16 +18,41 @@ import { uploadListingMedia, validateMediaFiles } from "@/lib/cloudinaryUpload";
 import Image from "next/image";
 import Link from "next/link";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { StatusBadge } from "@/components/shared/StatusBadge";
+import { toast } from "sonner";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { FormField } from "@/components/shared/FormField";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Loader2 } from "lucide-react";
 
 const UNITS = ["kg", "quintal", "ton"];
 const EDITABLE_STATUSES = ["draft", "open"];
 type MediaPreview = { url: string; name: string; type: string };
 
+const updateListingFormSchema = z.object({
+  unit: z.enum(['kg', 'quintal', 'ton'], { message: 'Please select a unit' }),
+  quantity: z.string().min(1, 'Quantity is required').refine(
+    (val) => !isNaN(Number(val)) && Number(val) > 0,
+    { message: 'Quantity must be greater than 0' }
+  ),
+  description: z.string().max(1000, 'Description cannot exceed 1000 characters').optional(),
+  farmAddress: z.string().min(1, 'Farm address is required').max(500, 'Address cannot exceed 500 characters'),
+  farmState: z.string().min(1, 'State is required').max(100, 'State cannot exceed 100 characters'),
+  farmDistrict: z.string().min(1, 'District is required').max(100, 'District cannot exceed 100 characters'),
+});
+
+type UpdateListingFormValues = z.infer<typeof updateListingFormSchema>;
 
 export default function ListingDetail() {
   const { id } = useParams<{ id: string }>();
@@ -49,12 +74,6 @@ export default function ListingDetail() {
   const { data: mandiData } = useGetMandiRatesQuery(cropId, { skip: !cropId });
   const latestRate = mandiData?.data?.[0];
 
-  const [quantity, setQuantity] = useState("");
-  const [unit, setUnit] = useState("");
-  const [description, setDescription] = useState("");
-  const [farmAddress, setFarmAddress] = useState("");
-  const [farmState, setFarmState] = useState("");
-  const [farmDistrict, setFarmDistrict] = useState("");
   const [removedMediaUrls, setRemovedMediaUrls] = useState<string[]>([]);
   const [error, setError] = useState("");
   const [uploadProgress, setUploadProgress] = useState<{ index: number; progress: number } | null>(null);
@@ -62,15 +81,33 @@ export default function ListingDetail() {
   const [mediaPreviews, setMediaPreviews] = useState<MediaPreview[]>([]);
   const isSubmitting = isUpdating || isUploading;
 
+  const { register, handleSubmit, setValue, watch, reset, formState: { errors } } = useForm<UpdateListingFormValues>({
+    resolver: zodResolver(updateListingFormSchema),
+    defaultValues: {
+      unit: 'kg',
+      quantity: '',
+      description: '',
+      farmAddress: '',
+      farmState: '',
+      farmDistrict: '',
+    },
+    mode: 'onTouched',
+  });
+
+  const unit = watch('unit');
+  const description = watch('description') || '';
+
   useEffect(() => {
     if (!listing) return;
-    setQuantity(String(listing.quantity));
-    setUnit(listing.unit);
-    setDescription(listing.description ?? "");
-    setFarmAddress(listing.farmAddress);
-    setFarmState(listing.farmState);
-    setFarmDistrict(listing.farmDistrict);
-  }, [listing]);
+    reset({
+      quantity: String(listing.quantity),
+      unit: listing.unit,
+      description: listing.description ?? "",
+      farmAddress: listing.farmAddress,
+      farmState: listing.farmState,
+      farmDistrict: listing.farmDistrict,
+    });
+  }, [listing, reset]);
 
   // Redirect if listing doesn't belong to this kisan
   useEffect(() => {
@@ -118,8 +155,7 @@ export default function ListingDetail() {
     }
   };
 
-  const handleUpdate = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = async (data: UpdateListingFormValues) => {
     setError("");
     setUploadProgress(null);
     const uploadedMediaUrls: string[] = [];
@@ -143,16 +179,17 @@ export default function ListingDetail() {
       await updateListing({
         id,
         body: {
-          quantity,
-          unit,
-          description,
-          farmAddress,
-          farmState,
-          farmDistrict,
+          quantity: data.quantity,
+          unit: data.unit,
+          description: data.description,
+          farmAddress: data.farmAddress,
+          farmState: data.farmState,
+          farmDistrict: data.farmDistrict,
           deletedMediaUrls: removedMediaUrls,
           mediaUrls,
         },
       }).unwrap();
+      toast.success("Listing updated successfully!");
       router.push("/kisan/listings");
     } catch (err: any) {
       if (uploadedMediaUrls.length > 0) {
@@ -184,6 +221,7 @@ export default function ListingDetail() {
       return;
     try {
       await deleteListing(id).unwrap();
+      toast.success("Listing deleted successfully!");
       router.push("/kisan/listings");
     } catch (err: any) {
       setError(err?.data?.message ?? "Failed to delete listing.");
@@ -244,7 +282,7 @@ export default function ListingDetail() {
       <div>
         <button
           onClick={() => router.back()}
-          className="mb-4 flex items-center gap-2 text-stone-500 hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-100 font-sans text-sm font-medium transition-colors w-fit"
+          className="mb-4 flex items-center gap-2 text-stone-500 hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-100 font-sans text-sm font-medium transition-colors w-fit cursor-pointer"
         >
           <svg
             className="w-4 h-4"
@@ -359,7 +397,7 @@ export default function ListingDetail() {
         </div>
       )}
 
-      <form onSubmit={handleUpdate} className="space-y-6">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         {/* Section 1: Pricing & Details */}
         <section className="bg-stone-50 dark:bg-stone-900 rounded-2xl p-5 md:p-8 border border-stone-200 dark:border-stone-800 shadow-sm space-y-5">
           <h2 className="font-serif text-2xl text-stone-800 dark:text-stone-100 border-b border-stone-200 dark:border-stone-800 pb-3">
@@ -368,32 +406,43 @@ export default function ListingDetail() {
 
           <div className="flex flex-col sm:flex-row gap-5">
             <div className="sm:w-1/3">
-              <Label className="mb-1.5 ml-1 text-stone-800 dark:text-stone-300">Unit *</Label>
-              <select
-                value={unit}
-                onChange={(e) => setUnit(e.target.value)}
-                disabled={!canEdit}
-                className={`h-12 w-full rounded-xl border px-4 font-sans focus:outline-none focus:ring-2 focus:ring-green-800 transition-all shadow-sm ${canEdit ? "bg-white dark:bg-stone-950 border-stone-300 dark:border-stone-700 text-stone-800 dark:text-stone-100 appearance-none cursor-pointer" : "bg-stone-100 dark:bg-stone-900/50 border-stone-200 dark:border-stone-800 text-stone-500 dark:text-stone-400 cursor-not-allowed"}`}
+              <FormField
+                id="unit"
+                label="Unit *"
+                error={errors.unit?.message}
               >
-                {UNITS.map((u) => (
-                  <option key={u} value={u}>
-                    {u.toUpperCase()}
-                  </option>
-                ))}
-              </select>
+                <Select value={unit} onValueChange={(val) => setValue('unit', val as any, { shouldValidate: true })} disabled={!canEdit}>
+                  <SelectTrigger id="unit" className={`h-12 w-full rounded-xl border px-4 font-sans focus:outline-none focus:ring-2 focus:ring-green-800 transition-all shadow-sm flex justify-between items-center ${canEdit ? "bg-white dark:bg-stone-950 border-stone-300 dark:border-stone-700 text-stone-800 dark:text-stone-100 cursor-pointer" : "bg-stone-100 dark:bg-stone-900/50 border-stone-200 dark:border-stone-800 text-stone-500 dark:text-stone-400 cursor-not-allowed"}`}>
+                    <SelectValue placeholder="Select unit..." />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-xl p-1 shadow-md">
+                    {UNITS.map((u) => (
+                      <SelectItem key={u} value={u} className="px-3 py-2 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-800 cursor-pointer">
+                        {u.toUpperCase()}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormField>
             </div>
             <div className="flex-1">
-              <Label className="mb-1.5 ml-1 text-stone-800 dark:text-stone-300">Quantity *</Label>
-              <Input
-                type="number"
-                min="0"
-                step="any"
-                value={quantity}
-                onChange={(e) => setQuantity(e.target.value)}
-                required
-                disabled={!canEdit}
-                className={inputCls}
-              />
+              <FormField
+                id="quantity"
+                label="Quantity *"
+                error={errors.quantity?.message}
+              >
+                <Input
+                  id="quantity"
+                  type="number"
+                  min="0"
+                  step="any"
+                  {...register('quantity')}
+                  disabled={!canEdit}
+                  className={inputCls}
+                  aria-invalid={errors.quantity ? "true" : "false"}
+                  aria-describedby={errors.quantity ? "quantity-error" : undefined}
+                />
+              </FormField>
             </div>
           </div>
 
@@ -407,22 +456,27 @@ export default function ListingDetail() {
             </p>
           </div>
 
-          <div>
-            <Label className="mb-1.5 ml-1 text-stone-800 dark:text-stone-300">Description</Label>
+          <FormField
+            id="description"
+            label="Description"
+            error={errors.description?.message}
+          >
             <Textarea
+              id="description"
               maxLength={1000}
               rows={4}
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              {...register('description')}
               disabled={!canEdit}
               className={`rounded-xl resize-y${!canEdit ? ' cursor-not-allowed opacity-60' : ''}`}
+              aria-invalid={errors.description ? "true" : "false"}
+              aria-describedby={errors.description ? "description-error" : undefined}
             />
             {canEdit && (
               <div className="text-right mt-1 text-xs text-stone-500 dark:text-stone-400 font-sans">
                 {description.length}/1000
               </div>
             )}
-          </div>
+          </FormField>
         </section>
 
         {/* Section 2: Location */}
@@ -452,20 +506,53 @@ export default function ListingDetail() {
             </h2>
           </div>
 
-          <div>
-            <Label className="mb-1.5 ml-1 text-stone-800 dark:text-stone-300">Farm Address / Village *</Label>
-            <Input type="text" value={farmAddress} onChange={(e) => setFarmAddress(e.target.value)} required disabled={!canEdit} className={inputCls} />
-          </div>
+          <FormField
+            id="farmAddress"
+            label="Farm Address / Village *"
+            error={errors.farmAddress?.message}
+          >
+            <Input
+              id="farmAddress"
+              type="text"
+              {...register('farmAddress')}
+              disabled={!canEdit}
+              className={inputCls}
+              aria-invalid={errors.farmAddress ? "true" : "false"}
+              aria-describedby={errors.farmAddress ? "farmAddress-error" : undefined}
+            />
+          </FormField>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <div>
-              <Label className="mb-1.5 ml-1 text-stone-800 dark:text-stone-300">District *</Label>
-              <Input type="text" value={farmDistrict} onChange={(e) => setFarmDistrict(e.target.value)} required disabled={!canEdit} className={inputCls} />
-            </div>
-            <div>
-              <Label className="mb-1.5 ml-1 text-stone-800 dark:text-stone-300">State *</Label>
-              <Input type="text" value={farmState} onChange={(e) => setFarmState(e.target.value)} required disabled={!canEdit} className={inputCls} />
-            </div>
+            <FormField
+              id="farmDistrict"
+              label="District *"
+              error={errors.farmDistrict?.message}
+            >
+              <Input
+                id="farmDistrict"
+                type="text"
+                {...register('farmDistrict')}
+                disabled={!canEdit}
+                className={inputCls}
+                aria-invalid={errors.farmDistrict ? "true" : "false"}
+                aria-describedby={errors.farmDistrict ? "farmDistrict-error" : undefined}
+              />
+            </FormField>
+            <FormField
+              id="farmState"
+              label="State *"
+              error={errors.farmState?.message}
+            >
+              <Input
+                id="farmState"
+                type="text"
+                {...register('farmState')}
+                disabled={!canEdit}
+                className={inputCls}
+                aria-invalid={errors.farmState ? "true" : "false"}
+                aria-describedby={errors.farmState ? "farmState-error" : undefined}
+              />
+            </FormField>
           </div>
         </section>
 
@@ -536,7 +623,7 @@ export default function ListingDetail() {
                           <button
                             type="button"
                             onClick={() => handleRemoveMedia(url)}
-                            className="p-2 bg-red-600 hover:bg-red-700 text-white rounded-full shadow-lg transform scale-90 group-hover:scale-100 transition-all"
+                            className="p-2 bg-red-600 hover:bg-red-700 text-white rounded-full shadow-lg transform scale-90 group-hover:scale-100 transition-all cursor-pointer"
                             aria-label="Remove image"
                           >
                             <svg
@@ -585,9 +672,9 @@ export default function ListingDetail() {
             {/* New Media Upload */}
             {canEdit && existingMedia.length < 6 && (
               <div>
-                <Label className="mb-1.5 ml-1 text-stone-800 dark:text-stone-300">
+                <label className="block font-sans text-sm font-medium text-stone-850 dark:text-stone-300 mb-1.5 ml-1">
                   Add New Media (Up to {6 - existingMedia.length} more)
-                </Label>
+                </label>
                 <div className="mt-2 flex justify-center px-6 py-8 border-2 border-stone-300 dark:border-stone-700 border-dashed rounded-xl bg-white dark:bg-stone-950 hover:bg-stone-50 dark:hover:bg-stone-900 transition-colors">
                   <div className="space-y-2 text-center flex flex-col items-center">
                     <svg
@@ -657,10 +744,7 @@ export default function ListingDetail() {
           <div className="bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-2xl p-5 shadow-sm space-y-3 animate-in fade-in">
             <div className="flex justify-between font-sans text-sm font-semibold text-stone-800 dark:text-stone-150">
               <span className="flex items-center gap-2">
-                <svg className="animate-spin h-4 w-4 text-green-700 dark:text-green-500" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
+                <Loader2 className="animate-spin h-4 w-4 text-green-700 dark:text-green-500" />
                 Processing file {uploadProgress.index + 1}...
               </span>
               <span>{uploadProgress.progress}%</span>
@@ -683,16 +767,14 @@ export default function ListingDetail() {
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="flex-1 h-14 rounded-xl bg-green-800 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white font-sans text-lg font-medium shadow-md"
+              aria-busy={isSubmitting}
+              className="flex-1 h-14 rounded-xl bg-green-800 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white font-sans text-lg font-medium shadow-md flex items-center justify-center gap-2"
             >
               {isSubmitting ? (
-                <span className="flex items-center gap-2">
-                  <svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                  </svg>
+                <>
+                  <Loader2 className="animate-spin h-5 w-5 text-white" />
                   {isUploading ? "Uploading Media..." : "Saving Changes..."}
-                </span>
+                </>
               ) : "Save Changes"}
             </Button>
 
@@ -701,7 +783,7 @@ export default function ListingDetail() {
               variant="destructive"
               onClick={handleDelete}
               disabled={isDeleting || isSubmitting}
-              className="md:w-1/3 h-14 rounded-xl"
+              className="md:w-1/3 h-14 rounded-xl cursor-pointer"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />

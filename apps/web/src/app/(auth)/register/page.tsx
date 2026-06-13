@@ -10,30 +10,53 @@ import { useRegisterMutation } from '@/store/endpoints/authApi';
 import { useTheme } from '@/components/providers/ThemeProvider';
 import { LanguageSwitcher } from '@/components/shared/LanguageSwitcher';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useTranslations } from 'next-intl';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { FormField } from '@/components/shared/FormField';
+import { PasswordInput } from '@/components/shared/PasswordInput';
+import { Loader2 } from 'lucide-react';
+
+const registerSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters"),
+  email: z.string().email("Invalid email format"),
+  phone: z.string().regex(/^[6-9]\d{9}$/, "Invalid Indian phone number format"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+  role: z.enum(["kisan", "buyer", "driver", "admin"]),
+});
+
+type RegisterInput = z.infer<typeof registerSchema>;
 
 export default function RegisterPage() {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
-  const [password, setPassword] = useState('');
-  const [role, setRole] = useState('kisan');
   const [error, setError] = useState('');
   const { darkMode: isDark, toggleTheme: toggleDarkMode } = useTheme();
 
   const dispatch = useAppDispatch();
   const router = useRouter();
-  const [register, { isLoading: isRegistering }] = useRegisterMutation();
+  const [registerApi, { isLoading: isRegistering }] = useRegisterMutation();
   const tAuth = useTranslations('auth');
 
-  const handleRegister = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const { register, handleSubmit, watch, formState: { errors } } = useForm<RegisterInput>({
+    resolver: zodResolver(registerSchema),
+    defaultValues: {
+      name: '',
+      email: '',
+      phone: '',
+      password: '',
+      role: 'kisan',
+    },
+    mode: 'onTouched',
+  });
+
+  const selectedRole = watch('role');
+
+  const onSubmit = async (data: RegisterInput) => {
     setError('');
     try {
-      const response = await register({ name, email, phone, password, role }).unwrap();
+      const response = await registerApi(data).unwrap();
       dispatch(setUser(response.data.user));
 
       const userRole = response.data.user?.role;
@@ -116,7 +139,7 @@ export default function RegisterPage() {
               </Alert>
             )}
 
-            <form onSubmit={handleRegister} className="flex flex-col gap-5">
+            <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
 
               {/* Role toggle */}
               <div className="flex bg-stone-100 dark:bg-stone-950 p-1 rounded-xl border border-stone-200 dark:border-stone-800">
@@ -124,10 +147,8 @@ export default function RegisterPage() {
                   <label key={r.value} className="flex-1 cursor-pointer">
                     <input
                       type="radio"
-                      name="role"
                       value={r.value}
-                      checked={role === r.value}
-                      onChange={(e) => setRole(e.target.value)}
+                      {...register('role')}
                       className="peer sr-only"
                       disabled={isRegistering}
                     />
@@ -140,77 +161,91 @@ export default function RegisterPage() {
                 ))}
               </div>
 
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="fullName" className="ml-1 text-stone-800 dark:text-stone-300">
-                  {tAuth('fullName')}
-                </Label>
+              <FormField
+                id="fullName"
+                label={tAuth('fullName')}
+                error={errors.name?.message}
+                required
+              >
                 <Input
                   id="fullName"
                   type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  {...register('name')}
                   disabled={isRegistering}
-                  required
                   placeholder="Jane Doe"
                   className="h-12 rounded-xl"
+                  aria-invalid={errors.name ? "true" : "false"}
+                  aria-describedby={errors.name ? "fullName-error" : undefined}
                 />
-              </div>
+              </FormField>
 
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="email" className="ml-1 text-stone-800 dark:text-stone-300">
-                  {tAuth('email')}
-                </Label>
+              <FormField
+                id="email"
+                label={tAuth('email')}
+                error={errors.email?.message}
+                required
+              >
                 <Input
                   id="email"
                   type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  {...register('email')}
                   disabled={isRegistering}
-                  required
                   placeholder="jane@example.com"
                   className="h-12 rounded-xl"
+                  aria-invalid={errors.email ? "true" : "false"}
+                  aria-describedby={errors.email ? "email-error" : undefined}
                 />
-              </div>
+              </FormField>
 
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="phone" className="ml-1 text-stone-800 dark:text-stone-300">
-                  {tAuth('phone')}
-                </Label>
+              <FormField
+                id="phone"
+                label={tAuth('phone')}
+                error={errors.phone?.message}
+                required
+              >
                 <Input
                   id="phone"
                   type="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
+                  {...register('phone')}
                   disabled={isRegistering}
-                  required
-                  pattern="[6-9][0-9]{9}"
                   placeholder={tAuth('phonePlaceholder')}
                   className="h-12 rounded-xl"
+                  aria-invalid={errors.phone ? "true" : "false"}
+                  aria-describedby={errors.phone ? "phone-error" : undefined}
                 />
-              </div>
+              </FormField>
 
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="password" className="ml-1 text-stone-800 dark:text-stone-300">
-                  {tAuth('password')}
-                </Label>
-                <Input
+              <FormField
+                id="password"
+                label={tAuth('password')}
+                error={errors.password?.message}
+                required
+              >
+                <PasswordInput
                   id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  {...register('password')}
                   disabled={isRegistering}
-                  required
                   placeholder={tAuth('passwordPlaceholder')}
                   className="h-12 rounded-xl"
+                  aria-invalid={errors.password ? "true" : "false"}
+                  aria-describedby={errors.password ? "password-error" : undefined}
                 />
-              </div>
+              </FormField>
 
               <Button
                 type="submit"
                 disabled={isRegistering}
-                className="mt-2 h-12 w-full rounded-xl bg-green-800 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white font-sans font-medium transition-colors"
+                aria-busy={isRegistering}
+                className="mt-2 h-12 w-full rounded-xl bg-green-800 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white font-sans font-medium transition-colors flex items-center justify-center gap-2"
               >
-                {isRegistering ? tAuth('creatingAccount') : tAuth('createAccount')}
+                {isRegistering ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    {tAuth('creatingAccount')}
+                  </>
+                ) : (
+                  tAuth('createAccount')
+                )}
               </Button>
             </form>
 

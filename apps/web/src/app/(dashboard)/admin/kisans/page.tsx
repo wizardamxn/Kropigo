@@ -7,6 +7,12 @@ import { useGetKisansQuery, useSetKisanVerificationMutation } from '@/store/endp
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import PageHeader from '@/components/shared/PageHeader';
+import EmptyState from '@/components/shared/EmptyState';
+import Pagination from '@/components/shared/Pagination';
+import { TableSkeleton } from '@/components/shared/Skeletons';
+import ConfirmDialog from '@/components/shared/ConfirmDialog';
+import { Users } from 'lucide-react';
 
 // ─── HELPERS ──────────────────────────────────────────────────────────────────
 
@@ -107,73 +113,7 @@ function KycDialog({
   );
 }
 
-// ─── CONFIRM DIALOG ───────────────────────────────────────────────────────────
 
-function ConfirmDialog({
-  open,
-  onOpenChange,
-  targetVerified,
-  onConfirm,
-  isLoading,
-  t,
-  tCommon,
-}: {
-  open: boolean;
-  onOpenChange: (v: boolean) => void;
-  targetVerified: boolean;
-  onConfirm: () => void;
-  isLoading: boolean;
-  t: any;
-  tCommon: any;
-}) {
-  const actionLabel = isLoading
-    ? (targetVerified ? t('btnVerifying') : t('btnRevoking'))
-    : (targetVerified ? t('confirmVerifyYes') : t('confirmRevokeYes'));
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent showCloseButton={false}>
-        <div className="flex flex-col items-center gap-4 py-1 text-center">
-          {targetVerified ? (
-            <div className="w-12 h-12 rounded-full bg-green-50 dark:bg-green-900/20 flex items-center justify-center shrink-0">
-              <svg className="w-6 h-6 text-green-700 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-              </svg>
-            </div>
-          ) : (
-            <div className="w-12 h-12 rounded-full bg-red-50 dark:bg-red-900/20 flex items-center justify-center shrink-0">
-              <svg className="w-6 h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
-              </svg>
-            </div>
-          )}
-          <div className="space-y-1">
-            <h3 className="font-serif text-lg font-semibold text-stone-900 dark:text-stone-100">
-              {targetVerified ? t('confirmVerifyTitle') : t('confirmRevokeTitle')}
-            </h3>
-            <p className="text-sm text-stone-500 dark:text-stone-400 font-sans leading-relaxed">
-              {targetVerified ? t('confirmVerifyDesc') : t('confirmRevokeDesc')}
-            </p>
-          </div>
-          <div className="flex gap-3 w-full pt-1">
-            <Button variant="outline" className="flex-1" onClick={() => onOpenChange(false)} disabled={isLoading}>
-              {tCommon('cancel')}
-            </Button>
-            <button
-              onClick={onConfirm}
-              disabled={isLoading}
-              className={`flex-1 h-8 px-3 rounded-lg text-white text-sm font-medium font-sans transition-colors disabled:opacity-60 ${
-                targetVerified ? 'bg-green-700 hover:bg-green-800' : 'bg-red-600 hover:bg-red-700'
-              }`}
-            >
-              {actionLabel}
-            </button>
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-}
 
 // ─── KISAN ROW ────────────────────────────────────────────────────────────────
 
@@ -297,13 +237,14 @@ function KisanRow({ kisan, t, tCommon }: { kisan: any; t: any; tCommon: any }) {
 
       <KycDialog kisan={kisan} open={kycOpen} onOpenChange={setKycOpen} t={t} tCommon={tCommon} />
       <ConfirmDialog
-        open={confirmOpen}
+        isOpen={confirmOpen}
         onOpenChange={setConfirmOpen}
-        targetVerified={targetVerified}
+        title={targetVerified ? t('confirmVerifyTitle') : t('confirmRevokeTitle')}
+        description={targetVerified ? t('confirmVerifyDesc') : t('confirmRevokeDesc')}
         onConfirm={handleConfirm}
+        confirmText={targetVerified ? t('confirmVerifyYes') : t('confirmRevokeYes')}
         isLoading={isLoading}
-        t={t}
-        tCommon={tCommon}
+        variant={targetVerified ? 'success' : 'destructive'}
       />
     </>
   );
@@ -352,11 +293,7 @@ export default function AdminKisansPage() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
-      {/* Header */}
-      <div>
-        <h1 className="font-serif text-2xl md:text-3xl font-bold text-stone-900 dark:text-stone-50">{t('title')}</h1>
-        <p className="mt-1 text-sm text-stone-500 dark:text-stone-400 font-sans">{t('subtitle')}</p>
-      </div>
+      <PageHeader title={t('title')} subtitle={t('subtitle')} />
 
       {/* Toolbar */}
       <div className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 p-4 shadow-sm flex flex-col sm:flex-row gap-3">
@@ -385,33 +322,13 @@ export default function AdminKisansPage() {
             Failed to load kisans. Please try again.
           </div>
         ) : isLoading ? (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left">
-              <thead className="bg-stone-50 dark:bg-stone-950 border-b border-stone-200 dark:border-stone-800">
-                <tr>
-                  {[t('colName'), t('colContact'), t('colLocation'), t('colStatus'), t('colKyc'), t('colActions')].map((col) => (
-                    <th key={col} className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-stone-500 dark:text-stone-400 font-sans">{col}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {Array.from({ length: 6 }).map((_, i) => (
-                  <tr key={i} className="border-b border-stone-100 dark:border-stone-800">
-                    {Array.from({ length: 6 }).map((__, j) => (
-                      <td key={j} className="px-4 py-3">
-                        <div className="h-4 bg-stone-100 dark:bg-stone-800 rounded animate-pulse w-full max-w-[120px]" />
-                      </td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <TableSkeleton rows={6} cols={6} />
         ) : kisans.length === 0 ? (
-          <div className="py-20 text-center space-y-2">
-            <p className="font-serif text-lg text-stone-700 dark:text-stone-300">{t('noKisans')}</p>
-            <p className="text-sm text-stone-400 dark:text-stone-500 font-sans">{t('noKisansSub')}</p>
-          </div>
+          <EmptyState
+            icon={Users}
+            title={t('noKisans')}
+            subtitle={t('noKisansSub')}
+          />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left">
@@ -432,29 +349,12 @@ export default function AdminKisansPage() {
         )}
       </div>
 
-      {/* Pagination */}
-      {meta && meta.totalPages > 1 && (
-        <div className="flex items-center justify-between bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 px-5 py-3.5 shadow-sm">
-          <button
-            disabled={page === 1}
-            onClick={() => setPage((p) => p - 1)}
-            className="flex items-center gap-2 h-9 px-4 rounded-xl text-sm font-medium text-stone-700 dark:text-stone-300 bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
-            {t('prev')}
-          </button>
-          <span className="text-sm text-stone-500 dark:text-stone-400 font-sans">
-            {t('pageIndicator', { current: page, total: meta.totalPages })}
-          </span>
-          <button
-            disabled={page >= meta.totalPages}
-            onClick={() => setPage((p) => p + 1)}
-            className="flex items-center gap-2 h-9 px-4 rounded-xl text-sm font-medium text-stone-700 dark:text-stone-300 bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-          >
-            {t('next')}
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
-          </button>
-        </div>
+      {meta && (
+        <Pagination
+          page={page}
+          totalPages={meta.totalPages}
+          onPageChange={setPage}
+        />
       )}
     </div>
   );

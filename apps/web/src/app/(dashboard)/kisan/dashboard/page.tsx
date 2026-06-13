@@ -5,7 +5,11 @@ import { useGetListingsQuery } from '@/store/endpoints/listingsApi';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { StatusBadge } from '@/components/shared/StatusBadge';
-import { Skeleton } from '@/components/ui/skeleton';
+import PageHeader from '@/components/shared/PageHeader';
+import EmptyState from '@/components/shared/EmptyState';
+import StatCard from '@/components/shared/StatCard';
+import { CardSkeleton } from '@/components/shared/Skeletons';
+import { List, Activity, FileText, CheckCircle, Package } from 'lucide-react';
 
 export default function KisanDashboard() {
   const { user } = useAuth();
@@ -20,15 +24,11 @@ export default function KisanDashboard() {
     return (
       <div className="space-y-8">
         <div className="space-y-3">
-          <Skeleton className="h-10 w-1/3 rounded-lg" />
-          <Skeleton className="h-5 w-1/4 rounded-lg" />
+          <div className="h-10 bg-stone-100 dark:bg-stone-800 rounded-lg w-1/3 animate-pulse" />
+          <div className="h-5 bg-stone-100 dark:bg-stone-800 rounded-lg w-1/4 animate-pulse" />
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {[1, 2, 3, 4].map((i) => (
-            <Skeleton key={i} className="h-28 rounded-2xl" />
-          ))}
-        </div>
-        <Skeleton className="h-64 w-full rounded-2xl" />
+        <CardSkeleton count={4} />
+        <div className="h-64 bg-stone-100 dark:bg-stone-800 rounded-2xl w-full animate-pulse" />
       </div>
     );
   }
@@ -53,23 +53,18 @@ export default function KisanDashboard() {
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       
-      {/* Header Section */}
-      <header className="flex flex-col gap-2">
-        <h1 className="font-serif text-3xl md:text-4xl text-stone-800 dark:text-stone-100 font-medium tracking-tight">
-          {t('title')}
-        </h1>
-        <p className="font-sans text-stone-600 dark:text-stone-400 text-lg">
-          {t('welcomeBack', { name: user?.name ?? '' })}
-        </p>
-      </header>
+      <PageHeader
+        title={t('title')}
+        subtitle={t('welcomeBack', { name: user?.name ?? '' })}
+      />
 
       {/* Summary Cards Grid */}
       <section>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <StatCard title={t('totalListings')} value={listings.length} icon="M4 6h16M4 10h16M4 14h16M4 18h16" href="/kisan/listings" />
-          <StatCard title={t('activeOpen')} value={open} icon="M5 13l4 4L19 7" color="green" href="/kisan/listings" />
-          <StatCard title={t('drafts')} value={draft} icon="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" color="stone" href="/kisan/listings" />
-          <StatCard title={t('soldClosed')} value={sold} icon="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" color="blue" href="/kisan/listings" />
+          <StatCard title={t('totalListings')} value={listings.length} icon={List} href="/kisan/listings" />
+          <StatCard title={t('activeOpen')} value={open} icon={Activity} color="green" href="/kisan/listings" />
+          <StatCard title={t('drafts')} value={draft} icon={FileText} color="stone" href="/kisan/listings" />
+          <StatCard title={t('soldClosed')} value={sold} icon={CheckCircle} color="blue" href="/kisan/listings" />
         </div>
       </section>
 
@@ -96,18 +91,18 @@ export default function KisanDashboard() {
         </div>
 
         {listings.length === 0 ? (
-          <div className="p-12 text-center flex flex-col items-center justify-center gap-4">
-            <div className="w-16 h-16 bg-stone-100 dark:bg-stone-800 rounded-full flex items-center justify-center text-stone-400">
-              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
-            </div>
-            <p className="font-sans text-stone-500 dark:text-stone-400">{t('noListings')}</p>
-            <Link 
-              href="/kisan/listings/create" 
-              className="mt-2 h-12 px-6 rounded-xl bg-green-800 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white font-sans font-medium transition-colors inline-flex items-center justify-center"
-            >
-              {t('createFirst')}
-            </Link>
-          </div>
+          <EmptyState
+            icon={Package}
+            title={t('noListings')}
+            action={
+              <Link 
+                href="/kisan/listings/create" 
+                className="mt-2 h-12 px-6 rounded-xl bg-green-800 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white font-sans font-medium transition-colors inline-flex items-center justify-center"
+              >
+                {t('createFirst')}
+              </Link>
+            }
+          />
         ) : (
           <>
             {/* Desktop Table View (Hidden on Mobile) */}
@@ -191,45 +186,6 @@ export default function KisanDashboard() {
           </>
         )}
       </section>
-    </div>
-  );
-}
-
-// Reusable Sub-component for the top statistics grid
-function StatCard({ title, value, icon, color = 'green', href }: { title: string, value: number, icon: string, color?: 'green' | 'stone' | 'blue', href?: string }) {
-  const colorMap = {
-    green: 'bg-green-50 text-green-800 dark:bg-green-900/20 dark:text-green-500',
-    stone: 'bg-stone-100 text-stone-700 dark:bg-stone-800/50 dark:text-stone-400',
-    blue: 'bg-blue-50 text-blue-800 dark:bg-blue-900/20 dark:text-blue-500'
-  };
-
-  const content = (
-    <>
-      <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${colorMap[color]}`}>
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={icon} />
-        </svg>
-      </div>
-      <div>
-        <p className="font-sans text-sm text-stone-500 dark:text-stone-400 font-medium mb-1">{title}</p>
-        <p className="font-serif text-3xl text-stone-800 dark:text-stone-100">{value}</p>
-      </div>
-    </>
-  );
-
-  const className = "bg-white dark:bg-stone-900 p-5 rounded-2xl shadow-sm border border-stone-200 dark:border-stone-800 flex flex-col gap-3 hover:shadow-md hover:border-stone-300 dark:hover:border-stone-700 active:scale-[0.98] transition-all duration-200 text-left w-full cursor-pointer";
-
-  if (href) {
-    return (
-      <Link href={href} className={className}>
-        {content}
-      </Link>
-    );
-  }
-
-  return (
-    <div className="bg-white dark:bg-stone-900 p-5 rounded-2xl shadow-sm border border-stone-200 dark:border-stone-800 flex flex-col gap-3">
-      {content}
     </div>
   );
 }

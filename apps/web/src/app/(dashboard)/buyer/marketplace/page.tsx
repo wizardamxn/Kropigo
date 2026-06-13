@@ -9,6 +9,19 @@ import { useTranslations } from 'next-intl';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import ListingsMapView from '@/components/marketplace/ListingsMapView';
+import { getCategoryClass } from '@/components/shared/statusHelper';
+import PageHeader from '@/components/shared/PageHeader';
+import EmptyState from '@/components/shared/EmptyState';
+import Pagination from '@/components/shared/Pagination';
+import { CardSkeleton } from '@/components/shared/Skeletons';
+import { Search, Globe, Filter, X, Grid, Map } from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 // ─── HELPERS ────────────────────────────────────────────────────────────────
 
@@ -18,18 +31,6 @@ const daysUntil = (dateStr: string) => {
   const diff = new Date(dateStr).getTime() - Date.now();
   return Math.ceil(diff / (1000 * 60 * 60 * 24));
 };
-
-const categoryColor: Record<string, string> = {
-  grain: 'bg-stone-100 text-stone-800 dark:bg-stone-800 dark:text-stone-200 border-stone-200 dark:border-stone-700',
-  vegetable: 'bg-green-50 text-green-800 dark:bg-green-900/20 dark:text-green-400 border-green-100 dark:border-green-900/30',
-  fruit: 'bg-orange-50 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400 border-orange-100 dark:border-orange-900/30',
-  spice: 'bg-red-50 text-red-800 dark:bg-red-900/20 dark:text-red-400 border-red-100 dark:border-red-900/30',
-  oilseed: 'bg-yellow-50 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400 border-yellow-100 dark:border-yellow-900/30',
-  pulse: 'bg-purple-50 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400 border-purple-100 dark:border-purple-900/30',
-};
-
-const catClass = (cat: string) =>
-  categoryColor[cat?.toLowerCase()] ?? 'bg-stone-100 text-stone-700 dark:bg-stone-800 dark:text-stone-300 border-transparent';
 
 // ─── TYPES & CONSTANTS ───────────────────────────────────────────────────────
 
@@ -83,7 +84,7 @@ function CropCard({ listing }: { listing: any }) {
         )}
 
         {crop?.category && (
-          <span className={`absolute top-3 left-3 px-2.5 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider border backdrop-blur-sm ${catClass(crop.category)}`}>
+          <span className={`absolute top-3 left-3 px-2.5 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider border backdrop-blur-sm ${getCategoryClass(crop.category)}`}>
             {crop.category}
           </span>
         )}
@@ -125,27 +126,14 @@ function CropCard({ listing }: { listing: any }) {
   );
 }
 
-function CardSkeleton() {
-  return (
-    <div className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 overflow-hidden">
-      <Skeleton className="w-full aspect-4/3 rounded-none" />
-      <div className="p-4 space-y-3">
-        <Skeleton className="h-5 w-3/4" />
-        <Skeleton className="h-6 w-1/2" />
-        <Skeleton className="h-4 w-full" />
-      </div>
-    </div>
-  );
-}
+// Removed local CardSkeleton - using shared component from Skeletons.tsx
 
 function FilterChip({ label, onRemove }: { label: string; onRemove: () => void }) {
   return (
     <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-400 text-sm font-medium border border-green-200/60 dark:border-green-800/40 shadow-sm animate-in zoom-in-95">
       {label}
       <button onClick={onRemove} className="hover:text-green-950 dark:hover:text-green-200 transition-colors p-0.5 rounded-full">
-        <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
-          <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-        </svg>
+        <X className="w-3.5 h-3.5" />
       </button>
     </span>
   );
@@ -260,9 +248,7 @@ export default function MarketplacePage() {
         <form onSubmit={handleApplyFilters} className="flex flex-col gap-4">
           <div className="flex items-center gap-3">
             <div className="flex-1 relative">
-              <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-stone-400" />
               <Input
                 id="marketplace-search"
                 type="text"
@@ -283,9 +269,7 @@ export default function MarketplacePage() {
                   : 'border-stone-300 dark:border-stone-700 text-stone-700 dark:text-stone-300 bg-white dark:bg-stone-900'
               }`}
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z" />
-              </svg>
+              <Filter className="w-4 h-4" />
               {tCommon('filter')} {activeFilterCount > 0 && `(${activeFilterCount})`}
             </button>
 
@@ -300,21 +284,24 @@ export default function MarketplacePage() {
 
           {/* Desktop Filter Tool Bar Row Layout (Hidden on Mobile) */}
           <div className="hidden md:flex items-center gap-3 flex-wrap">
-            <div className="relative">
-              <select
-                value={localFilters.cropId}
-                onChange={(e) => handleUpdateLocalFilter('cropId', e.target.value)}
-                className={selectStyles}
-              >
-                <option value="">{tBuyer('allCrops')}</option>
+            <Select
+              value={localFilters.cropId || "all"}
+              onValueChange={(val) => handleUpdateLocalFilter('cropId', (val === 'all' || !val) ? '' : val)}
+            >
+              <SelectTrigger className="h-12 w-48 rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 text-stone-850 dark:text-stone-100 px-4 font-sans text-sm focus:outline-none focus:ring-2 focus:ring-green-800 transition-colors shadow-sm cursor-pointer flex justify-between items-center gap-1.5 [&>span]:line-clamp-1">
+                <SelectValue placeholder={tBuyer('allCrops')} />
+              </SelectTrigger>
+              <SelectContent className="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-xl p-1 shadow-md max-h-60 overflow-y-auto">
+                <SelectItem value="all" className="px-3 py-2 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-800 cursor-pointer">
+                  {tBuyer('allCrops')}
+                </SelectItem>
                 {crops.map((c) => (
-                  <option key={c._id} value={c._id}>{c.name}</option>
+                  <SelectItem key={c._id} value={c._id} className="px-3 py-2 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-800 cursor-pointer">
+                    {c.name}
+                  </SelectItem>
                 ))}
-              </select>
-              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3.5 text-stone-400">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-              </div>
-            </div>
+              </SelectContent>
+            </Select>
 
             <Input
               type="text"
@@ -332,18 +319,19 @@ export default function MarketplacePage() {
               className="h-12 rounded-xl w-36"
             />
 
-            <div className="relative ml-auto">
-              <select
-                value={localFilters.sort}
-                onChange={(e) => handleSortChange(e.target.value)}
-                className={`${selectStyles} h-10`}
-              >
-                <option value="newest">{tBuyer('newestFirst')}</option>
-              </select>
-              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3.5 text-stone-400">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-              </div>
-            </div>
+            <Select
+              value={localFilters.sort}
+              onValueChange={(val) => handleSortChange(val || 'newest')}
+            >
+              <SelectTrigger className="h-12 w-40 rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 text-stone-850 dark:text-stone-100 px-4 font-sans text-sm focus:outline-none focus:ring-2 focus:ring-green-800 transition-colors shadow-sm cursor-pointer flex justify-between items-center gap-1.5 [&>span]:line-clamp-1 ml-auto">
+                <SelectValue placeholder={tBuyer('newestFirst')} />
+              </SelectTrigger>
+              <SelectContent className="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-xl p-1 shadow-md">
+                <SelectItem value="newest" className="px-3 py-2 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-800 cursor-pointer">
+                  {tBuyer('newestFirst')}
+                </SelectItem>
+              </SelectContent>
+            </Select>
 
             {activeFilterCount > 0 && (
               <button
@@ -361,18 +349,25 @@ export default function MarketplacePage() {
         {filterOpen && (
           <div className="md:hidden mt-4 pt-4 border-t border-stone-100 dark:border-stone-800 flex flex-col gap-4 animate-in slide-in-from-top-4 duration-200">
             <div className="grid grid-cols-2 gap-3">
-              <div className="relative col-span-2">
-                <select
-                  value={localFilters.cropId}
-                  onChange={(e) => handleUpdateLocalFilter('cropId', e.target.value)}
-                  className={`${selectStyles} w-full`}
+              <div className="col-span-2">
+                <Select
+                  value={localFilters.cropId || "all"}
+                  onValueChange={(val) => handleUpdateLocalFilter('cropId', (val === 'all' || !val) ? '' : val)}
                 >
-                  <option value="">{tBuyer('allCrops')}</option>
-                  {crops.map((c) => <option key={c._id} value={c._id}>{c.name}</option>)}
-                </select>
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3.5 text-stone-400">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-                </div>
+                  <SelectTrigger className="h-12 w-full rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 text-stone-850 dark:text-stone-100 px-4 font-sans text-sm focus:outline-none focus:ring-2 focus:ring-green-800 transition-colors shadow-sm cursor-pointer flex justify-between items-center gap-1.5 [&>span]:line-clamp-1">
+                    <SelectValue placeholder={tBuyer('allCrops')} />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-xl p-1 shadow-md max-h-60 overflow-y-auto">
+                    <SelectItem value="all" className="px-3 py-2 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-800 cursor-pointer">
+                      {tBuyer('allCrops')}
+                    </SelectItem>
+                    {crops.map((c) => (
+                      <SelectItem key={c._id} value={c._id} className="px-3 py-2 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-800 cursor-pointer">
+                        {c.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               
               <Input
@@ -390,17 +385,20 @@ export default function MarketplacePage() {
                 className="h-12 rounded-xl"
               />
               
-              <div className="relative col-span-2">
-                <select
+              <div className="col-span-2">
+                <Select
                   value={localFilters.sort}
-                  onChange={(e) => handleSortChange(e.target.value)}
-                  className={`${selectStyles} w-full`}
+                  onValueChange={(val) => handleSortChange(val || 'newest')}
                 >
-                  <option value="newest">{tBuyer('newestFirst')}</option>
-                </select>
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3.5 text-stone-400">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-                </div>
+                  <SelectTrigger className="h-12 w-full rounded-xl border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 text-stone-850 dark:text-stone-100 px-4 font-sans text-sm focus:outline-none focus:ring-2 focus:ring-green-800 transition-colors shadow-sm cursor-pointer flex justify-between items-center gap-1.5 [&>span]:line-clamp-1">
+                    <SelectValue placeholder={tBuyer('newestFirst')} />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-xl p-1 shadow-md">
+                    <SelectItem value="newest" className="px-3 py-2 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-800 cursor-pointer">
+                      {tBuyer('newestFirst')}
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
@@ -453,7 +451,7 @@ export default function MarketplacePage() {
                     : 'text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-200'
                 }`}
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
+                <Grid className="w-4 h-4" />
                 {tBuyer('gridView')}
               </button>
               <button
@@ -465,7 +463,7 @@ export default function MarketplacePage() {
                     : 'text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-200'
                 }`}
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6-10l6-3m0 13l5.447 2.724A1 1 0 0021 18.382V7.618a1 1 0 00-1.447-.894L15 10m0 3V7" /></svg>
+                <Map className="w-4 h-4" />
                 {tBuyer('mapView')}
               </button>
             </div>
@@ -529,27 +527,19 @@ export default function MarketplacePage() {
                 {Array.from({ length: 12 }).map((_, i) => <CardSkeleton key={i} />)}
               </div>
             ) : listings.length === 0 ? (
-              <div className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 py-20 text-center flex flex-col items-center justify-center gap-4 shadow-sm">
-                <div className="w-16 h-16 rounded-full bg-stone-50 dark:bg-stone-950 flex items-center justify-center text-stone-400">
-                  <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                  </svg>
-                </div>
-                <div>
-                  <p className="font-serif text-xl font-semibold text-stone-800 dark:text-stone-100">{tBuyer('noCropsAvailable')}</p>
-                  <p className="font-sans text-sm text-stone-500 dark:text-stone-400 mt-1">
-                    {activeFilterCount > 0 ? tBuyer('changeFilters') : tBuyer('comingSoon')}
-                  </p>
-                </div>
-                {activeFilterCount > 0 && (
+              <EmptyState
+                icon={Globe}
+                title={tBuyer('noCropsAvailable')}
+                subtitle={activeFilterCount > 0 ? tBuyer('changeFilters') : tBuyer('comingSoon')}
+                action={activeFilterCount > 0 ? (
                   <button
                     onClick={clearFilters}
-                    className="h-11 px-6 rounded-xl bg-green-800 hover:bg-green-700 text-white text-sm font-medium transition-colors shadow-sm"
+                    className="h-11 px-6 rounded-xl bg-green-800 hover:bg-green-700 text-white text-sm font-medium transition-colors shadow-sm cursor-pointer"
                   >
                     {tBuyer('removeFilters')}
                   </button>
-                )}
-              </div>
+                ) : undefined}
+              />
             ) : (
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
                 {listings.map((l) => <CropCard key={l._id} listing={l} />)}
@@ -559,39 +549,12 @@ export default function MarketplacePage() {
         )}
 
         {/* ── PAGINATION PANEL ROW CONTROL ────────────────────────────────────────────── */}
-        {meta && meta.totalPages > 1 && (
-          <div className="flex items-center justify-between bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 px-5 py-3.5 shadow-sm mt-4">
-            <button
-              id="prev-page-btn"
-              disabled={page === 1 || isFetching}
-              onClick={() => setPage((p) => p - 1)}
-              className="flex items-center gap-2 h-10 px-4 rounded-xl text-sm font-medium text-stone-700 dark:text-stone-300 bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-95"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
-              {tCommon('prev')}
-            </button>
-
-            <div className="text-xs sm:text-sm text-stone-600 dark:text-stone-400 font-sans">
-              <span>
-                {tCommon('showing', { 
-                  start: (page - 1) * meta.limit + 1, 
-                  end: Math.min(page * meta.limit, meta.total), 
-                  total: meta.total.toLocaleString('en-IN') 
-                })}
-              </span>
-            </div>
-
-            <button
-              id="next-page-btn"
-              disabled={page >= meta.totalPages || isFetching}
-              onClick={() => setPage((p) => p + 1)}
-              className="flex items-center gap-2 h-10 px-4 rounded-xl text-sm font-medium text-stone-700 dark:text-stone-300 bg-stone-100 dark:bg-stone-800 hover:bg-stone-200 dark:hover:bg-stone-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-95"
-            >
-              {tCommon('next')}
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
-            </button>
-          </div>
-        )}
+        <Pagination
+          page={page}
+          totalPages={meta?.totalPages ?? 1}
+          onPageChange={setPage}
+          isFetching={isFetching}
+        />
         </>
         )}
       </div>

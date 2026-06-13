@@ -8,10 +8,21 @@ import { updateUser } from '@/store/slices/authSlice';
 import { useAuth } from '@/hooks/useAuth';
 import { useUpdateProfileMutation } from '@/store/endpoints/authApi';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useTranslations } from 'next-intl';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { FormField } from '@/components/shared/FormField';
+import { Loader2 } from 'lucide-react';
+
+const profileSetupSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters"),
+  location: z.string().optional(),
+});
+
+type ProfileSetupInput = z.infer<typeof profileSetupSchema>;
 
 export default function ProfileSetupPage() {
   const router = useRouter();
@@ -19,11 +30,18 @@ export default function ProfileSetupPage() {
   const { isAuthenticated, hasCompletedProfile, role } = useAuth();
   const t = useTranslations('profileSetup');
 
-  const [name, setName] = useState('');
-  const [location, setLocation] = useState('');
   const [error, setError] = useState('');
 
   const [updateProfile, { isLoading }] = useUpdateProfileMutation();
+
+  const { register, handleSubmit, formState: { errors } } = useForm<ProfileSetupInput>({
+    resolver: zodResolver(profileSetupSchema),
+    defaultValues: {
+      name: '',
+      location: '',
+    },
+    mode: 'onTouched',
+  });
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -36,12 +54,11 @@ export default function ProfileSetupPage() {
     }
   }, [isAuthenticated, hasCompletedProfile, role, router]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = async (data: ProfileSetupInput) => {
     setError('');
     try {
-      await updateProfile({ name, role: role!, location }).unwrap();
-      dispatch(updateUser({ name, location }));
+      await updateProfile({ name: data.name, role: role!, location: data.location }).unwrap();
+      dispatch(updateUser({ name: data.name, location: data.location }));
       const dest = role === 'buyer' ? '/buyer/marketplace' : `/${role}/dashboard`;
       router.push(dest);
     } catch (err: any) {
@@ -96,44 +113,56 @@ export default function ProfileSetupPage() {
               </Alert>
             )}
 
-            <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="name" className="ml-1 text-stone-800 dark:text-stone-300">
-                  {t('nameLabel')} *
-                </Label>
+            <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
+              <FormField
+                id="name"
+                label={t('nameLabel')}
+                error={errors.name?.message}
+                required
+              >
                 <Input
                   id="name"
                   type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  required
+                  {...register('name')}
                   placeholder={t('namePlaceholder')}
                   disabled={isLoading}
                   className="h-12 rounded-xl"
+                  aria-invalid={errors.name ? "true" : "false"}
+                  aria-describedby={errors.name ? "name-error" : undefined}
                 />
-              </div>
+              </FormField>
 
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="location" className="ml-1 text-stone-800 dark:text-stone-300">
-                  {t('locationLabel')}
-                </Label>
+              <FormField
+                id="location"
+                label={t('locationLabel')}
+                error={errors.location?.message}
+              >
                 <Input
                   id="location"
                   type="text"
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
+                  {...register('location')}
                   placeholder={t('locationPlaceholder')}
                   disabled={isLoading}
                   className="h-12 rounded-xl"
+                  aria-invalid={errors.location ? "true" : "false"}
+                  aria-describedby={errors.location ? "location-error" : undefined}
                 />
-              </div>
+              </FormField>
 
               <Button
                 type="submit"
-                disabled={isLoading || !name.trim()}
-                className="mt-2 h-12 w-full rounded-xl bg-green-800 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white font-sans font-medium transition-colors"
+                disabled={isLoading}
+                aria-busy={isLoading}
+                className="mt-2 h-12 w-full rounded-xl bg-green-800 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white font-sans font-medium transition-colors flex items-center justify-center gap-2"
               >
-                {isLoading ? t('saving') : t('submit')}
+                {isLoading ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    {t('saving')}
+                  </>
+                ) : (
+                  t('submit')
+                )}
               </Button>
             </form>
           </div>

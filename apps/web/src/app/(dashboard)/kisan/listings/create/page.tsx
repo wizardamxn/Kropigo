@@ -13,14 +13,44 @@ import {
 import { uploadListingMedia, validateMediaFiles } from "@/lib/cloudinaryUpload";
 import { useTranslations } from "next-intl";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { toast } from "sonner";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { FormField } from "@/components/shared/FormField";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Loader2 } from "lucide-react";
 
 const UNITS = ["kg", "quintal", "ton"];
 const MAX_IMAGES = 6;
 type MediaPreview = { url: string; name: string; type: string };
+
+const createListingFormSchema = z.object({
+  cropId: z.string().min(1, 'Please select a crop'),
+  variety: z.string().max(100, 'Variety cannot exceed 100 characters').optional(),
+  unit: z.enum(['kg', 'quintal', 'ton'], { message: 'Please select a unit' }),
+  quantity: z.string().min(1, 'Quantity is required').refine(
+    (val) => !isNaN(Number(val)) && Number(val) > 0,
+    { message: 'Quantity must be greater than 0' }
+  ),
+  description: z.string().max(1000, 'Description cannot exceed 1000 characters').optional(),
+  farmAddress: z.string().min(1, 'Farm address is required').max(500, 'Address cannot exceed 500 characters'),
+  farmState: z.string().min(1, 'State is required').max(100, 'State cannot exceed 100 characters'),
+  farmDistrict: z.string().min(1, 'District is required').max(100, 'District cannot exceed 100 characters'),
+  lat: z.string().optional(),
+  lng: z.string().optional(),
+});
+
+type CreateListingFormValues = z.infer<typeof createListingFormSchema>;
 
 export default function CreateListing() {
   const router = useRouter();
@@ -28,31 +58,40 @@ export default function CreateListing() {
   const videoInputRef = useRef<HTMLInputElement>(null);
   const mediaPreviewsRef = useRef<MediaPreview[]>([]);
 
-  const [cropId, setCropId] = useState("");
-  const [variety, setVariety] = useState("");
-  const [unit, setUnit] = useState("");
-  const [quantity, setQuantity] = useState("");
-  const [description, setDescription] = useState("");
-  const [farmAddress, setFarmAddress] = useState("");
-  const [farmState, setFarmState] = useState("");
-  const [farmDistrict, setFarmDistrict] = useState("");
-  const [lat, setLat] = useState("");
-  const [lng, setLng] = useState("");
   const [error, setError] = useState("");
   const [isUploading, setIsUploading] = useState(false);
-  const [isLocating, setIsLocating] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [mediaPreviews, setMediaPreviews] = useState<MediaPreview[]>([]);
   const [uploadProgress, setUploadProgress] = useState<{ index: number; progress: number } | null>(null);
   const t = useTranslations("kisanCreateListing");
   const tCommon = useTranslations("common");
 
-  const { data: mandiData } = useGetMandiRatesQuery(cropId, { skip: !cropId });
   const [createListing, { isLoading }] = useCreateListingMutation();
   const [getCloudinarySignature] = useGetCloudinarySignatureMutation();
   const [deleteCloudinaryMedia] = useDeleteCloudinaryMediaMutation();
 
+  const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<CreateListingFormValues>({
+    resolver: zodResolver(createListingFormSchema),
+    defaultValues: {
+      cropId: "",
+      variety: "",
+      unit: undefined,
+      quantity: "",
+      description: "",
+      farmAddress: "",
+      farmState: "",
+      farmDistrict: "",
+      lat: "",
+      lng: "",
+    },
+    mode: "onTouched",
+  });
 
+  const cropId = watch("cropId");
+  const unit = watch("unit");
+  const description = watch("description") || "";
+
+  const { data: mandiData } = useGetMandiRatesQuery(cropId, { skip: !cropId });
   const mandiRates: any[] = mandiData?.data ?? [];
   const latestRate = mandiRates[0];
   const isSubmitting = isLoading || isUploading;
@@ -99,8 +138,7 @@ export default function CreateListing() {
     setSelectedFiles((prev) => prev.filter((_, i) => i !== indexToRemove));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = async (data: CreateListingFormValues) => {
     setError("");
     setUploadProgress(null);
     const uploadedMediaUrls: string[] = [];
@@ -118,19 +156,20 @@ export default function CreateListing() {
       );
 
       await createListing({
-        cropId,
-        variety: variety || undefined,
-        quantity,
-        unit,
-        description,
-        farmAddress,
-        farmState,
-        farmDistrict,
-        lat: lat || undefined,
-        lng: lng || undefined,
+        cropId: data.cropId,
+        variety: data.variety || undefined,
+        quantity: data.quantity,
+        unit: data.unit,
+        description: data.description,
+        farmAddress: data.farmAddress,
+        farmState: data.farmState,
+        farmDistrict: data.farmDistrict,
+        lat: data.lat || undefined,
+        lng: data.lng || undefined,
         mediaUrls,
       }).unwrap();
 
+      toast.success("Listing created successfully!");
       router.push("/kisan/listings");
     } catch (err: any) {
       if (uploadedMediaUrls.length > 0) {
@@ -152,7 +191,6 @@ export default function CreateListing() {
       setUploadProgress(null);
     }
   };
-
 
   return (
     <div className="max-w-3xl mx-auto space-y-6 md:space-y-8 animate-in fade-in duration-500 pb-12">
@@ -185,7 +223,7 @@ export default function CreateListing() {
         </Alert>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
 
         {/* Section 1: Crop Details */}
         <section className="bg-stone-50 dark:bg-stone-900 rounded-2xl p-5 md:p-8 border border-stone-200 dark:border-stone-800 shadow-sm space-y-5">
@@ -193,48 +231,76 @@ export default function CreateListing() {
             {t("cropDetails")}
           </h2>
 
-          <CropSelector cropId={cropId} setCropId={setCropId} />
-
-          <div>
-            <Label className="mb-1.5 ml-1 text-stone-800 dark:text-stone-300">{t("variety")}</Label>
-            <Input
-              type="text"
-              value={variety}
-              onChange={(e) => setVariety(e.target.value)}
-              placeholder={t("varietyPlaceholder")}
-              className="h-12 rounded-xl"
+          <div className="flex flex-col gap-1.5">
+            <CropSelector
+              cropId={cropId}
+              setCropId={(id) => setValue('cropId', id, { shouldValidate: true })}
             />
+            {errors.cropId && (
+              <p className="text-xs text-red-500 font-sans ml-1 mt-0.5 animate-in fade-in" role="alert">
+                {errors.cropId.message}
+              </p>
+            )}
           </div>
 
+          <FormField
+            id="variety"
+            label={t("variety")}
+            error={errors.variety?.message}
+          >
+            <Input
+              id="variety"
+              type="text"
+              {...register('variety')}
+              placeholder={t("varietyPlaceholder")}
+              className="h-12 rounded-xl"
+              aria-invalid={errors.variety ? "true" : "false"}
+              aria-describedby={errors.variety ? "variety-error" : undefined}
+            />
+          </FormField>
 
           <div className="flex flex-col sm:flex-row gap-5">
             <div className="sm:w-1/3">
-              <Label className="mb-1.5 ml-1 text-stone-800 dark:text-stone-300">{t("unit")}</Label>
-              <select
-                value={unit}
-                onChange={(e) => setUnit(e.target.value)}
+              <FormField
+                id="unit"
+                label={t("unit")}
+                error={errors.unit?.message}
                 required
-                className="h-12 w-full rounded-xl bg-white dark:bg-stone-950 border border-stone-300 dark:border-stone-700 text-stone-800 dark:text-stone-100 px-4 font-sans focus:outline-none focus:ring-2 focus:ring-green-800 dark:focus:ring-green-700 transition-all shadow-sm appearance-none cursor-pointer"
               >
-                <option value="" disabled>{t("selectUnit")}</option>
-                {UNITS.map((u) => (
-                  <option key={u} value={u}>{u.toUpperCase()}</option>
-                ))}
-              </select>
+                <Select value={unit} onValueChange={(val) => setValue('unit', val as any, { shouldValidate: true })}>
+                  <SelectTrigger id="unit" className="h-12 w-full rounded-xl bg-white dark:bg-stone-950 border border-stone-300 dark:border-stone-700 text-stone-800 dark:text-stone-100 px-4 font-sans focus:outline-none focus:ring-2 focus:ring-green-800 dark:focus:ring-green-700 transition-all shadow-sm cursor-pointer flex justify-between items-center">
+                    <SelectValue placeholder={t("selectUnit")} />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-xl p-1 shadow-md">
+                    {UNITS.map((u) => (
+                      <SelectItem key={u} value={u} className="px-3 py-2 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-800 cursor-pointer">
+                        {u.toUpperCase()}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormField>
             </div>
             <div className="flex-1">
-              <Label className="mb-1.5 ml-1 text-stone-800 dark:text-stone-300">{t("quantity")}</Label>
-              <Input
-                type="number"
-                min="0"
-                step="any"
-                value={quantity}
-                onChange={(e) => setQuantity(e.target.value)}
+              <FormField
+                id="quantity"
+                label={t("quantity")}
+                error={errors.quantity?.message}
                 required
-                placeholder={unit ? `e.g. 50 ${unit}` : t("selectUnitFirst")}
-                disabled={!unit}
-                className={`h-12 rounded-xl${!unit ? ' opacity-60 cursor-not-allowed' : ''}`}
-              />
+              >
+                <Input
+                  id="quantity"
+                  type="number"
+                  min="0"
+                  step="any"
+                  {...register('quantity')}
+                  placeholder={unit ? `e.g. 50 ${unit}` : t("selectUnitFirst")}
+                  disabled={!unit}
+                  className={`h-12 rounded-xl${!unit ? ' opacity-60 cursor-not-allowed' : ''}`}
+                  aria-invalid={errors.quantity ? "true" : "false"}
+                  aria-describedby={errors.quantity ? "quantity-error" : undefined}
+                />
+              </FormField>
             </div>
           </div>
         </section>
@@ -278,20 +344,25 @@ export default function CreateListing() {
             </p>
           </div>
 
-          <div>
-            <Label className="mb-1.5 ml-1 text-stone-800 dark:text-stone-300">{t("descriptionLabel")}</Label>
+          <FormField
+            id="description"
+            label={t("descriptionLabel")}
+            error={errors.description?.message}
+          >
             <Textarea
+              id="description"
               maxLength={1000}
               rows={4}
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              {...register('description')}
               placeholder={t("descriptionPlaceholder")}
               className="rounded-xl resize-y"
+              aria-invalid={errors.description ? "true" : "false"}
+              aria-describedby={errors.description ? "description-error" : undefined}
             />
             <div className="text-right mt-1 text-xs text-stone-500 dark:text-stone-400 font-sans">
               {description.length}/1000
             </div>
-          </div>
+          </FormField>
         </section>
 
         {/* Section 3: Location */}
@@ -306,21 +377,30 @@ export default function CreateListing() {
             </h2>
           </div>
 
-          <LocationPicker
-            lat={lat}
-            lng={lng}
-            farmAddress={farmAddress}
-            farmDistrict={farmDistrict}
-            farmState={farmState}
-            onChange={({ lat: l, lng: ln, farmAddress: fa, farmDistrict: fd, farmState: fs }) => {
-              setLat(l);
-              setLng(ln);
-              setFarmAddress(fa);
-              setFarmDistrict(fd);
-              setFarmState(fs);
-            }}
-            disabled={isSubmitting}
-          />
+          <div className="space-y-2">
+            <LocationPicker
+              lat={watch('lat') || ""}
+              lng={watch('lng') || ""}
+              farmAddress={watch('farmAddress') || ""}
+              farmDistrict={watch('farmDistrict') || ""}
+              farmState={watch('farmState') || ""}
+              onChange={({ lat: l, lng: ln, farmAddress: fa, farmDistrict: fd, farmState: fs }) => {
+                setValue('lat', l, { shouldValidate: true });
+                setValue('lng', ln, { shouldValidate: true });
+                setValue('farmAddress', fa, { shouldValidate: true });
+                setValue('farmDistrict', fd, { shouldValidate: true });
+                setValue('farmState', fs, { shouldValidate: true });
+              }}
+              disabled={isSubmitting}
+            />
+            {(errors.farmAddress || errors.farmDistrict || errors.farmState) && (
+              <div className="text-xs text-red-500 font-sans ml-1 space-y-0.5 animate-in fade-in" role="alert">
+                {errors.farmAddress && <p>{errors.farmAddress.message}</p>}
+                {errors.farmDistrict && <p>{errors.farmDistrict.message}</p>}
+                {errors.farmState && <p>{errors.farmState.message}</p>}
+              </div>
+            )}
+          </div>
         </section>
 
         {/* Section 4: Media Upload */}
@@ -346,14 +426,14 @@ export default function CreateListing() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Photos upload */}
             <div>
-              <Label className="mb-1.5 ml-1 text-stone-800 dark:text-stone-300">{t("photos")}</Label>
+              <label className="block font-sans text-sm font-medium text-stone-800 dark:text-stone-300 mb-1.5 ml-1">{t("photos")}</label>
               <button
                 type="button"
                 disabled={mediaPreviews.length >= MAX_IMAGES || isSubmitting}
                 onClick={() => imageInputRef.current?.click()}
                 className={`w-full flex flex-col items-center justify-center gap-3 px-6 py-7 border-2 border-dashed rounded-xl transition-colors ${
                   mediaPreviews.length >= MAX_IMAGES || isSubmitting
-                    ? "border-stone-200 dark:border-stone-800 bg-stone-100 dark:bg-stone-900 opacity-50 cursor-not-allowed"
+                    ? "border-stone-200 dark:border-stone-800 bg-stone-100 dark:bg-stone-950 opacity-50 cursor-not-allowed"
                     : "border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-950 hover:border-green-600 dark:hover:border-green-700 hover:bg-green-50/40 dark:hover:bg-green-900/10 cursor-pointer"
                 }`}
               >
@@ -380,14 +460,14 @@ export default function CreateListing() {
 
             {/* Video upload */}
             <div>
-              <Label className="mb-1.5 ml-1 text-stone-800 dark:text-stone-300">{t("video")}</Label>
+              <label className="block font-sans text-sm font-medium text-stone-800 dark:text-stone-300 mb-1.5 ml-1">{t("video")}</label>
               <button
                 type="button"
                 disabled={mediaPreviews.length >= MAX_IMAGES || isSubmitting}
                 onClick={() => videoInputRef.current?.click()}
                 className={`w-full flex flex-col items-center justify-center gap-3 px-6 py-7 border-2 border-dashed rounded-xl transition-colors ${
                   mediaPreviews.length >= MAX_IMAGES || isSubmitting
-                    ? "border-stone-200 dark:border-stone-800 bg-stone-100 dark:bg-stone-900 opacity-50 cursor-not-allowed"
+                    ? "border-stone-200 dark:border-stone-800 bg-stone-100 dark:bg-stone-950 opacity-50 cursor-not-allowed"
                     : "border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-950 hover:border-green-600 dark:hover:border-green-700 hover:bg-green-50/40 dark:hover:bg-green-900/10 cursor-pointer"
                 }`}
               >
@@ -433,7 +513,7 @@ export default function CreateListing() {
                     <button
                       type="button"
                       onClick={() => handleRemovePreview(index)}
-                      className="p-2 bg-red-600 hover:bg-red-700 text-white rounded-full shadow-lg transform scale-90 group-hover:scale-100 transition-all"
+                      className="p-2 bg-red-600 hover:bg-red-700 text-white rounded-full shadow-lg transform scale-90 group-hover:scale-100 transition-all cursor-pointer"
                       aria-label="Remove file"
                     >
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -454,12 +534,9 @@ export default function CreateListing() {
 
         {uploadProgress && (
           <div className="bg-stone-50 dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-2xl p-5 shadow-sm space-y-3 animate-in fade-in">
-            <div className="flex justify-between font-sans text-sm font-semibold text-stone-800 dark:text-stone-150">
+            <div className="flex justify-between font-sans text-sm font-semibold text-stone-800 dark:text-stone-100">
               <span className="flex items-center gap-2">
-                <svg className="animate-spin h-4 w-4 text-green-700 dark:text-green-500" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
+                <Loader2 className="animate-spin h-4 w-4 text-green-700 dark:text-green-500" />
                 {t("processingFile", { current: uploadProgress.index + 1, total: selectedFiles.length })}
               </span>
               <span>{uploadProgress.progress}%</span>
@@ -481,16 +558,14 @@ export default function CreateListing() {
           <Button
             type="submit"
             disabled={isSubmitting}
-            className="h-14 w-full rounded-xl bg-green-800 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white font-sans text-lg font-medium shadow-md"
+            aria-busy={isSubmitting}
+            className="h-14 w-full rounded-xl bg-green-800 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white font-sans text-lg font-medium shadow-md flex items-center justify-center gap-2"
           >
             {isSubmitting ? (
-              <span className="flex items-center gap-2">
-                <svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
+              <>
+                <Loader2 className="animate-spin h-5 w-5 text-white" />
                 {isUploading ? t("uploadingMedia") : t("publishingListing")}
-              </span>
+              </>
             ) : (
               t("publishListing")
             )}

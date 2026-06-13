@@ -21,6 +21,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { useTranslations } from 'next-intl';
+import { toast } from 'sonner';
 
 /*
   API: GET /listings/:id
@@ -84,16 +85,18 @@ export default function ListingViewPage() {
       try {
         const response = await acceptInterest({ listingId: listing._id, interestId: modalState.interestId }).unwrap();
         closeActionModal();
+        toast.success("Offer accepted successfully! Order created.");
         router.push(`/kisan/orders/${response.orderId}`);
       } catch (err: any) {
-        alert(err?.data?.message || t('failedToAccept'));
+        toast.error(err?.data?.message || t('failedToAccept'));
       }
     } else if (modalState.type === 'reject') {
       try {
         await rejectInterest({ listingId: listing._id, interestId: modalState.interestId }).unwrap();
         closeActionModal();
+        toast.success("Offer rejected successfully.");
       } catch (err: any) {
-        alert(err?.data?.message || t('failedToReject'));
+        toast.error(err?.data?.message || t('failedToReject'));
       }
     }
   };

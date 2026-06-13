@@ -8,55 +8,13 @@ import Link from 'next/link';
 import { RoleGuard } from '@/components/auth/RoleGuard';
 import { useTranslations } from 'next-intl';
 import { StatusBadge } from '@/components/shared/StatusBadge';
+import PageHeader from '@/components/shared/PageHeader';
+import EmptyState from '@/components/shared/EmptyState';
+import StatCard from '@/components/shared/StatCard';
+import { CardSkeleton } from '@/components/shared/Skeletons';
+import { Clock, CheckCircle, Package, TrendingUp, ShoppingCart, ClipboardList } from 'lucide-react';
 
-interface StatCardProps {
-  label: string;
-  value: number | string;
-  sub?: string;
-  color?: 'stone' | 'amber' | 'green' | 'blue';
-  icon: React.ReactNode;
-}
 
-// Fixed property extraction parsing bug present in prior iteration
-function StatCard({ label, value, sub, color = 'stone', icon }: StatCardProps) {
-  const containerColors = {
-    stone: 'border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900',
-    amber: 'border-amber-200 dark:border-amber-900/30 bg-white dark:bg-stone-900',
-    green: 'border-green-200 dark:border-green-900/30 bg-white dark:bg-stone-900',
-    blue: 'border-blue-200 dark:border-blue-900/30 bg-white dark:bg-stone-900',
-  };
-
-  const iconColors = {
-    stone: 'bg-stone-100 text-stone-600 dark:bg-stone-800 dark:text-stone-400',
-    amber: 'bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400',
-    green: 'bg-green-50 text-green-800 dark:bg-green-900/20 dark:text-green-400',
-    blue: 'bg-blue-50 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400',
-  };
-
-  const textColors = {
-    stone: 'text-stone-800 dark:text-stone-100',
-    amber: 'text-amber-700 dark:text-amber-500',
-    green: 'text-green-800 dark:text-green-500',
-    blue: 'text-blue-800 dark:text-blue-500',
-  };
-
-  return (
-    <div className={`p-5 rounded-2xl border shadow-sm flex flex-col gap-3 transition-transform duration-300 hover:-translate-y-0.5 ${containerColors[color]}`}>
-      <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${iconColors[color]}`}>
-        {icon}
-      </div>
-      <div>
-        <p className="font-sans text-xs font-semibold uppercase tracking-wider text-stone-400 dark:text-stone-500 mb-1">
-          {label}
-        </p>
-        <p className={`font-serif text-2xl md:text-3xl font-medium ${textColors[color]}`}>
-          {value}
-        </p>
-        {sub && <p className="font-sans text-xs text-stone-400 dark:text-stone-500 mt-1">{sub}</p>}
-      </div>
-    </div>
-  );
-}
 
 export default function BuyerDashboard() {
   const { user } = useAuth();
@@ -82,49 +40,40 @@ export default function BuyerDashboard() {
     <RoleGuard allowedRoles={['buyer']}>
       <div className="space-y-6 md:space-y-8 animate-in fade-in duration-500 w-full overflow-hidden">
 
-        {/* Header Section */}
-        <header className="flex flex-col gap-1">
-          <h1 className="font-serif text-3xl md:text-4xl text-stone-800 dark:text-stone-100 font-medium tracking-tight">
-            {t('title')}
-          </h1>
-          <p className="font-sans text-stone-600 dark:text-stone-400 text-lg">
-            {t('welcomeBack')} <span className="font-medium text-amber-700 dark:text-amber-500">{user?.name}</span>
-          </p>
-        </header>
+        <PageHeader
+          title={t('title')}
+          subtitle={`${t('welcomeBack')} ${user?.name ?? ''}`}
+        />
 
         {/* Statistics Metric Grid */}
         {isLoading ? (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 animate-pulse">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-32 bg-stone-200 dark:bg-stone-800 rounded-2xl w-full" />
-            ))}
-          </div>
+          <CardSkeleton count={4} />
         ) : (
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <StatCard 
-              label={t('pendingInterests')} 
+              title={t('pendingInterests')} 
               value={pendingInterests} 
               color="amber" 
-              icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
+              icon={Clock}
             />
             <StatCard 
-              label={t('acceptedDeals')} 
+              title={t('acceptedDeals')} 
               value={acceptedInterests} 
               color="green" 
-              icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
+              icon={CheckCircle}
             />
             <StatCard 
-              label={t('activeOrders')} 
+              title={t('activeOrders')} 
               value={activeOrders} 
               color="blue" 
-              icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" /></svg>}
+              icon={Package}
             />
             <StatCard 
-              label={t('totalSpent')} 
+              title={t('totalSpent')} 
               value={`₹${totalSpent.toLocaleString('en-IN')}`} 
               sub={t('acrossOpenFilled')} 
               color="stone" 
-              icon={<svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>}
+              icon={TrendingUp}
             />
           </div>
         )}
@@ -136,9 +85,7 @@ export default function BuyerDashboard() {
             className="bg-amber-800 dark:bg-amber-900/40 hover:bg-amber-700 dark:hover:bg-amber-900/60 text-white rounded-2xl p-5 flex items-center gap-4 transition-all hover:shadow-md hover:-translate-y-0.5 group border border-transparent dark:border-amber-800/40"
           >
             <div className="w-12 h-12 bg-white/10 dark:bg-amber-500/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-all duration-300">
-              <svg className="w-6 h-6 text-white dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-              </svg>
+              <ShoppingCart className="w-6 h-6 text-white dark:text-amber-400" />
             </div>
             <div>
               <p className="font-sans font-semibold text-base">{t('browseMarketplace')}</p>
@@ -151,9 +98,7 @@ export default function BuyerDashboard() {
             className="bg-white dark:bg-stone-900 hover:bg-stone-50 dark:hover:bg-stone-800 border border-stone-200 dark:border-stone-800 rounded-2xl p-5 flex items-center gap-4 transition-all hover:shadow-md hover:-translate-y-0.5 group"
           >
             <div className="w-12 h-12 bg-stone-100 dark:bg-stone-800 rounded-xl flex items-center justify-center text-stone-600 dark:text-stone-400 group-hover:scale-110 transition-all duration-300">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-              </svg>
+              <ClipboardList className="w-6 h-6" />
             </div>
             <div>
               <p className="font-sans font-semibold text-base text-stone-800 dark:text-stone-100">{t('trackOrders')}</p>
@@ -178,20 +123,16 @@ export default function BuyerDashboard() {
               ))}
             </div>
           ) : orders.length === 0 ? (
-            <div className="p-12 text-center flex flex-col items-center justify-center gap-4">
-              <div className="w-16 h-16 bg-stone-50 dark:bg-stone-950 rounded-full flex items-center justify-center text-stone-400">
-                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                </svg>
-              </div>
-              <div>
-                <p className="font-serif text-lg text-stone-800 dark:text-stone-100 mb-1">{t('noOrdersYet')}</p>
-                <p className="font-sans text-sm text-stone-500 dark:text-stone-400">{t('browseToStart')}</p>
-              </div>
-              <Link href="/buyer/marketplace" className="mt-2 h-11 px-6 rounded-xl bg-amber-800 hover:bg-amber-700 text-white font-sans text-sm font-medium transition-colors flex items-center justify-center shadow-sm">
-                {t('goToMarketplace')}
-              </Link>
-            </div>
+            <EmptyState
+              icon={Package}
+              title={t('noOrdersYet')}
+              subtitle={t('browseToStart')}
+              action={
+                <Link href="/buyer/marketplace" className="mt-2 h-11 px-6 rounded-xl bg-amber-800 hover:bg-amber-700 text-white font-sans text-sm font-medium transition-colors flex items-center justify-center shadow-sm">
+                  {t('goToMarketplace')}
+                </Link>
+              }
+            />
           ) : (
             <div className="flex flex-col md:block">
               {/* Desktop Table Header View (Hidden on Mobile) */}
@@ -240,10 +181,8 @@ export default function BuyerDashboard() {
                   >
                     <div className="flex justify-between items-start">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-stone-50 dark:bg-stone-950 flex items-center justify-center border border-stone-100 dark:border-stone-800/60">
-                          <svg className="w-5 h-5 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                          </svg>
+                        <div className="w-10 h-10 rounded-xl bg-stone-50 dark:bg-stone-950 flex items-center justify-center border border-stone-100 dark:border-stone-800/60 shrink-0">
+                          <Package className="w-5 h-5 text-stone-400" />
                         </div>
                         <div>
                           <p className="font-sans font-semibold text-stone-800 dark:text-stone-100">

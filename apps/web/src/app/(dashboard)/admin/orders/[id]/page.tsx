@@ -10,6 +10,7 @@ import { StatusBadge } from '@/components/shared/StatusBadge';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import type { OrderStatus } from '@kropi/schemas/enum';
+import { toast } from 'sonner';
 
 const VALID_TRANSITIONS: Record<string, string[]> = {
   sale_confirmed:   ['admin_notified'],
@@ -189,6 +190,7 @@ function StatusUpdatePanel({ orderId, currentStatus }: { orderId: string; curren
         status: selectedStatus,
         note: note.trim() || undefined
       }).unwrap();
+      toast.success("Order status updated successfully.");
       setSelectedStatus('');
       setNote('');
     } catch (err: any) {

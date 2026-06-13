@@ -10,14 +10,24 @@ import { useLoginMutation } from '@/store/endpoints/authApi';
 import { useTheme } from '@/components/providers/ThemeProvider';
 import { LanguageSwitcher } from '@/components/shared/LanguageSwitcher';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useTranslations } from 'next-intl';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { FormField } from '@/components/shared/FormField';
+import { PasswordInput } from '@/components/shared/PasswordInput';
+import { Loader2 } from 'lucide-react';
+
+const loginSchema = z.object({
+  email: z.string().email("Invalid email format"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+});
+
+type LoginInput = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const { darkMode: isDark, toggleTheme: toggleDarkMode } = useTheme();
 
@@ -30,11 +40,19 @@ export default function LoginPage() {
     ? new URLSearchParams(window.location.search).get('redirect')
     : null;
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const { register, handleSubmit, formState: { errors } } = useForm<LoginInput>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: '',
+      password: '',
+    },
+    mode: 'onTouched',
+  });
+
+  const onSubmit = async (data: LoginInput) => {
     setError('');
     try {
-      const response = await login({ email, password }).unwrap();
+      const response = await login(data).unwrap();
       dispatch(setUser(response.data.user));
 
       const userRole = response.data.user?.role;
@@ -118,46 +136,57 @@ export default function LoginPage() {
               </Alert>
             )}
 
-            <form onSubmit={handleLogin} className="flex flex-col gap-5">
+            <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
 
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="email" className="ml-1 text-stone-800 dark:text-stone-300">
-                  {tAuth('email')}
-                </Label>
+              <FormField
+                id="email"
+                label={tAuth('email')}
+                error={errors.email?.message}
+                required
+              >
                 <Input
                   id="email"
                   type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  {...register('email')}
                   disabled={isLoggingIn}
-                  required
                   placeholder="jane@example.com"
                   className="h-12 rounded-xl"
+                  aria-invalid={errors.email ? "true" : "false"}
+                  aria-describedby={errors.email ? "email-error" : undefined}
                 />
-              </div>
+              </FormField>
 
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="password" className="ml-1 text-stone-800 dark:text-stone-300">
-                  {tAuth('password')}
-                </Label>
-                <Input
+              <FormField
+                id="password"
+                label={tAuth('password')}
+                error={errors.password?.message}
+                required
+              >
+                <PasswordInput
                   id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  {...register('password')}
                   disabled={isLoggingIn}
-                  required
                   placeholder="Your password"
                   className="h-12 rounded-xl"
+                  aria-invalid={errors.password ? "true" : "false"}
+                  aria-describedby={errors.password ? "password-error" : undefined}
                 />
-              </div>
+              </FormField>
 
               <Button
                 type="submit"
                 disabled={isLoggingIn}
-                className="mt-2 h-12 w-full rounded-xl bg-green-800 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white font-sans font-medium transition-colors"
+                aria-busy={isLoggingIn}
+                className="mt-2 h-12 w-full rounded-xl bg-green-800 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white font-sans font-medium transition-colors flex items-center justify-center gap-2"
               >
-                {isLoggingIn ? tAuth('signingIn') : tAuth('signIn')}
+                {isLoggingIn ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    {tAuth('signingIn')}
+                  </>
+                ) : (
+                  tAuth('signIn')
+                )}
               </Button>
             </form>
 

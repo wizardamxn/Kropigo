@@ -9,6 +9,7 @@ import { updateUser } from '@/store/slices/authSlice';
 import { useLogout } from '@/hooks/useLogout';
 import { uploadMediaFile } from '@/lib/cloudinaryUpload';
 import { useTranslations } from 'next-intl';
+import { toast } from 'sonner';
 
 const ImageCrudField = ({
   label,
@@ -234,6 +235,7 @@ export default function KisanProfile() {
         bankDetails: { accountNumber, ifscCode, bankName }
       }));
       setMessage('Profile updated successfully.');
+      toast.success('Profile updated successfully.');
 
       if (urlsToDelete.length > 0) {
         try {

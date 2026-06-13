@@ -7,6 +7,11 @@ import { RoleGuard } from '@/components/auth/RoleGuard';
 import { useTranslations } from 'next-intl';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import type { OrderStatus } from '@kropi/schemas/enum';
+import PageHeader from '@/components/shared/PageHeader';
+import EmptyState from '@/components/shared/EmptyState';
+import Pagination from '@/components/shared/Pagination';
+import { TableSkeleton } from '@/components/shared/Skeletons';
+import { ClipboardList } from 'lucide-react';
 
 const ORDER_STATUS_FILTERS = [
   'sale_confirmed', 'admin_notified', 'qc_scheduled', 'qc_passed',
@@ -31,15 +36,10 @@ export default function KisanOrdersPage() {
     <RoleGuard allowedRoles={['kisan']}>
       <div className="space-y-8 animate-in fade-in duration-500">
 
-        {/* Header */}
-        <header>
-          <h1 className="font-serif text-3xl md:text-4xl text-stone-800 dark:text-stone-100 font-medium tracking-tight">
-            Confirmed Deals
-          </h1>
-          <p className="font-sans text-stone-600 dark:text-stone-400 mt-2">
-            Track the status of all your accepted orders.
-          </p>
-        </header>
+        <PageHeader
+          title="Confirmed Deals"
+          subtitle="Track the status of all your accepted orders."
+        />
 
         {/* Status Filters */}
         <div className="flex gap-2 flex-wrap">
@@ -60,25 +60,13 @@ export default function KisanOrdersPage() {
 
         {/* Orders List */}
         {isLoading ? (
-          <div className="animate-pulse space-y-4">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-24 bg-stone-200 dark:bg-stone-800 rounded-2xl" />
-            ))}
-          </div>
+          <TableSkeleton rows={5} cols={6} />
         ) : orders.length === 0 ? (
-          <div className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 p-16 flex flex-col items-center text-center gap-4 shadow-sm">
-            <div className="w-16 h-16 bg-stone-100 dark:bg-stone-800 rounded-full flex items-center justify-center">
-              <svg className="w-8 h-8 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-              </svg>
-            </div>
-            <div>
-              <p className="font-serif text-xl text-stone-700 dark:text-stone-300">No orders found</p>
-              <p className="font-sans text-stone-500 dark:text-stone-400 text-sm mt-1">
-                {statusFilter ? 'Try a different status filter.' : 'Accept a buyer interest to create your first order.'}
-              </p>
-            </div>
-          </div>
+          <EmptyState
+            icon={ClipboardList}
+            title="No orders found"
+            subtitle={statusFilter ? 'Try a different status filter.' : 'Accept a buyer interest to create your first order.'}
+          />
         ) : (
           <>
             {/* Desktop Table */}
@@ -152,30 +140,11 @@ export default function KisanOrdersPage() {
             </div>
 
             {/* Pagination */}
-            <div className="flex justify-between items-center">
-              <p className="font-sans text-sm text-stone-500 dark:text-stone-400">
-                {data?.pagination.total} total order{data?.pagination.total !== 1 ? 's' : ''}
-              </p>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  disabled={page === 1}
-                  className="px-4 py-2 text-sm font-sans border border-stone-200 dark:border-stone-700 rounded-xl bg-white dark:bg-stone-900 text-stone-600 dark:text-stone-400 disabled:opacity-40 hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors"
-                >
-                  ← Prev
-                </button>
-                <span className="px-3 py-2 text-sm font-sans text-stone-500 dark:text-stone-400">
-                  {page} / {data?.pagination.pages ?? 1}
-                </span>
-                <button
-                  onClick={() => setPage((p) => p + 1)}
-                  disabled={page === (data?.pagination.pages ?? 1)}
-                  className="px-4 py-2 text-sm font-sans border border-stone-200 dark:border-stone-700 rounded-xl bg-white dark:bg-stone-900 text-stone-600 dark:text-stone-400 disabled:opacity-40 hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors"
-                >
-                  Next →
-                </button>
-              </div>
-            </div>
+            <Pagination
+              page={page}
+              totalPages={data?.pagination.pages ?? 1}
+              onPageChange={setPage}
+            />
           </>
         )}
       </div>
