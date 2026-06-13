@@ -6,33 +6,25 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
 import { LanguageSwitcher } from '@/components/shared/LanguageSwitcher';
+import { useTheme } from '@/components/providers/ThemeProvider';
+import { Sun, Moon, TrendingUp, BarChart3, ShieldCheck } from 'lucide-react';
 
 export default function LandingPage() {
   const { isAuthenticated, role } = useAuth();
   const roleHome = role === 'buyer' ? '/buyer/marketplace' : role ? `/${role}/dashboard` : '/';
-  const [isDark, setIsDark] = useState(false);
+  const { darkMode: isDark, toggleTheme: toggleDarkMode } = useTheme();
   const [isScrolled, setIsScrolled] = useState(false);
   const t = useTranslations('landing');
   const tAuth = useTranslations('auth');
 
-  // Handle dark mode initialization
+  // Add scroll listener for navbar blur effect
   useEffect(() => {
-    if (document.documentElement.classList.contains('dark')) {
-      setIsDark(true);
-    }
-    
-    // Add scroll listener for navbar blur effect
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
     };
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
-
-  const toggleDarkMode = () => {
-    document.documentElement.classList.toggle('dark');
-    setIsDark(!isDark);
-  };
 
   return (
     <div className="min-h-screen bg-stone-50 dark:bg-stone-950 text-stone-800 dark:text-stone-100 font-sans selection:bg-green-800/20 dark:selection:bg-green-500/30 transition-colors duration-300">
@@ -63,9 +55,9 @@ export default function LandingPage() {
               aria-label="Toggle Dark Mode"
             >
               {isDark ? (
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                <Sun className="w-5 h-5" />
               ) : (
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
+                <Moon className="w-5 h-5" />
               )}
             </button>
 
@@ -106,8 +98,8 @@ export default function LandingPage() {
           {/* Background Image with Overlay */}
           <div className="absolute inset-0 z-0">
             <Image
-              src="https://images.unsplash.com/photo-1500937386664-56d1dfef3854?q=80&w=2940&auto=format&fit=crop"
-              alt="Beautiful sunlit agricultural field"
+              src="/LANDINGFARMER.jpeg"
+              alt="Indian farmer in agricultural field"
               fill
               className="object-cover object-center"
               priority
@@ -133,7 +125,7 @@ export default function LandingPage() {
               {isAuthenticated ? (
                 <Link 
                   href={roleHome}
-                  className="h-14 px-8 w-full sm:w-auto flex items-center justify-center rounded-xl bg-green-600 hover:bg-green-500 text-white font-medium text-lg transition-all shadow-xl hover:shadow-green-900/20 transform hover:-translate-y-1"
+                  className="h-14 px-8 w-full sm:w-auto flex items-center justify-center rounded-xl bg-green-800 hover:bg-green-700 text-white font-medium text-lg transition-all shadow-xl hover:shadow-green-900/20 transform hover:-translate-y-1"
                 >
                   {t('enterApp')}
                 </Link>
@@ -141,7 +133,7 @@ export default function LandingPage() {
                 <>
                   <Link 
                     href="/register"
-                    className="h-14 px-8 w-full sm:w-auto flex items-center justify-center rounded-xl bg-green-600 hover:bg-green-500 text-white font-medium text-lg transition-all shadow-xl hover:shadow-green-900/20 transform hover:-translate-y-1"
+                    className="h-14 px-8 w-full sm:w-auto flex items-center justify-center rounded-xl bg-green-800 hover:bg-green-700 text-white font-medium text-lg transition-all shadow-xl hover:shadow-green-900/20 transform hover:-translate-y-1"
                   >
                     {t('joinMarketplace')}
                   </Link>
@@ -168,7 +160,7 @@ export default function LandingPage() {
             {/* Feature 1 */}
             <div className="bg-white dark:bg-stone-900 rounded-3xl p-8 border border-stone-200 dark:border-stone-800 shadow-sm hover:shadow-md transition-shadow group">
               <div className="w-14 h-14 rounded-2xl bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-500 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
+                <TrendingUp className="w-7 h-7" />
               </div>
               <h3 className="font-serif text-2xl text-stone-800 dark:text-stone-100 mb-3">{t('directMarketAccess')}</h3>
               <p className="font-sans text-stone-600 dark:text-stone-400 leading-relaxed">
@@ -179,7 +171,7 @@ export default function LandingPage() {
             {/* Feature 2 */}
             <div className="bg-white dark:bg-stone-900 rounded-3xl p-8 border border-stone-200 dark:border-stone-800 shadow-sm hover:shadow-md transition-shadow group">
               <div className="w-14 h-14 rounded-2xl bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-500 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+                <BarChart3 className="w-7 h-7" />
               </div>
               <h3 className="font-serif text-2xl text-stone-800 dark:text-stone-100 mb-3">{t('liveMandiRates')}</h3>
               <p className="font-sans text-stone-600 dark:text-stone-400 leading-relaxed">
@@ -190,7 +182,7 @@ export default function LandingPage() {
             {/* Feature 3 */}
             <div className="bg-white dark:bg-stone-900 rounded-3xl p-8 border border-stone-200 dark:border-stone-800 shadow-sm hover:shadow-md transition-shadow group">
               <div className="w-14 h-14 rounded-2xl bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-500 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+                <ShieldCheck className="w-7 h-7" />
               </div>
               <h3 className="font-serif text-2xl text-stone-800 dark:text-stone-100 mb-3">{t('verifiedNetwork')}</h3>
               <p className="font-sans text-stone-600 dark:text-stone-400 leading-relaxed">

@@ -59,7 +59,7 @@ export function AuthCard({
         </div>
 
         {/* Right: form card */}
-        <div className="w-full md:w-1/2 flex items-center justify-center p-6 md:p-12 pt-24 md:pt-12">
+        <div className="w-full md:w-1/2 flex items-center justify-center p-6 md:p-12 pt-24 md:pt-12 overflow-y-auto">
           <div className="w-full max-w-md bg-white dark:bg-stone-900 rounded-2xl shadow-lg dark:shadow-none dark:border dark:border-stone-800 p-8 flex flex-col gap-6">
             <div className="text-center flex flex-col gap-2">
               <h1 className="font-serif text-3xl text-stone-800 dark:text-stone-100">

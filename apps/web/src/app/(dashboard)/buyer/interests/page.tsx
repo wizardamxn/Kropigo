@@ -13,7 +13,7 @@ import EmptyState from '@/components/shared/EmptyState';
 import Pagination from '@/components/shared/Pagination';
 import { ListSkeleton } from '@/components/shared/Skeletons';
 import ConfirmDialog from '@/components/shared/ConfirmDialog';
-import { FileText, AlertTriangle } from 'lucide-react';
+import { FileText, AlertTriangle, ImageIcon, ClipboardList, ExternalLink } from 'lucide-react';
 
 // ─── HELPERS ─────────────────────────────────────────────────────────────────
 
@@ -77,9 +77,7 @@ function InterestCard({ interest, t }: { interest: any, t: any }) {
               <Image src={thumb} alt="" fill className="object-cover" sizes="56px" />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-stone-400">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
+                <ImageIcon className="w-5 h-5" />
               </div>
             )}
           </div>
@@ -139,7 +137,7 @@ function InterestCard({ interest, t }: { interest: any, t: any }) {
               href={interest.orderId ? `/buyer/orders/${interest.orderId}` : '#'}
               className="h-10 px-4 text-xs font-semibold bg-green-800 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white rounded-xl font-sans flex items-center justify-center gap-1.5 transition-colors shadow-sm order-1 sm:order-2"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+              <ClipboardList className="w-4 h-4" />
               {t('trackLogistics')}
             </Link>
           )}
@@ -149,9 +147,7 @@ function InterestCard({ interest, t }: { interest: any, t: any }) {
               className="h-10 px-4 text-xs font-semibold bg-stone-100 hover:bg-stone-200 dark:bg-stone-800 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-300 rounded-xl font-sans flex items-center justify-center gap-1 transition-colors border border-stone-200/40 dark:border-stone-700 order-2 sm:order-1"
             >
               {t('viewListingSource')}
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-              </svg>
+              <ExternalLink className="w-3.5 h-3.5" />
             </Link>
           )}
           {interest.status === 'pending' && listingId && (

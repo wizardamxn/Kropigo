@@ -5,6 +5,7 @@ import { useGetOrderByIdQuery } from '@/store/endpoints/ordersApi';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { StatusBadge } from '@/components/shared/StatusBadge';
+import { ArrowLeft, Info, FileText } from 'lucide-react';
 
 export default function BuyerOrderViewPage() {
   const { id } = useParams<{ id: string }>();
@@ -45,9 +46,7 @@ export default function BuyerOrderViewPage() {
           onClick={() => router.back()}
           className="mb-4 flex items-center gap-2 text-stone-500 hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-100 font-sans text-sm font-medium transition-colors w-fit"
         >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-          </svg>
+          <ArrowLeft className="w-4 h-4" />
           {t('back')}
         </button>
         <div className="flex flex-wrap items-end justify-between gap-4">
@@ -64,9 +63,7 @@ export default function BuyerOrderViewPage() {
       </div>
 
       <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/50 rounded-2xl p-4 flex gap-3 shadow-sm">
-        <svg className="w-6 h-6 text-amber-600 dark:text-amber-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
+        <Info className="w-6 h-6 text-amber-600 dark:text-amber-500 flex-shrink-0" />
         <div className="font-sans text-sm text-amber-900 dark:text-amber-300">
           <strong className="font-medium block mb-0.5">{t('nextSteps')}</strong>
           {t('nextStepsDesc')}
@@ -145,9 +142,7 @@ export default function BuyerOrderViewPage() {
             href={`/buyer/orders/${order._id}/invoice`}
             className="flex items-center gap-2 h-10 px-5 rounded-xl bg-green-800 hover:bg-green-700 text-white font-sans text-sm font-medium transition-colors shadow-sm"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
+            <FileText className="w-4 h-4" />
             {t('downloadInvoice')}
           </Link>
         )}

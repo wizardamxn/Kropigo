@@ -9,43 +9,28 @@ import { useNotifications } from '@/hooks/useNotifications';
 import { NotificationBell } from '@/components/shared/NotificationBell';
 import { LanguageSwitcher } from '@/components/shared/LanguageSwitcher';
 import { useTranslations } from 'next-intl';
+import { LayoutDashboard, ShoppingCart, FileEdit, ClipboardList, User, LogIn } from 'lucide-react';
 
 const navLinks = [
   {
     href: '/buyer/dashboard',
     label: 'Dashboard',
-    icon: (
-      <svg className="w-5 h-5 md:w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-      </svg>
-    ),
+    Icon: LayoutDashboard,
   },
   {
     href: '/buyer/marketplace',
     label: 'Marketplace',
-    icon: (
-      <svg className="w-5 h-5 md:w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-      </svg>
-    ),
+    Icon: ShoppingCart,
   },
   {
     href: '/buyer/interests',
     label: 'Interests',
-    icon: (
-      <svg className="w-5 h-5 md:w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-      </svg>
-    ),
+    Icon: FileEdit,
   },
   {
     href: '/buyer/orders',
     label: 'Orders',
-    icon: (
-      <svg className="w-5 h-5 md:w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-      </svg>
-    ),
+    Icon: ClipboardList,
   },
 ];
 
@@ -105,7 +90,7 @@ export default function BuyerLayout({ children }: { children: React.ReactNode })
 
         {/* Core Link Stack Loop */}
         <div className="flex flex-row md:flex-col justify-between md:justify-start w-full gap-1 md:gap-2 flex-1 md:flex-initial">
-          {navLinks.map(({ href, label, icon }) => {
+          {navLinks.map(({ href, label, Icon }) => {
             const labelKey = label.toLowerCase() as any;
             return (
               <Link
@@ -113,7 +98,7 @@ export default function BuyerLayout({ children }: { children: React.ReactNode })
                 href={href}
                 className={navLinkClasses(isLinkActive(href))}
               >
-                {icon}
+                <Icon className="w-5 h-5 md:w-6 md:h-6" />
                 <span className="text-[10px] sm:text-xs md:text-base tracking-tight md:tracking-normal">{t(labelKey)}</span>
               </Link>
             );
@@ -125,9 +110,7 @@ export default function BuyerLayout({ children }: { children: React.ReactNode })
               href="/buyer/profile"
               className={navLinkClasses(pathname === '/buyer/profile')}
             >
-              <svg className="w-5 h-5 md:w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
+              <User className="w-5 h-5 md:w-6 md:h-6" />
               <span className="text-[10px] sm:text-xs md:text-base tracking-tight md:tracking-normal">{t('profile')}</span>
             </Link>
           ) : !isAuthenticated ? (
@@ -135,9 +118,7 @@ export default function BuyerLayout({ children }: { children: React.ReactNode })
               href="/login"
               className={navLinkClasses(pathname === '/login')}
             >
-              <svg className="w-5 h-5 md:w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
-              </svg>
+              <LogIn className="w-5 h-5 md:w-6 md:h-6" />
               <span className="text-[10px] sm:text-xs md:text-base tracking-tight md:tracking-normal">{tAuth('signIn')}</span>
             </Link>
           ) : null}

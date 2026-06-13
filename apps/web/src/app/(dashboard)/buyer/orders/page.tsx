@@ -11,7 +11,7 @@ import PageHeader from '@/components/shared/PageHeader';
 import EmptyState from '@/components/shared/EmptyState';
 import Pagination from '@/components/shared/Pagination';
 import { ListSkeleton } from '@/components/shared/Skeletons';
-import { FileText } from 'lucide-react';
+import { FileText, AlertTriangle, ChevronRight } from 'lucide-react';
 
 const PROGRESS_STEPS = [
   'sale_confirmed',
@@ -19,6 +19,7 @@ const PROGRESS_STEPS = [
   'qc_scheduled',
   'qc_passed',
   'pickup_scheduled',
+  'pending_contact',
   'in_transit',
   'delivered',
 ];
@@ -27,7 +28,7 @@ function OrderProgressBar({ status, t }: { status: string, t: any }) {
   if (status === 'qc_failed') {
     return (
       <div className="flex items-center gap-2 text-red-600 dark:text-red-400 text-xs font-sans font-medium bg-red-50 dark:bg-red-950/20 p-3 rounded-xl border border-red-100 dark:border-red-900/30">
-        <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+        <AlertTriangle className="w-4 h-4 flex-shrink-0" />
         {t('qcFailedMsg')}
       </div>
     );
@@ -71,6 +72,7 @@ export default function BuyerOrdersPage() {
     'qc_passed',
     'qc_failed',
     'pickup_scheduled',
+    'pending_contact',
     'in_transit',
     'delivered',
   ];
@@ -167,7 +169,7 @@ export default function BuyerOrdersPage() {
                     </p>
                     <p className="font-sans text-xs font-semibold text-green-800 dark:text-green-500 flex items-center gap-1.5 hover:underline">
                       {t('reviewDetails')} 
-                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
+                      <ChevronRight className="w-3.5 h-3.5" />
                     </p>
                   </div>
                 </div>

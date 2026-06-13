@@ -33,6 +33,7 @@ export const OrderStatusSchema = z.enum([
   'qc_passed',
   'qc_failed',
   'pickup_scheduled',
+  'pending_contact',
   'in_transit',
   'delivered',
 ]);

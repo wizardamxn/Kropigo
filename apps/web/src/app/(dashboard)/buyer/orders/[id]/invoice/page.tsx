@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useGetOrderByIdQuery } from '@/store/endpoints/ordersApi';
 import { useTranslations } from 'next-intl';
 import InvoiceView from '@/components/orders/InvoiceView';
+import { ArrowLeft, FileText } from 'lucide-react';
 
 export default function BuyerInvoicePage() {
   const { id } = useParams<{ id: string }>();
@@ -40,15 +41,11 @@ export default function BuyerInvoicePage() {
           onClick={() => router.back()}
           className="mb-6 flex items-center gap-2 text-stone-500 hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-100 font-sans text-sm font-medium transition-colors"
         >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-          </svg>
+          <ArrowLeft className="w-4 h-4" />
           {t('backToOrder')}
         </button>
         <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/50 rounded-2xl p-8 text-center space-y-3">
-          <svg className="w-10 h-10 mx-auto text-amber-600 dark:text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-          </svg>
+          <FileText className="w-10 h-10 mx-auto text-amber-600 dark:text-amber-500" />
           <p className="font-serif text-xl text-stone-800 dark:text-stone-100">{t('notDeliveredTitle')}</p>
           <p className="text-sm text-stone-500 dark:text-stone-400 font-sans">{t('notDeliveredDesc')}</p>
           <Link
@@ -69,9 +66,7 @@ export default function BuyerInvoicePage() {
           onClick={() => router.back()}
           className="flex items-center gap-2 text-stone-500 hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-100 font-sans text-sm font-medium transition-colors"
         >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-          </svg>
+          <ArrowLeft className="w-4 h-4" />
           {t('backToOrder')}
         </button>
       </div>

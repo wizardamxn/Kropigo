@@ -39,6 +39,7 @@
     "qc_passed": "QC पास",
     "qc_failed": "QC फेल",
     "pickup_scheduled": "पिकअप निर्धारित",
+    "pending_contact": "संपर्क की प्रतीक्षा",
     "in_transit": "रास्ते में",
     "delivered": "डिलीवर हो गया",
     "pending": "लंबित",

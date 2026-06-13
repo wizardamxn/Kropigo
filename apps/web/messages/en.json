@@ -39,6 +39,7 @@
     "qc_passed": "QC Passed",
     "qc_failed": "QC Failed",
     "pickup_scheduled": "Pickup Scheduled",
+    "pending_contact": "Awaiting Contact",
     "in_transit": "In Transit",
     "delivered": "Delivered",
     "pending": "Pending",

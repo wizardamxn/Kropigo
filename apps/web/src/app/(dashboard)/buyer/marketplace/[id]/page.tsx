@@ -17,6 +17,7 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { INTEREST_STATUS_COLORS } from '@/components/shared/statusHelper';
 import ConfirmDialog from '@/components/shared/ConfirmDialog';
+import { Lock, CheckCircle2, ChevronRight, Phone, Clock, ArrowLeft, ImageIcon, Eye, MapPin } from 'lucide-react';
 
 // ─── HELPERS ─────────────────────────────────────────────────────────────────
 
@@ -163,9 +164,7 @@ function InterestPanel({ listing, t }: { listing: any, t: any }) {
     return (
       <div className="rounded-2xl border border-stone-200 dark:border-stone-800 bg-stone-50 dark:bg-stone-900 p-6 text-center space-y-4">
         <div className="w-12 h-12 mx-auto rounded-xl bg-green-50 dark:bg-green-900/20 flex items-center justify-center text-green-800 dark:text-green-500">
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-          </svg>
+          <Lock className="w-6 h-6" />
         </div>
         <div>
           <p className="font-serif text-lg text-stone-800 dark:text-stone-100 font-medium">{t('signInTitle')}</p>
@@ -199,9 +198,7 @@ function InterestPanel({ listing, t }: { listing: any, t: any }) {
       <div className="rounded-2xl border border-green-200 dark:border-green-800/50 bg-green-50 dark:bg-green-950/20 p-6 space-y-4">
         <div className="flex items-start gap-4">
           <div className="w-10 h-10 rounded-xl bg-green-100 dark:bg-green-900/40 flex items-center justify-center flex-shrink-0 text-green-700 dark:text-green-400">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
+            <CheckCircle2 className="w-6 h-6" />
           </div>
           <div>
             <p className="font-serif text-lg text-green-800 dark:text-green-300 font-medium">
@@ -232,7 +229,7 @@ function InterestPanel({ listing, t }: { listing: any, t: any }) {
             className="flex items-center justify-center gap-2 h-12 rounded-xl bg-green-800 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white font-sans font-medium text-sm transition-colors shadow-sm"
           >
             {t('viewOrderBtn')}
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+            <ChevronRight className="w-4 h-4" />
           </Link>
         )}
 
@@ -248,7 +245,7 @@ function InterestPanel({ listing, t }: { listing: any, t: any }) {
                 href={`tel:${listing.sellerId.phone}`}
                 className="font-sans text-green-800 dark:text-green-400 text-sm font-semibold hover:underline flex items-center gap-1.5 mt-0.5"
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.94.725l.548 2.2a1 1 0 01-.321.988l-1.305.98a10.582 10.582 0 004.872 4.872l.98-1.305a1 1 0 01.988-.321l2.2.548a1 1 0 01.725.94V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
+                <Phone className="w-4 h-4" />
                 {listing.sellerId.phone}
               </a>
             </div>
@@ -265,9 +262,7 @@ function InterestPanel({ listing, t }: { listing: any, t: any }) {
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center flex-shrink-0 text-amber-600 dark:text-amber-500">
-              <svg className="w-5 h-5 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
+              <Clock className="w-5 h-5 animate-pulse" />
             </div>
             <div>
               <p className="font-sans font-semibold text-amber-800 dark:text-amber-400">{t('awaitingSeller')}</p>
@@ -519,9 +514,7 @@ export default function ListingDetailPage() {
         onClick={() => router.back()}
         className="flex items-center gap-1.5 text-sm text-stone-500 hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-100 font-sans font-medium transition-colors w-fit"
       >
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7 m0 0l7-7 m-7 7h18" />
-        </svg>
+        <ArrowLeft className="w-4 h-4" />
         {t('backToMarketplace')}
       </button>
 
@@ -558,9 +551,7 @@ export default function ListingDetailPage() {
         </section>
       ) : (
         <div className="w-full aspect-video rounded-2xl bg-stone-100 dark:bg-stone-900 border border-stone-200 dark:border-stone-800 flex flex-col items-center justify-center text-stone-400 dark:text-stone-600 gap-2 shadow-sm">
-          <svg className="w-12 h-12 stroke-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-          </svg>
+          <ImageIcon className="w-12 h-12 stroke-1" />
           <span className="text-xs font-sans font-medium">{t('noMedia')}</span>
         </div>
       )}
@@ -588,7 +579,7 @@ export default function ListingDetailPage() {
         
         <div className="flex items-center gap-4 text-xs font-medium text-stone-500 dark:text-stone-400 font-sans flex-wrap pt-2 border-t border-stone-100 dark:border-stone-800/60">
           <span className="flex items-center gap-1.5">
-            <svg className="w-4 h-4 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+            <Eye className="w-4 h-4 text-stone-400" />
             {listing.viewCount ?? 0} {t('activeViews')}
           </span>
           <span>·</span>
@@ -657,7 +648,7 @@ export default function ListingDetailPage() {
       {/* Farm Location Spatial Coordinates Section */}
       <section className="bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 p-5 space-y-2 shadow-sm">
         <h2 className="text-xs font-bold uppercase tracking-wider text-stone-400 dark:text-stone-500 font-sans flex items-center gap-1.5 mb-2">
-          <svg className="w-4 h-4 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+          <MapPin className="w-4 h-4 text-stone-400" />
           {t('pickupSpecs')}
         </h2>
         <p className="font-sans text-stone-800 dark:text-stone-100 font-medium text-sm md:text-base">{listing.farmAddress}</p>

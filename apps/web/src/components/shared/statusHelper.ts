@@ -15,6 +15,7 @@ export const STATUS_COLORS: Record<string, string> = {
   admin_notified: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400',
   qc_scheduled: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400',
   pickup_scheduled: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400',
+  pending_contact: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400',
   in_transit: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-400',
 
   // negative / terminal-bad
