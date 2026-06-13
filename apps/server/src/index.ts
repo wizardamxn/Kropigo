@@ -16,6 +16,13 @@ import authRoutes from './routes/authRoutes';
 import { apiLimiter } from './middleware/rateLimiter';
 
 const app = express();
+
+// Render (and most PaaS load balancers) sit in front of the app and set
+// X-Forwarded-For. Trust the first proxy hop so express-rate-limit can
+// identify clients by their real IP. Use `1` rather than `true` so clients
+// can't spoof X-Forwarded-For to bypass rate limiting.
+app.set('trust proxy', 1);
+
 const httpServer = createServer(app);
 
 // ─── Socket.io Setup ──────────────────────────────────────────────────────────
