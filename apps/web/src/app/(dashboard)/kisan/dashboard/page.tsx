@@ -106,7 +106,7 @@ export default function KisanDashboard() {
         ) : (
           <>
             {/* Desktop Table View (Hidden on Mobile) */}
-            <div className="hidden md:block overflow-x-auto">
+            <div className="hidden md:block overflow-x-auto scrollbar-premium">
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-stone-50 dark:bg-stone-950/50 font-sans text-sm text-stone-500 dark:text-stone-400 uppercase tracking-wider">

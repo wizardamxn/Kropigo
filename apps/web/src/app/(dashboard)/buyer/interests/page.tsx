@@ -210,7 +210,7 @@ export default function MyInterestsPage() {
         <PageHeader title={t('title')} subtitle={t('subtitle')} />
 
         {/* Tab Selection Filter System */}
-        <div className="flex overflow-x-auto gap-2 pb-2 scrollbar-none -mx-4 px-4 sm:mx-0 sm:px-0">
+        <div className="flex flex-wrap gap-2 pb-2">
           {STATUS_TABS.map((tab) => {
             const isTabActive = activeTab === tab.value;
             return (

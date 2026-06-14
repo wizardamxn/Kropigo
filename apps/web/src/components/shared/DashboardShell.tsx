@@ -114,7 +114,7 @@ export function DashboardShell({
       </header>
 
       {/* ─── GLOBAL APP SIDEBAR / BOTTOM BAR SYSTEM ─── */}
-      <nav className="print:hidden fixed bottom-0 left-0 right-0 z-50 w-full bg-white dark:bg-stone-900 border-t border-stone-200 dark:border-stone-800 px-2 py-1.5 pb-safe flex flex-row items-center md:relative md:w-64 md:flex-col md:justify-start md:border-t-0 md:border-r md:p-6 md:h-screen md:sticky md:top-0 md:overflow-y-auto transition-colors duration-300">
+      <nav className="print:hidden fixed bottom-0 left-0 right-0 z-50 w-full bg-white dark:bg-stone-900 border-t border-stone-200 dark:border-stone-800 px-2 py-1.5 pb-safe flex flex-row items-center md:relative md:w-64 md:flex-col md:justify-start md:border-t-0 md:border-r md:p-6 md:h-screen md:sticky md:top-0 md:overflow-y-auto md:shrink-0 transition-colors duration-300">
         
         {/* Single Notification Bell Instance: Fixed on Mobile Header, Absolute in Sidebar on Desktop */}
         <div className="fixed top-2.5 right-5 md:absolute md:top-7 md:right-7 md:left-auto z-[45] transform scale-95 md:scale-100">
@@ -194,7 +194,7 @@ export function DashboardShell({
         id="main-content"
         tabIndex={-1}
         aria-live="polite"
-        className="flex-1 w-full max-w-7xl mx-auto p-4 md:p-8 pt-20 md:pt-8 pb-24 md:pb-8 transition-all duration-300 focus:outline-none"
+        className="flex-1 min-w-0 w-full max-w-7xl mx-auto p-4 md:p-8 pt-20 md:pt-8 pb-24 md:pb-8 transition-all duration-300 focus:outline-none"
       >
         {children}
       </main>

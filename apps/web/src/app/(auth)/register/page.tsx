@@ -79,7 +79,7 @@ export default function RegisterPage() {
 
   return (
     <AuthCard
-      heroImage="/LANDINGFARMER.jpeg"
+      heroImage="/landing/why-choose.jpg"
       heroTitle={tAuth('rootedInCommunity')}
       heroSubtitle={tAuth('rootedInCommunitySubtitle')}
       title={tAuth('joinMarketplace')}

@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono, Fraunces } from "next/font/google";
+import { Geist, Geist_Mono, Fraunces, Caveat } from "next/font/google";
 import "./globals.css";
 import { StoreProvider } from "@/components/providers/StoreProvider";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
@@ -22,18 +22,24 @@ const fraunces = Fraunces({
   display: "swap",
 });
 
+const caveat = Caveat({
+  variable: "--font-caveat",
+  subsets: ["latin"],
+  display: "swap",
+});
+
 export const metadata: Metadata = {
-  title: "Kropigo",
+  title: "KropiGo",
   description: "Grow Connect Trade",
   icons: {
     icon: "/favicon.ico",
   },
   openGraph: {
-    title: "Kropigo",
+    title: "KropiGo",
     description: "Grow Connect Trade",
     type: "website",
     url: "https://kropigo.com",
-    siteName: "Kropigo",
+    siteName: "KropiGo",
   },
 };
 
@@ -58,7 +64,7 @@ export default async function RootLayout({
   return (
     <html
       lang={locale}
-      className={`${geistSans.variable} ${geistMono.variable} ${fraunces.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${fraunces.variable} ${caveat.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         <StoreProvider>

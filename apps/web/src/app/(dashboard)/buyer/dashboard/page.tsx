@@ -136,7 +136,7 @@ export default function BuyerDashboard() {
           ) : (
             <div className="flex flex-col md:block">
               {/* Desktop Table Header View (Hidden on Mobile) */}
-              <div className="hidden md:block overflow-x-auto">
+              <div className="hidden md:block overflow-x-auto scrollbar-premium">
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="bg-stone-50/50 dark:bg-stone-950/40 font-sans text-xs font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wider border-b border-stone-100 dark:border-stone-800">

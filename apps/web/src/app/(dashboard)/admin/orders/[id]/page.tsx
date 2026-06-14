@@ -144,26 +144,44 @@ function PartyCard({ person, role }: { person: any; role: 'kisan' | 'buyer' }) {
 
       {/* Document Photos */}
       {(person?.farmerIdPhoto || person?.aadharCardPhoto || person?.bankPassbookPhoto) && (
-        <div className="space-y-2">
+        <div className="space-y-2.5">
           <p className="font-sans text-xs font-semibold uppercase tracking-wider text-stone-500 dark:text-stone-400">Documents</p>
-          <div className="flex flex-wrap gap-2">
+          <div className="grid grid-cols-3 gap-2.5">
             {person.farmerIdPhoto && (
-              <a href={person.farmerIdPhoto} target="_blank" rel="noreferrer" className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-sans font-medium border ${accent.section} ${accent.link} hover:opacity-80 transition-opacity`}>
-                <FileText className="w-3.5 h-3.5" />
-                Farmer ID
-              </a>
+              <div className="space-y-1">
+                <a href={person.farmerIdPhoto} target="_blank" rel="noreferrer" className="block group">
+                  <div className="relative w-full aspect-[4/3] rounded-xl overflow-hidden border border-stone-200 dark:border-stone-800 bg-stone-100 dark:bg-stone-950 hover:opacity-90 transition-opacity shadow-xs">
+                    <Image src={person.farmerIdPhoto} alt={isKisan ? 'Farmer ID' : 'GST Certificate'} fill className="object-cover" sizes="120px" />
+                  </div>
+                  <span className="block text-[10px] text-center mt-1 text-stone-500 dark:text-stone-400 font-sans group-hover:underline font-medium">
+                    {isKisan ? 'Farmer ID' : 'GST Certificate'}
+                  </span>
+                </a>
+              </div>
             )}
             {person.aadharCardPhoto && (
-              <a href={person.aadharCardPhoto} target="_blank" rel="noreferrer" className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-sans font-medium border ${accent.section} ${accent.link} hover:opacity-80 transition-opacity`}>
-                <FileText className="w-3.5 h-3.5" />
-                Aadhaar
-              </a>
+              <div className="space-y-1">
+                <a href={person.aadharCardPhoto} target="_blank" rel="noreferrer" className="block group">
+                  <div className="relative w-full aspect-[4/3] rounded-xl overflow-hidden border border-stone-200 dark:border-stone-800 bg-stone-100 dark:bg-stone-950 hover:opacity-90 transition-opacity shadow-xs">
+                    <Image src={person.aadharCardPhoto} alt="Aadhaar" fill className="object-cover" sizes="120px" />
+                  </div>
+                  <span className="block text-[10px] text-center mt-1 text-stone-500 dark:text-stone-400 font-sans group-hover:underline font-medium">
+                    Aadhaar
+                  </span>
+                </a>
+              </div>
             )}
             {person.bankPassbookPhoto && (
-              <a href={person.bankPassbookPhoto} target="_blank" rel="noreferrer" className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-sans font-medium border ${accent.section} ${accent.link} hover:opacity-80 transition-opacity`}>
-                <CreditCard className="w-3.5 h-3.5" />
-                Passbook
-              </a>
+              <div className="space-y-1">
+                <a href={person.bankPassbookPhoto} target="_blank" rel="noreferrer" className="block group">
+                  <div className="relative w-full aspect-[4/3] rounded-xl overflow-hidden border border-stone-200 dark:border-stone-800 bg-stone-100 dark:bg-stone-950 hover:opacity-90 transition-opacity shadow-xs">
+                    <Image src={person.bankPassbookPhoto} alt="Passbook" fill className="object-cover" sizes="120px" />
+                  </div>
+                  <span className="block text-[10px] text-center mt-1 text-stone-500 dark:text-stone-400 font-sans group-hover:underline font-medium">
+                    Passbook
+                  </span>
+                </a>
+              </div>
             )}
           </div>
         </div>

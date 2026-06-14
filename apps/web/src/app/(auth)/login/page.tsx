@@ -74,7 +74,7 @@ export default function LoginPage() {
 
   return (
     <AuthCard
-      heroImage="/LANDINGFARMER.jpeg"
+      heroImage="/landing/about-main.jpg"
       heroTitle={tAuth('welcomeBack')}
       heroSubtitle={tAuth('welcomeBackSubtitle')}
       title={tAuth('signIn')}

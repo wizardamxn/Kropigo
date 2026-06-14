@@ -31,6 +31,7 @@
   --font-sans: var(--font-geist-sans);
   --font-serif: var(--font-fraunces);
   --font-mono: var(--font-geist-mono);
+  --font-script: var(--font-caveat);
 
   /* A2. Token Scale - Radius */
   --radius: var(--radius);
@@ -103,6 +104,42 @@
 
 .scroll-hidden::-webkit-scrollbar {
   width: 0px; /* Hide vertical scrollbar */
+}
+
+/* Custom premium horizontal scrollbar */
+.scrollbar-premium {
+  scrollbar-width: thin;
+  scrollbar-color: oklch(0.869 0.005 56.366 / 0.4) transparent;
+}
+
+.scrollbar-premium::-webkit-scrollbar {
+  height: 5px;
+}
+
+.scrollbar-premium::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-premium::-webkit-scrollbar-thumb {
+  background-color: oklch(0.869 0.005 56.366 / 0.4);
+  border-radius: 9999px;
+  transition: background-color 0.2s;
+}
+
+.scrollbar-premium::-webkit-scrollbar-thumb:hover {
+  background-color: oklch(0.553 0.013 58.071 / 0.7);
+}
+
+.dark .scrollbar-premium {
+  scrollbar-color: oklch(0.374 0.01 67.558 / 0.4) transparent;
+}
+
+.dark .scrollbar-premium::-webkit-scrollbar-thumb {
+  background-color: oklch(0.374 0.01 67.558 / 0.4);
+}
+
+.dark .scrollbar-premium::-webkit-scrollbar-thumb:hover {
+  background-color: oklch(0.553 0.013 58.071 / 0.7);
 }
 
 .scroll-hidden {

@@ -27,7 +27,7 @@ export function AuthCard({
       {/* Top Header */}
       <header className="w-full p-4 flex justify-between items-center absolute top-0 z-50">
         <div className="font-serif text-2xl font-bold text-green-600 dark:text-green-600 pl-4 md:pl-8 drop-shadow-sm select-none">
-          Kropigo
+          KropiGo
         </div>
         {headerRight && (
           <div className="flex items-center gap-3 mr-4 md:mr-8 select-none">

@@ -119,7 +119,7 @@ export default function KisanListings() {
           <>
             {/* Desktop Table View */}
             <div className="hidden md:block bg-white dark:bg-stone-900 rounded-2xl shadow-sm border border-stone-200 dark:border-stone-800 overflow-hidden">
-              <div className="overflow-x-auto w-full">
+              <div className="overflow-x-auto w-full scrollbar-premium">
                 <table className="w-full text-left border-collapse table-auto min-w-[800px]">
                   <thead>
                     <tr className="bg-stone-50 dark:bg-stone-950/50 font-sans text-xs font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wider border-b border-stone-200 dark:border-stone-800">

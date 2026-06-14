@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
+import { useTranslations } from 'next-intl';
 import {
   useGetUnreadCountQuery,
   useMarkAllReadMutation,
@@ -17,7 +18,7 @@ import { API_URL } from '@/lib/config';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import { Users, CheckCircle2, Package, MessageSquare, XCircle, Bell, Lock, Loader2 } from 'lucide-react';
+import { Users, CheckCircle2, Package, MessageSquare, XCircle, Bell, Lock, Loader2, ArrowLeft } from 'lucide-react';
 
 const LIMIT = 10;
 
@@ -89,7 +90,23 @@ export default function NotificationsPage() {
   const router = useRouter();
   const dispatch = useDispatch();
   const { isAuthenticated, isInitialized, role } = useAuth();
+  const tCommon = useTranslations('common');
   const { unreadCount: localUnreadCount } = useSelector((state: RootState) => state.notifications);
+
+  const handleBack = () => {
+    const dashboardPath = role === 'kisan' 
+      ? '/kisan/dashboard' 
+      : role === 'admin' 
+      ? '/admin/dashboard' 
+      : '/buyer/dashboard';
+    
+    const hasReferrer = typeof document !== 'undefined' && document.referrer && document.referrer.includes(window.location.host);
+    if (hasReferrer) {
+      router.back();
+    } else {
+      router.push(dashboardPath);
+    }
+  };
   // The server count covers all notifications, not just those loaded locally;
   // its cache tag is invalidated on every socket event and mark-read mutation.
   const { data: unreadData } = useGetUnreadCountQuery(undefined, { skip: !isAuthenticated });
@@ -247,6 +264,17 @@ export default function NotificationsPage() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6 md:space-y-8 animate-in fade-in duration-500 pb-24 w-full overflow-hidden">
+
+      {/* Back Button */}
+      <div>
+        <button
+          onClick={handleBack}
+          className="flex items-center gap-2 text-stone-500 hover:text-stone-800 dark:text-stone-400 dark:hover:text-stone-100 font-sans text-sm font-medium transition-colors w-fit cursor-pointer"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          {tCommon('back')}
+        </button>
+      </div>
 
       {/* Header Panel */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-stone-200 dark:border-stone-800 pb-4">

@@ -71,7 +71,7 @@ export default function AdminOrdersPage() {
           <>
             {/* Desktop Table */}
             <div className="hidden md:block bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-800 overflow-hidden shadow-sm">
-              <div className="overflow-x-auto w-full">
+              <div className="overflow-x-auto w-full scrollbar-premium">
                 <table className="w-full text-left min-w-[800px]">
                   <thead className="bg-stone-50 dark:bg-stone-950/50 border-b border-stone-200 dark:border-stone-800">
                     <tr className="font-sans text-xs text-stone-500 dark:text-stone-400 uppercase tracking-wider">

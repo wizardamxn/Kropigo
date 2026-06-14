@@ -33,3 +33,7 @@ Thumbs.db
 # Workspace
 .pnpm-store
 .pnpm-debug.log*
+
+digitalOceanSSH
+digitalOceanSSH.pub
+Kropigo-1.pem

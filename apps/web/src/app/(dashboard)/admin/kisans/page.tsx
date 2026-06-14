@@ -393,7 +393,7 @@ export default function AdminKisansPage() {
             subtitle={emptySubtitle}
           />
         ) : (
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto scrollbar-premium">
             <table className="w-full text-left">
               <thead className="bg-stone-50 dark:bg-stone-950 border-b border-stone-200 dark:border-stone-800">
                 <tr>

@@ -91,8 +91,8 @@ export default function BuyerOrdersPage() {
 
         <PageHeader title={t('title')} subtitle={t('subtitle')} />
 
-        {/* Scrollable Status Filter Track */}
-        <div className="flex overflow-x-auto gap-2 pb-2 scrollbar-none -mx-4 px-4 sm:mx-0 sm:px-0">
+        {/* Status Filters */}
+        <div className="flex flex-wrap gap-2 pb-2">
           <button
             onClick={() => { setStatusFilter(''); setPage(1); }}
             className={`flex-shrink-0 h-12 px-5 rounded-xl text-sm font-semibold font-sans transition-all border whitespace-nowrap active:scale-95 ${
