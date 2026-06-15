@@ -29,17 +29,56 @@ const caveat = Caveat({
 });
 
 export const metadata: Metadata = {
-  title: "KropiGo",
-  description: "Grow Connect Trade",
-  icons: {
-    icon: "/favicon.ico",
+  metadataBase: new URL("https://kropigo.in"),
+  title: {
+    default: "KropiGo — India's Direct Farm-to-Buyer Marketplace",
+    template: "%s | KropiGo",
+  },
+  description:
+    "KropiGo connects Indian farmers directly to buyers with 0% commission. Access live mandi rates, trade verified crops — grains, vegetables, fruits & spices — without middlemen.",
+  keywords: [
+    "agricultural marketplace India",
+    "farmer to buyer platform",
+    "sell crops online",
+    "mandi rates live",
+    "farm produce trading",
+    "direct farm marketplace",
+    "kisan trading platform",
+    "agri commerce India",
+    "buy crops online",
+    "KropiGo",
+  ],
+  authors: [{ name: "KropiGo", url: "https://kropigo.in" }],
+  creator: "KropiGo",
+  publisher: "KropiGo",
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true, "max-image-preview": "large" },
   },
   openGraph: {
-    title: "KropiGo",
-    description: "Grow Connect Trade",
+    title: "KropiGo — India's Direct Farm-to-Buyer Marketplace",
+    description:
+      "Connect directly with farmers or buyers. 0% commission, live mandi rates, verified network. Trade grains, vegetables, fruits & spices.",
     type: "website",
-    url: "https://kropigo.com",
+    url: "https://kropigo.in",
     siteName: "KropiGo",
+    locale: "en_IN",
+    images: [
+      {
+        url: "/KROPIGO_cropped.png",
+        width: 512,
+        height: 512,
+        alt: "KropiGo — India's Agricultural Marketplace",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary",
+    title: "KropiGo — India's Farm-to-Buyer Marketplace",
+    description:
+      "0% commission. Live mandi rates. Direct farm trade — grains, vegetables, fruits & spices.",
+    images: ["/KROPIGO_cropped.png"],
   },
 };
 
