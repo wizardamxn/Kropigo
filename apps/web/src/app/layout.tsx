@@ -5,6 +5,7 @@ import { StoreProvider } from "@/components/providers/StoreProvider";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { AuthInitializer } from "@/components/providers/AuthInitializer";
 import { Toaster } from "@/components/ui/sonner";
+import { LaunchGate } from "@/components/LaunchGate";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -111,6 +112,7 @@ export default async function RootLayout({
             <NextIntlClientProvider messages={messages}>
               <ThemeProvider>
                 {children}
+                <LaunchGate />
                 <Toaster position="bottom-right" richColors />
               </ThemeProvider>
             </NextIntlClientProvider>
