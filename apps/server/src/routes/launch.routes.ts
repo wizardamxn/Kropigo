@@ -1,7 +1,7 @@
-import { Router } from 'express';
+import { Router, type Router as ExpressRouter } from 'express';
 import { getLaunchStatus, triggerLaunch, resetLaunch } from '../controllers/launch.controller';
 
-const router = Router();
+const router: ExpressRouter = Router();
 
 router.get('/launch-status', getLaunchStatus);
 router.post('/launch', triggerLaunch);
