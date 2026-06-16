@@ -42,7 +42,10 @@ export default function GoLivePage() {
   };
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center overflow-hidden">
+    <div
+      className="relative flex items-center justify-center overflow-hidden bg-stone-950"
+      style={{ minHeight: '100dvh' }}
+    >
       {/* Farmer hero photo + green wash */}
       <div className="absolute inset-0 z-0">
         <Image

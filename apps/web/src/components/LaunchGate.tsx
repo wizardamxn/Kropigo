@@ -42,7 +42,10 @@ export function LaunchGate() {
   if (isLaunchPage || isLaunched === true) return null;
 
   return (
-    <div className="fixed inset-0 z-9999 flex items-center justify-center overflow-hidden">
+    <div
+      className="fixed inset-0 z-9999 flex items-center justify-center overflow-hidden bg-stone-950"
+      style={{ height: '100dvh', width: '100vw' }}
+    >
       {/* Farmer hero photo + green wash, matching the landing hero */}
       <div className="absolute inset-0 z-0">
         <Image
