@@ -62,7 +62,7 @@ export function LaunchGate() {
 
       <div className="relative z-10 max-w-2xl mx-auto px-6 text-center">
         <span className="inline-flex items-center gap-2 py-1.5 px-4 rounded-full bg-green-500/15 text-green-200 font-medium text-sm tracking-wider uppercase mb-8 backdrop-blur-sm border border-green-400/25">
-          <Leaf className="w-4 h-4" /> Launching Soon
+          <Leaf className="w-4 h-4" /> Under Maintenance
         </span>
 
         <h1 className="text-white mb-6 drop-shadow-lg">
@@ -70,12 +70,13 @@ export function LaunchGate() {
             KropiGo<span className="text-amber-400">.</span>
           </span>
           <span className="block font-script text-4xl md:text-6xl text-green-300 leading-[1.1] mt-2">
-            growing soon
+            we&apos;ll be back soon
           </span>
         </h1>
 
         <p className="font-sans text-lg text-stone-200 max-w-md mx-auto leading-relaxed drop-shadow">
-          India&apos;s direct farm-to-buyer marketplace is almost ready. Check back shortly.
+          We&apos;re rolling out some updates to make KropiGo better. The site will be back up in
+          about <span className="font-semibold text-amber-300">4 days</span>. Thank you for your patience.
         </p>
 
         <div className="mt-10 flex items-center justify-center gap-1.5">
