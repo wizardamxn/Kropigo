@@ -2,12 +2,31 @@ import { Request, Response } from 'express';
 import { asyncHandler } from '../utils/asyncHandler';
 import { ApiError } from '../utils/ApiError';
 import { User } from '../models/user.model';
+import { Counter } from '../models/Counter.model';
 import { createAndEmitNotification } from '../services/socket.service';
 
 // All KYC fields the admin is allowed to see (and only the admin).
 const ADMIN_USER_FIELDS =
-  'name email phone location isVerified verifiedAt profilePhoto fathersName marka ' +
+  'name email phone location username isVerified verifiedAt profilePhoto fathersName marka ' +
   'farmerIdPhoto aadharCardPhoto bankPassbookPhoto bankDetails isActive createdAt role';
+
+// Farmer usernames are KRP<number>, starting at KRP27 for the first verified farmer.
+const FARMER_USERNAME_PREFIX = 'KRP';
+const FARMER_USERNAME_START = 27;
+
+/**
+ * Atomically allocate the next farmer username (e.g. KRP27, KRP28, …).
+ * The counter guarantees no gaps or collisions even under concurrent verifications.
+ */
+async function generateFarmerUsername(): Promise<string> {
+  const counter = await Counter.findByIdAndUpdate(
+    'farmerUsername',
+    { $inc: { seq: 1 } },
+    { upsert: true, new: true },
+  );
+  const number = FARMER_USERNAME_START - 1 + counter.seq; // first increment (seq=1) → 27
+  return `${FARMER_USERNAME_PREFIX}${number}`;
+}
 
 export const getKisans = asyncHandler(async (req: Request, res: Response) => {
   const { verified, search, page = 1, limit = 20, role = 'kisan' } = req.query;
@@ -58,16 +77,23 @@ export const setKisanVerification = asyncHandler(async (req: Request, res: Respo
   if (!alreadySame) {
     user.isVerified = isVerified;
     if (isVerified) user.verifiedAt = new Date();
-    await user.save();
 
     const isKisan = user.role === 'kisan';
+
+    // Assign a permanent farmer username the first time a kisan is verified.
+    if (isVerified && isKisan && !user.username) {
+      user.username = await generateFarmerUsername();
+    }
+
+    await user.save();
+
     const notifType = isKisan
       ? (isVerified ? 'kisan_verified' : 'kisan_unverified')
       : (isVerified ? 'buyer_verified' : 'buyer_unverified');
 
     const notifMessage = isKisan
       ? (isVerified
-          ? 'Your account has been verified by the admin. Your listings will now show as verified.'
+          ? `Your account has been verified by the admin. Your farmer ID is ${user.username}. Your listings will now show as verified.`
           : 'Your account verification has been revoked by the admin.')
       : (isVerified
           ? 'Your buyer account has been verified by the admin. You can now trade on the marketplace.'
@@ -76,7 +102,7 @@ export const setKisanVerification = asyncHandler(async (req: Request, res: Respo
     createAndEmitNotification({
       type: notifType,
       message: notifMessage,
-      payload: { isVerified },
+      payload: { isVerified, username: user.username },
       targetRole: user.role as 'kisan' | 'buyer',
       targetUserId: user._id.toString(),
     }).catch(() => {});
@@ -89,6 +115,7 @@ export const setKisanVerification = asyncHandler(async (req: Request, res: Respo
       _id: user._id,
       isVerified: user.isVerified,
       verifiedAt: user.verifiedAt,
+      username: user.username,
     },
   });
 });

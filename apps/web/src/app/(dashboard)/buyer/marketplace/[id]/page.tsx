@@ -566,6 +566,11 @@ export default function ListingDetailPage() {
                   {crop.category}
                 </span>
               )}
+              {listing.grade && (
+                <span className="text-[10px] font-bold uppercase tracking-wider text-green-800 dark:text-green-400 bg-green-100 dark:bg-green-900/30 px-2.5 py-0.5 rounded-md border border-green-200 dark:border-green-800/40">
+                  {t('grade', { grade: listing.grade })}
+                </span>
+              )}
             </div>
             <h1 className="font-serif text-3xl md:text-4xl text-stone-800 dark:text-stone-100 font-medium leading-tight">
               {crop?.name ?? '—'}

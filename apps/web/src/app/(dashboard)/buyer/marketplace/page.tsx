@@ -95,9 +95,16 @@ function CropCard({ listing }: { listing: any }) {
       </div>
 
       <div className="p-4 flex flex-col gap-2 flex-1">
-        <h3 className="font-serif text-lg font-semibold text-stone-800 dark:text-stone-100 leading-tight line-clamp-1">
-          {crop?.name ?? '—'} {listing.variety ? `(${listing.variety})` : ''}
-        </h3>
+        <div className="flex items-center gap-2">
+          <h3 className="font-serif text-lg font-semibold text-stone-800 dark:text-stone-100 leading-tight line-clamp-1">
+            {crop?.name ?? '—'} {listing.variety ? `(${listing.variety})` : ''}
+          </h3>
+          {listing.grade && (
+            <span className="shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400 border border-green-200 dark:border-green-800/40">
+              {tBuyer('grade', { grade: listing.grade })}
+            </span>
+          )}
+        </div>
 
         <div className="flex items-center gap-2 text-xs text-stone-600 dark:text-stone-400 font-medium">
           <Package className="w-4 h-4 text-stone-400" />

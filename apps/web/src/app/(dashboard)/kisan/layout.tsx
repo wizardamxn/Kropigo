@@ -1,28 +1,33 @@
 'use client';
 
 import { DashboardShell } from '@/components/shared/DashboardShell';
-import { LayoutDashboard, ClipboardList, PlusCircle, ShoppingBag } from 'lucide-react';
+import { LayoutDashboard, ClipboardList, PlusCircle, ShoppingBag, FileText } from 'lucide-react';
 
 const navLinks = [
-  { 
-    href: '/kisan/dashboard', 
+  {
+    href: '/kisan/dashboard',
     label: 'Dashboard',
     Icon: LayoutDashboard,
   },
-  { 
-    href: '/kisan/listings', 
+  {
+    href: '/kisan/listings',
     label: 'Listings',
     Icon: ClipboardList,
   },
-  { 
-    href: '/kisan/listings/create', 
+  {
+    href: '/kisan/listings/create',
     label: 'Create',
     Icon: PlusCircle,
   },
-  { 
-    href: '/kisan/orders', 
+  {
+    href: '/kisan/orders',
     label: 'Orders',
     Icon: ShoppingBag,
+  },
+  {
+    href: '/kisan/statements',
+    label: 'Statements',
+    Icon: FileText,
   },
 ];
 

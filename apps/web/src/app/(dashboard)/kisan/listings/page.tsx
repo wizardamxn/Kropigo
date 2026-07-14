@@ -155,6 +155,11 @@ export default function KisanListings() {
                               <span className="text-stone-800 dark:text-stone-200 font-medium truncate max-w-[160px]">
                                 {l.cropId?.name ?? l.cropId}
                               </span>
+                              {l.grade && (
+                                <span className="shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400 border border-green-200 dark:border-green-800/40">
+                                  {t('grade', { grade: l.grade })}
+                                </span>
+                              )}
                             </div>
                           </td>
                           <td className="px-6 py-3.5 text-stone-600 dark:text-stone-300 font-medium">
@@ -249,7 +254,14 @@ export default function KisanListings() {
                     <div className="p-4 flex flex-col gap-4">
                       <div className="flex justify-between items-start">
                         <div>
-                          <h3 className="font-serif text-lg font-medium text-stone-800 dark:text-stone-100">{l.cropId?.name ?? l.cropId}</h3>
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-serif text-lg font-medium text-stone-800 dark:text-stone-100">{l.cropId?.name ?? l.cropId}</h3>
+                            {l.grade && (
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400 border border-green-200 dark:border-green-800/40">
+                                {t('grade', { grade: l.grade })}
+                              </span>
+                            )}
+                          </div>
                           <p className="font-sans text-xs text-stone-500 dark:text-stone-400 mt-0.5">
                             {new Date(l.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                           </p>

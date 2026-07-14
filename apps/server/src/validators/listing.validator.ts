@@ -1,16 +1,20 @@
 import { z } from 'zod';
-import type { CropUnit } from '@kropi/schemas/enum';
+import type { CropGrade, CropUnit } from '@kropi/schemas/enum';
 
 const objectId = z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid id');
 
-// Local literal mirroring CropUnitSchema (no runtime import of the shared package).
+// Local literals mirroring the shared schemas (no runtime import of the shared package).
 const CROP_UNITS = ['kg', 'quintal', 'ton'] as const satisfies readonly CropUnit[];
 const cropUnitEnum = z.enum(CROP_UNITS);
+
+const CROP_GRADES = ['A', 'B'] as const satisfies readonly CropGrade[];
+const cropGradeEnum = z.enum(CROP_GRADES);
 
 export const createListingSchema = z.object({
   cropId: objectId,
   quantity: z.coerce.number().positive('Quantity must be greater than 0'),
   variety: z.string().max(100).optional(),
+  grade: cropGradeEnum,
   unit: cropUnitEnum,
   description: z.string().max(2000).optional(),
   mediaUrls: z.array(z.string().url()).max(6, 'Maximum 6 media files allowed').optional().default([]),
@@ -24,6 +28,7 @@ export const createListingSchema = z.object({
 export const updateListingSchema = z.object({
   quantity: z.coerce.number().positive().optional(),
   variety: z.string().max(100).optional(),
+  grade: cropGradeEnum.optional(),
   unit: cropUnitEnum.optional(),
   description: z.string().max(2000).optional(),
   farmAddress: z.string().max(500).optional(),

@@ -7,6 +7,7 @@ export interface IUser extends Document {
   phone?: string;
   name?: string;
   role: UserRole;
+  username?: string;
   profilePhoto?: string;
   location?: string;
   fathersName?: string;
@@ -54,6 +55,12 @@ const userSchema = new Schema<IUser>(
       type: String,
       enum: ["kisan", "buyer", "driver", "admin"],
       default: "kisan",
+    },
+    username: {
+      type: String,
+      unique: true,
+      sparse: true,
+      index: true,
     },
     profilePhoto: {
       type: String,

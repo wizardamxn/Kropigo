@@ -4,6 +4,7 @@
     "listings": "Listings",
     "create": "Create",
     "orders": "Orders",
+    "statements": "Statements",
     "profile": "Profile",
     "marketplace": "Marketplace",
     "interests": "Interests",
@@ -225,6 +226,7 @@
   "kisanListings": {
     "title": "My Listings",
     "subtitle": "Manage your crop listings and track buyer activity.",
+    "grade": "Grade {grade}",
     "newListing": "New Listing",
     "allStatuses": "All Statuses",
     "noListingsFound": "No listings found",
@@ -239,6 +241,7 @@
     "bids": "{count} bids"
   },
   "buyerMarketplace": {
+    "grade": "Grade {grade}",
     "searchPlaceholder": "Search crops, districts, states...",
     "applyFilters": "Apply Filters",
     "allCrops": "All Crops",
@@ -381,6 +384,20 @@
     "acceptWarning": "Accepting this offer means you are committing to sell the requested quantity at the offered price.",
     "rejectWarning": "The buyer will be notified that their offer was declined."
   },
+  "kisanStatements": {
+    "title": "Daily Statements",
+    "subtitle": "Your day-wise record of sellings and payments.",
+    "printAll": "Print All",
+    "printDay": "Day PDF",
+    "printCrop": "Print this crop's statement",
+    "totalSellings": "Total Sellings",
+    "totalEarnings": "Total Earnings",
+    "sellingsCount": "{count, plural, one {# selling} other {# sellings}}",
+    "grade": "Grade {grade}",
+    "failedToLoad": "Failed to load your statements. Please try again.",
+    "emptyTitle": "No statements yet",
+    "emptySubtitle": "Your daily statement is created automatically once your crops are sold."
+  },
   "kisanCreateListing": {
     "title": "Create New Listing",
     "subtitle": "List your harvest on the marketplace. Provide clear details to attract the best buyers.",
@@ -392,6 +409,8 @@
     "cropDetails": "Crop Details",
     "variety": "Variety (Optional)",
     "varietyPlaceholder": "e.g. Sharbati, Alphonso, Hass",
+    "grade": "Grade",
+    "gradeOption": "Grade {grade}",
     "unit": "Unit *",
     "selectUnit": "Select unit...",
     "quantity": "Quantity *",
@@ -448,7 +467,9 @@
     "locationLabel": "Primary Operations Hub / Village Location",
     "locationPlaceholder": "e.g. Jabalpur, Madhya Pradesh",
     "locationHelp": "Helps wholesale logistics providers calculate transport staging distances.",
-    "profileAvatar": "Profile Avatar Picture",
+    "profileAvatar": "Your Photo (Selfie)",
+    "selfieHelp": "Take a clear selfie of yourself. This is used to verify your farmer ID.",
+    "farmerId": "Farmer ID",
     "legalVerification": "Legal Identification Verification Documents",
     "legalVerificationHelp": "Required to acquire the \"Verified Producer\" tier clearance credential.",
     "farmerIdImage": "Farmer ID Image",
@@ -619,6 +640,7 @@
     "pageIndicator": "Page <bold>{current}</bold> of {total}"
   },
   "buyerMarketplaceView": {
+    "grade": "Grade {grade}",
     "withdrawBtn": "Withdraw Offer",
     "withdrawConfirmTitle": "Withdraw your offer?",
     "withdrawConfirmDesc": "This will cancel your pending offer on this listing. You can submit a new offer afterwards.",

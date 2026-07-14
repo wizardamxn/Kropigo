@@ -3,6 +3,7 @@ import { baseApi } from '../baseApi';
 export type ListingPayload = {
   cropId?: string;
   variety?: string;
+  grade?: string;
   quantity: string;
   unit: string;
   description?: string;

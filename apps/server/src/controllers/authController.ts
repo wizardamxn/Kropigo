@@ -44,6 +44,7 @@ const buildUserResponse = (user: any) => ({
   phone: user.phone,
   name: user.name,
   role: user.role,
+  username: user.username,
   location: user.location,
   profilePhoto: user.profilePhoto,
   farmerIdPhoto: user.farmerIdPhoto,

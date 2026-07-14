@@ -7,6 +7,7 @@ import { Order } from "../models/Order.model";
 import { User } from "../models/user.model";
 import { deleteMediaByUrls } from "../services/upload.service";
 import { createAndEmitNotification } from "../services/socket.service";
+import { recordSaleInStatement } from "../services/statement.service";
 import { SOCKET_EVENTS } from "../utils/socketEvents";
 import { asyncHandler } from "../utils/asyncHandler";
 import { ApiError } from "../utils/ApiError";
@@ -36,6 +37,7 @@ export const createListing = asyncHandler(async (req: Request, res: Response) =>
     cropId,
     quantity,
     variety,
+    grade,
     unit,
     description,
     mediaUrls,
@@ -54,6 +56,7 @@ export const createListing = asyncHandler(async (req: Request, res: Response) =>
     sellerId,
     quantity,
     variety,
+    grade,
     unit,
     description,
     mediaUrls,
@@ -206,6 +209,7 @@ export const updateListing = asyncHandler(async (req: Request, res: Response) =>
   const updates = [
     "quantity",
     "variety",
+    "grade",
     "unit",
     "description",
     "farmAddress",
@@ -349,7 +353,7 @@ export const acceptInterest = asyncHandler(async (req: Request, res: Response) =
 
   // Populate the order for socket notifications (outside transaction)
   const populatedOrder = await Order.findById(createdOrder._id)
-    .populate({ path: "listingId", select: "farmAddress farmDistrict farmState", populate: { path: "cropId", select: "name" } })
+    .populate({ path: "listingId", select: "farmAddress farmDistrict farmState grade", populate: { path: "cropId", select: "name" } })
     .populate("buyerId", "name phone")
     .populate("sellerId", "name phone");
 
@@ -358,6 +362,23 @@ export const acceptInterest = asyncHandler(async (req: Request, res: Response) =
     const kisan = populatedOrder.sellerId as any;
     const buyer = populatedOrder.buyerId as any;
     const listing = populatedOrder.listingId as any;
+
+    // Record this selling on the farmer's daily statement (day-wise, automatic).
+    recordSaleInStatement({
+      orderId: populatedOrder._id,
+      sellerId: populatedOrder.sellerId._id ?? populatedOrder.sellerId,
+      listingId: listing?._id,
+      cropName,
+      grade: listing?.grade,
+      quantity: populatedOrder.quantity,
+      unit: populatedOrder.unit,
+      agreedPrice: populatedOrder.agreedPrice,
+      totalAmount: populatedOrder.totalAmount,
+      buyerName: buyer?.name,
+      soldAt: populatedOrder.createdAt,
+    }).catch((err) => {
+      console.error("Failed to record sale in daily statement:", err);
+    });
 
     Promise.all([
       // Admin notification

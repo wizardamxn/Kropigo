@@ -72,6 +72,10 @@ export type CropCategory = z.infer<typeof CropCategorySchema>;
 export const CropUnitSchema = z.enum(['kg', 'quintal', 'ton']);
 export type CropUnit = z.infer<typeof CropUnitSchema>;
 
+// --- Crop Grade ---
+export const CropGradeSchema = z.enum(['A', 'B']);
+export type CropGrade = z.infer<typeof CropGradeSchema>;
+
 // --- Mandi Rate ---
 export const MandiRateSourceSchema = z.enum(['agmarknet', 'manual']);
 export type MandiRateSource = z.infer<typeof MandiRateSourceSchema>;

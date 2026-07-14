@@ -1,11 +1,12 @@
 import mongoose, { Document, Schema } from 'mongoose';
-import { CropUnit, ListingStatus } from '@kropi/schemas/enum';
+import { CropGrade, CropUnit, ListingStatus } from '@kropi/schemas/enum';
 
 export interface IListing extends Document {
   cropId: mongoose.Types.ObjectId;
   sellerId: mongoose.Types.ObjectId;
   quantity: number;
   variety?: string;
+  grade: CropGrade;
   unit: CropUnit;
   description?: string;
   mediaUrls: string[];
@@ -45,6 +46,12 @@ const listingSchema = new Schema<IListing>(
     variety: {
       type: String,
       maxlength: 100,
+    },
+    grade: {
+      type: String,
+      enum: ['A', 'B'],
+      required: true,
+      default: 'A',
     },
     unit: {
       type: String,

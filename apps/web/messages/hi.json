@@ -4,6 +4,7 @@
     "listings": "लिस्टिंग",
     "create": "नया बनाएँ",
     "orders": "ऑर्डर",
+    "statements": "स्टेटमेंट",
     "profile": "प्रोफ़ाइल",
     "marketplace": "बाज़ार",
     "interests": "रुचि",
@@ -225,6 +226,7 @@
   "kisanListings": {
     "title": "मेरी लिस्टिंग",
     "subtitle": "अपनी फसल लिस्टिंग प्रबंधित करें और खरीदार गतिविधि ट्रैक करें।",
+    "grade": "ग्रेड {grade}",
     "newListing": "नई लिस्टिंग",
     "allStatuses": "सभी स्थितियां",
     "noListingsFound": "कोई लिस्टिंग नहीं मिली",
@@ -239,6 +241,7 @@
     "bids": "{count} बोलियां"
   },
   "buyerMarketplace": {
+    "grade": "ग्रेड {grade}",
     "searchPlaceholder": "फसल, जिला या राज्य खोजें...",
     "applyFilters": "फ़िल्टर लागू करें",
     "allCrops": "सभी फ़सलें",
@@ -381,6 +384,20 @@
     "acceptWarning": "इस प्रस्ताव को स्वीकार करने का अर्थ है कि आप प्रस्तावित मूल्य पर अनुरोधित मात्रा बेचने के लिए प्रतिबद्ध हैं।",
     "rejectWarning": "खरीदार को सूचित किया जाएगा कि उनका प्रस्ताव अस्वीकार कर दिया गया था।"
   },
+  "kisanStatements": {
+    "title": "दैनिक स्टेटमेंट",
+    "subtitle": "आपकी बिक्री और भुगतान का दिन-वार रिकॉर्ड।",
+    "printAll": "सभी प्रिंट करें",
+    "printDay": "दिन का PDF",
+    "printCrop": "इस फसल का स्टेटमेंट प्रिंट करें",
+    "totalSellings": "कुल बिक्री",
+    "totalEarnings": "कुल कमाई",
+    "sellingsCount": "{count, plural, one {# बिक्री} other {# बिक्री}}",
+    "grade": "ग्रेड {grade}",
+    "failedToLoad": "आपके स्टेटमेंट लोड नहीं हो सके। कृपया पुनः प्रयास करें।",
+    "emptyTitle": "अभी कोई स्टेटमेंट नहीं",
+    "emptySubtitle": "आपकी फसल बिकते ही आपका दैनिक स्टेटमेंट अपने आप बन जाता है।"
+  },
   "kisanCreateListing": {
     "title": "नई लिस्टिंग बनाएं",
     "subtitle": "बाजार में अपनी फसल सूचीबद्ध करें। सर्वोत्तम खरीदारों को आकर्षित करने के लिए स्पष्ट विवरण प्रदान करें।",
@@ -392,6 +409,8 @@
     "cropDetails": "फसल विवरण",
     "variety": "किस्म (वैकल्पिक)",
     "varietyPlaceholder": "उदा. शरबती, अल्फांसो, हास",
+    "grade": "ग्रेड",
+    "gradeOption": "ग्रेड {grade}",
     "unit": "इकाई *",
     "selectUnit": "इकाई चुनें...",
     "quantity": "मात्रा *",
@@ -448,7 +467,9 @@
     "locationLabel": "प्राथमिक संचालन हब / गांव का स्थान",
     "locationPlaceholder": "उदा. जबलपुर, मध्य प्रदेश",
     "locationHelp": "थोक रसद प्रदाताओं को परिवहन दूरी की गणना करने में मदद करता है।",
-    "profileAvatar": "प्रोफ़ाइल चित्र",
+    "profileAvatar": "आपकी फ़ोटो (सेल्फी)",
+    "selfieHelp": "अपनी एक साफ़ सेल्फी लें। इसका उपयोग आपकी किसान आईडी सत्यापित करने के लिए किया जाता है।",
+    "farmerId": "किसान आईडी",
     "legalVerification": "कानूनी पहचान सत्यापन दस्तावेज़",
     "legalVerificationHelp": "\"सत्यापित उत्पादक\" टियर प्राप्त करने के लिए आवश्यक है।",
     "farmerIdImage": "किसान आईडी छवि",
@@ -619,6 +640,7 @@
     "pageIndicator": "कुल {total} में से पृष्ठ <bold>{current}</bold>"
   },
   "buyerMarketplaceView": {
+    "grade": "ग्रेड {grade}",
     "withdrawBtn": "ऑफर वापस लें",
     "withdrawConfirmTitle": "अपना ऑफर वापस लें?",
     "withdrawConfirmDesc": "इससे इस लिस्टिंग पर आपका लंबित ऑफर रद्द हो जाएगा। आप बाद में नया ऑफर भेज सकते हैं।",

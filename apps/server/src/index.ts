@@ -129,6 +129,9 @@ app.use('/api/v1/interests', interestRoutes);
 import orderRoutes from './routes/order.routes';
 app.use('/api/v1/orders', orderRoutes);
 
+import statementRoutes from './routes/statement.routes';
+app.use('/api/v1/statements', statementRoutes);
+
 import notificationRoutes from './routes/notification.routes';
 app.use('/api/v1/notifications', notificationRoutes);
 

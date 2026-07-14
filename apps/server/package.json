@@ -10,7 +10,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "seed:crops": "ts-node -r tsconfig-paths/register scripts/seedCrops.ts",
     "seed:interests": "ts-node -r tsconfig-paths/register scripts/seedInterests.ts",
-    "seed:notifications": "ts-node -r tsconfig-paths/register scripts/seedNotifications.ts"
+    "seed:notifications": "ts-node -r tsconfig-paths/register scripts/seedNotifications.ts",
+    "backfill:statements": "ts-node -r tsconfig-paths/register scripts/backfillStatements.ts"
   },
   "keywords": [],
   "author": "",

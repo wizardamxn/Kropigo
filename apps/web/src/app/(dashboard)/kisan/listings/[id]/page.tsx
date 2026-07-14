@@ -55,6 +55,7 @@ const EDITABLE_STATUSES = ["draft", "open"];
 type MediaPreview = { url: string; name: string; type: string };
 
 const updateListingFormSchema = z.object({
+  grade: z.enum(['A', 'B'], { message: 'Please select a grade' }),
   unit: z.enum(['kg', 'quintal', 'ton'], { message: 'Please select a unit' }),
   quantity: z.string().min(1, 'Quantity is required').refine(
     (val) => !isNaN(Number(val)) && Number(val) > 0,
@@ -99,6 +100,7 @@ export default function ListingDetail() {
   const { register, handleSubmit, setValue, watch, reset, formState: { errors } } = useForm<UpdateListingFormValues>({
     resolver: zodResolver(updateListingFormSchema),
     defaultValues: {
+      grade: 'A',
       unit: 'kg',
       quantity: '',
       description: '',
@@ -109,6 +111,7 @@ export default function ListingDetail() {
     mode: 'onTouched',
   });
 
+  const grade = watch('grade');
   const unit = watch('unit');
   const description = watch('description') || '';
 
@@ -116,6 +119,7 @@ export default function ListingDetail() {
     if (!listing) return;
     reset({
       quantity: String(listing.quantity),
+      grade: listing.grade ?? 'A',
       unit: listing.unit,
       description: listing.description ?? "",
       farmAddress: listing.farmAddress,
@@ -195,6 +199,7 @@ export default function ListingDetail() {
         id,
         body: {
           quantity: data.quantity,
+          grade: data.grade,
           unit: data.unit,
           description: data.description,
           farmAddress: data.farmAddress,
@@ -303,6 +308,11 @@ export default function ListingDetail() {
             </h1>
             <div className="flex items-center gap-3 mt-3">
               <StatusBadge status={listing.status} />
+              {listing.grade && (
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400 border border-green-200 dark:border-green-800/40">
+                  Grade {listing.grade}
+                </span>
+              )}
               <span className="flex items-center gap-1.5 text-stone-500 dark:text-stone-400 text-sm font-sans">
                 <Eye className="w-4 h-4" />
                 {listing.viewCount || 0} views
@@ -357,6 +367,34 @@ export default function ListingDetail() {
           <h2 className="font-serif text-2xl text-stone-800 dark:text-stone-100 border-b border-stone-200 dark:border-stone-800 pb-3">
             Crop Details & Pricing
           </h2>
+
+          <div className="flex flex-col gap-1.5">
+            <label className="block font-sans text-sm font-medium text-stone-800 dark:text-stone-300 ml-1">
+              Grade <span className="text-red-500">*</span>
+            </label>
+            <div className="grid grid-cols-2 gap-3">
+              {(["A", "B"] as const).map((g) => (
+                <button
+                  key={g}
+                  type="button"
+                  disabled={!canEdit}
+                  onClick={() => setValue("grade", g, { shouldValidate: true })}
+                  className={`h-12 rounded-xl border-2 font-sans font-medium transition-all ${
+                    grade === g
+                      ? "border-green-600 bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-400 ring-2 ring-green-600/20"
+                      : "border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-950 text-stone-700 dark:text-stone-300 hover:border-green-400/50"
+                  } ${!canEdit ? "opacity-60 cursor-not-allowed" : ""}`}
+                >
+                  Grade {g}
+                </button>
+              ))}
+            </div>
+            {errors.grade && (
+              <p className="text-xs text-red-500 font-sans ml-1 mt-0.5 animate-in fade-in" role="alert">
+                {errors.grade.message}
+              </p>
+            )}
+          </div>
 
           <div className="flex flex-col sm:flex-row gap-5">
             <div className="sm:w-1/3">

@@ -37,6 +37,7 @@ type MediaPreview = { url: string; name: string; type: string };
 const createListingFormSchema = z.object({
   cropId: z.string().min(1, 'Please select a crop'),
   variety: z.string().max(100, 'Variety cannot exceed 100 characters').optional(),
+  grade: z.enum(['A', 'B'], { message: 'Please select a grade' }),
   unit: z.enum(['kg', 'quintal', 'ton'], { message: 'Please select a unit' }),
   quantity: z.string().min(1, 'Quantity is required').refine(
     (val) => !isNaN(Number(val)) && Number(val) > 0,
@@ -75,6 +76,7 @@ export default function CreateListing() {
     defaultValues: {
       cropId: "",
       variety: "",
+      grade: undefined,
       unit: undefined,
       quantity: "",
       description: "",
@@ -88,6 +90,7 @@ export default function CreateListing() {
   });
 
   const cropId = watch("cropId");
+  const grade = watch("grade");
   const unit = watch("unit");
   const description = watch("description") || "";
 
@@ -158,6 +161,7 @@ export default function CreateListing() {
       await createListing({
         cropId: data.cropId,
         variety: data.variety || undefined,
+        grade: data.grade,
         quantity: data.quantity,
         unit: data.unit,
         description: data.description,
@@ -256,6 +260,33 @@ export default function CreateListing() {
               aria-describedby={errors.variety ? "variety-error" : undefined}
             />
           </FormField>
+
+          <div className="flex flex-col gap-1.5">
+            <label className="block font-sans text-sm font-medium text-stone-800 dark:text-stone-300 ml-1">
+              {t("grade")} <span className="text-red-500">*</span>
+            </label>
+            <div className="grid grid-cols-2 gap-3">
+              {(["A", "B"] as const).map((g) => (
+                <button
+                  key={g}
+                  type="button"
+                  onClick={() => setValue("grade", g, { shouldValidate: true })}
+                  className={`h-12 rounded-xl border-2 font-sans font-medium transition-all ${
+                    grade === g
+                      ? "border-green-600 bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-400 ring-2 ring-green-600/20"
+                      : "border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-950 text-stone-700 dark:text-stone-300 hover:border-green-400/50"
+                  }`}
+                >
+                  {t("gradeOption", { grade: g })}
+                </button>
+              ))}
+            </div>
+            {errors.grade && (
+              <p className="text-xs text-red-500 font-sans ml-1 mt-0.5 animate-in fade-in" role="alert">
+                {errors.grade.message}
+              </p>
+            )}
+          </div>
 
           <div className="flex flex-col sm:flex-row gap-5">
             <div className="sm:w-1/3">

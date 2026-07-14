@@ -178,9 +178,16 @@ function UserRow({ user, role, t, tCommon }: { user: any; role: 'kisan' | 'buyer
               </div>
             )}
             <div className="min-w-0">
-              <p className="font-sans font-semibold text-sm text-stone-800 dark:text-stone-100 truncate">
-                {user.name ?? '—'}
-              </p>
+              <div className="flex items-center gap-2">
+                <p className="font-sans font-semibold text-sm text-stone-800 dark:text-stone-100 truncate">
+                  {user.name ?? '—'}
+                </p>
+                {user.username && (
+                  <span className="shrink-0 inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-mono font-bold bg-green-50 dark:bg-green-950/20 text-green-700 dark:text-green-400 border border-green-200/60 dark:border-green-800/40">
+                    {user.username}
+                  </span>
+                )}
+              </div>
               <p className="text-xs text-stone-400 dark:text-stone-500 font-sans">
                 Joined {fmtDate(user.createdAt)}
               </p>

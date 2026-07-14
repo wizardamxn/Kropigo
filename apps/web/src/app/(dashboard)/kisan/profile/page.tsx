@@ -37,7 +37,8 @@ const ImageCrudField = ({
   onUpload,
   isUploading,
   onRemove,
-  onView
+  onView,
+  capture,
 }: {
   label: string;
   value: string;
@@ -45,6 +46,7 @@ const ImageCrudField = ({
   isUploading: boolean;
   onRemove: () => void;
   onView: () => void;
+  capture?: 'user' | 'environment';
 }) => {
   const t = useTranslations('kisanProfile');
   return (
@@ -104,6 +106,7 @@ const ImageCrudField = ({
               <input
                 type="file"
                 accept="image/*"
+                capture={capture}
                 onChange={onUpload}
                 className="absolute inset-0 opacity-0 pointer-events-none w-full"
                 disabled={isUploading}
@@ -128,6 +131,7 @@ const ImageCrudField = ({
             <input
               type="file"
               accept="image/*"
+              capture={capture}
               onChange={onUpload}
               className="absolute inset-0 opacity-0 pointer-events-none w-full"
               disabled={isUploading}
@@ -363,6 +367,13 @@ export default function KisanProfile() {
               </span>
             )}
 
+            {user?.username && (
+              <div className="w-full mt-3 px-3 py-2 rounded-xl bg-green-50 dark:bg-green-950/20 border border-green-200/60 dark:border-green-800/40 text-center">
+                <span className="block text-[10px] font-semibold uppercase tracking-wider text-green-700/70 dark:text-green-500/70">{t('farmerId')}</span>
+                <span className="block font-mono text-lg font-bold text-green-800 dark:text-green-400 tracking-wider">{user.username}</span>
+              </div>
+            )}
+
             <div className="w-full mt-6 space-y-4 text-left border-t border-stone-100 dark:border-stone-800 pt-6 font-sans text-sm">
               <div>
                 <span className="block text-xs font-semibold uppercase tracking-wider text-stone-400 dark:text-stone-500 mb-0.5">{t('registeredEmail')}</span>
@@ -495,7 +506,9 @@ export default function KisanProfile() {
                 isUploading={isUploading}
                 onRemove={() => handleRemovePhoto('profilePhoto', watchedProfilePhoto)}
                 onView={() => { setPreviewUrl(watchedProfilePhoto); setPreviewLabel(t('profileAvatar')); }}
+                capture="user"
               />
+              <p className="text-xs text-stone-500 -mt-3 ml-1">{t('selfieHelp')}</p>
 
               {/* Identity Verification Sub-Forms Surfaces */}
               <div className="pt-6 mt-6 border-t border-stone-100 dark:border-stone-800">
