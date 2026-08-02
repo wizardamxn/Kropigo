@@ -1,11 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useAppDispatch } from '@/store/hooks';
 import { setUser } from '@/store/slices/authSlice';
 import { useRouter } from 'next/navigation';
-import { useRegisterMutation } from '@/store/endpoints/authApi';
+import { useRegisterMutation, useSendOtpMutation, useVerifyOtpMutation } from '@/store/endpoints/authApi';
 import { useTheme } from '@/components/providers/ThemeProvider';
 import { LanguageSwitcher } from '@/components/shared/LanguageSwitcher';
 import { Input } from '@/components/ui/input';
@@ -30,16 +30,24 @@ const registerSchema = z.object({
 
 type RegisterInput = z.infer<typeof registerSchema>;
 
+const RESEND_COOLDOWN_SECONDS = 30;
+
 export default function RegisterPage() {
   const [error, setError] = useState('');
+  const [phase, setPhase] = useState<'details' | 'otp'>('details');
+  const [otp, setOtp] = useState('');
+  const [otpError, setOtpError] = useState('');
+  const [resendCooldown, setResendCooldown] = useState(0);
   const { darkMode: isDark, toggleTheme: toggleDarkMode } = useTheme();
 
   const dispatch = useAppDispatch();
   const router = useRouter();
   const [registerApi, { isLoading: isRegistering }] = useRegisterMutation();
+  const [sendOtpApi, { isLoading: isSendingOtp }] = useSendOtpMutation();
+  const [verifyOtpApi, { isLoading: isVerifyingOtp }] = useVerifyOtpMutation();
   const tAuth = useTranslations('auth');
 
-  const { register, handleSubmit, watch, formState: { errors } } = useForm<RegisterInput>({
+  const { register, handleSubmit, watch, getValues, formState: { errors } } = useForm<RegisterInput>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
       name: '',
@@ -52,11 +60,53 @@ export default function RegisterPage() {
   });
 
   const selectedRole = watch('role');
+  const isBusy = isRegistering || isSendingOtp || isVerifyingOtp;
 
-  const onSubmit = async (data: RegisterInput) => {
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const timer = setInterval(() => setResendCooldown((s) => Math.max(0, s - 1)), 1000);
+    return () => clearInterval(timer);
+  }, [resendCooldown]);
+
+  const requestOtp = async (phone: string, email: string) => {
+    await sendOtpApi({ phone, email }).unwrap();
+    setResendCooldown(RESEND_COOLDOWN_SECONDS);
+  };
+
+  const onSubmitDetails = async (data: RegisterInput) => {
     setError('');
     try {
-      const response = await registerApi(data).unwrap();
+      await requestOtp(data.phone, data.email);
+      setPhase('otp');
+    } catch (err: any) {
+      setError(err?.data?.message || tAuth('failedToSendOtp'));
+    }
+  };
+
+  const handleResendOtp = async () => {
+    if (resendCooldown > 0) return;
+    setOtpError('');
+    try {
+      await requestOtp(getValues('phone'), getValues('email'));
+    } catch (err: any) {
+      setOtpError(err?.data?.message || tAuth('failedToSendOtp'));
+    }
+  };
+
+  const handleEditPhone = () => {
+    setPhase('details');
+    setOtp('');
+    setOtpError('');
+  };
+
+  const handleVerifyAndRegister = async () => {
+    setOtpError('');
+    const data = getValues();
+    try {
+      const verifyResponse = await verifyOtpApi({ phone: data.phone, otp }).unwrap();
+      const verificationToken = verifyResponse.data.verificationToken;
+
+      const response = await registerApi({ ...data, verificationToken }).unwrap();
       dispatch(setUser(response.data.user));
 
       const userRole = response.data.user?.role;
@@ -68,7 +118,7 @@ export default function RegisterPage() {
         router.push('/');
       }
     } catch (err: any) {
-      setError(err?.data?.message || tAuth('failedToRegister'));
+      setOtpError(err?.data?.message || tAuth('invalidOtp'));
     }
   };
 
@@ -103,116 +153,187 @@ export default function RegisterPage() {
         </Alert>
       )}
 
-      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
+      {phase === 'details' ? (
+        <form onSubmit={handleSubmit(onSubmitDetails)} className="flex flex-col gap-5">
 
-        {/* Role toggle — fixed focus-visible ring */}
-        <div className="flex bg-stone-100 dark:bg-stone-950 p-1 rounded-xl border border-stone-200 dark:border-stone-800">
-          {roles.map((r) => (
-            <label key={r.value} className="flex-1 cursor-pointer">
-              <input
-                type="radio"
-                value={r.value}
-                {...register('role')}
-                className="peer sr-only"
-                disabled={isRegistering}
-              />
-              <div className={`text-center py-2.5 rounded-lg font-sans text-sm font-medium transition-all
-                              peer-checked:bg-white dark:peer-checked:bg-stone-800 peer-checked:text-green-800 dark:peer-checked:text-green-500 peer-checked:shadow-sm
-                              peer-focus-visible:ring-2 peer-focus-visible:ring-green-800 peer-focus-visible:ring-offset-1 dark:peer-focus-visible:ring-green-500
-                              text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-200`}>
-                {r.label}
-              </div>
-            </label>
-          ))}
-        </div>
+          {/* Role toggle — fixed focus-visible ring */}
+          <div className="flex bg-stone-100 dark:bg-stone-950 p-1 rounded-xl border border-stone-200 dark:border-stone-800">
+            {roles.map((r) => (
+              <label key={r.value} className="flex-1 cursor-pointer">
+                <input
+                  type="radio"
+                  value={r.value}
+                  {...register('role')}
+                  className="peer sr-only"
+                  disabled={isBusy}
+                />
+                <div className={`text-center py-2.5 rounded-lg font-sans text-sm font-medium transition-all
+                                peer-checked:bg-white dark:peer-checked:bg-stone-800 peer-checked:text-green-800 dark:peer-checked:text-green-500 peer-checked:shadow-sm
+                                peer-focus-visible:ring-2 peer-focus-visible:ring-green-800 peer-focus-visible:ring-offset-1 dark:peer-focus-visible:ring-green-500
+                                text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-200`}>
+                  {r.label}
+                </div>
+              </label>
+            ))}
+          </div>
 
-        <FormField
-          id="fullName"
-          label={tAuth('fullName')}
-          error={errors.name?.message}
-          required
-        >
-          <Input
+          <FormField
             id="fullName"
-            type="text"
-            {...register('name')}
-            disabled={isRegistering}
-            placeholder="Jane Doe"
-            className="h-12 rounded-xl"
-            aria-invalid={errors.name ? "true" : "false"}
-            aria-describedby={errors.name ? "fullName-error" : undefined}
-          />
-        </FormField>
+            label={tAuth('fullName')}
+            error={errors.name?.message}
+            required
+          >
+            <Input
+              id="fullName"
+              type="text"
+              {...register('name')}
+              disabled={isBusy}
+              placeholder="Jane Doe"
+              className="h-12 rounded-xl"
+              aria-invalid={errors.name ? "true" : "false"}
+              aria-describedby={errors.name ? "fullName-error" : undefined}
+            />
+          </FormField>
 
-        <FormField
-          id="email"
-          label={tAuth('email')}
-          error={errors.email?.message}
-          required
-        >
-          <Input
+          <FormField
             id="email"
-            type="email"
-            {...register('email')}
-            disabled={isRegistering}
-            placeholder="jane@example.com"
-            className="h-12 rounded-xl"
-            aria-invalid={errors.email ? "true" : "false"}
-            aria-describedby={errors.email ? "email-error" : undefined}
-          />
-        </FormField>
+            label={tAuth('email')}
+            error={errors.email?.message}
+            required
+          >
+            <Input
+              id="email"
+              type="email"
+              {...register('email')}
+              disabled={isBusy}
+              placeholder="jane@example.com"
+              className="h-12 rounded-xl"
+              aria-invalid={errors.email ? "true" : "false"}
+              aria-describedby={errors.email ? "email-error" : undefined}
+            />
+          </FormField>
 
-        <FormField
-          id="phone"
-          label={tAuth('phone')}
-          error={errors.phone?.message}
-          required
-        >
-          <Input
+          <FormField
             id="phone"
-            type="tel"
-            {...register('phone')}
-            disabled={isRegistering}
-            placeholder={tAuth('phonePlaceholder')}
-            className="h-12 rounded-xl"
-            aria-invalid={errors.phone ? "true" : "false"}
-            aria-describedby={errors.phone ? "phone-error" : undefined}
-          />
-        </FormField>
+            label={tAuth('phone')}
+            error={errors.phone?.message}
+            required
+          >
+            <Input
+              id="phone"
+              type="tel"
+              {...register('phone')}
+              disabled={isBusy}
+              placeholder={tAuth('phonePlaceholder')}
+              className="h-12 rounded-xl"
+              aria-invalid={errors.phone ? "true" : "false"}
+              aria-describedby={errors.phone ? "phone-error" : undefined}
+            />
+          </FormField>
 
-        <FormField
-          id="password"
-          label={tAuth('password')}
-          error={errors.password?.message}
-          required
-        >
-          <PasswordInput
+          <FormField
             id="password"
-            {...register('password')}
-            disabled={isRegistering}
-            placeholder={tAuth('passwordPlaceholder')}
-            className="h-12 rounded-xl"
-            aria-invalid={errors.password ? "true" : "false"}
-            aria-describedby={errors.password ? "password-error" : undefined}
-          />
-        </FormField>
+            label={tAuth('password')}
+            error={errors.password?.message}
+            required
+          >
+            <PasswordInput
+              id="password"
+              {...register('password')}
+              disabled={isBusy}
+              placeholder={tAuth('passwordPlaceholder')}
+              className="h-12 rounded-xl"
+              aria-invalid={errors.password ? "true" : "false"}
+              aria-describedby={errors.password ? "password-error" : undefined}
+            />
+          </FormField>
 
-        <Button
-          type="submit"
-          disabled={isRegistering}
-          aria-busy={isRegistering}
-          className="mt-2 h-12 w-full rounded-xl bg-green-800 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white font-sans font-medium transition-colors flex items-center justify-center gap-2"
+          <Button
+            type="submit"
+            disabled={isBusy}
+            aria-busy={isSendingOtp}
+            className="mt-2 h-12 w-full rounded-xl bg-green-800 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white font-sans font-medium transition-colors flex items-center justify-center gap-2"
+          >
+            {isSendingOtp ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                {tAuth('sendingOtp')}
+              </>
+            ) : (
+              tAuth('sendOtp')
+            )}
+          </Button>
+        </form>
+      ) : (
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleVerifyAndRegister();
+          }}
+          className="flex flex-col gap-5"
         >
-          {isRegistering ? (
-            <>
-              <Loader2 className="w-5 h-5 animate-spin" />
-              {tAuth('creatingAccount')}
-            </>
-          ) : (
-            tAuth('createAccount')
-          )}
-        </Button>
-      </form>
+          <p className="font-sans text-sm text-stone-600 dark:text-stone-400">
+            {tAuth('otpSentTo', { phone: getValues('phone') })}
+          </p>
+
+          <FormField
+            id="otp"
+            label={tAuth('enterOtp')}
+            error={otpError}
+            required
+          >
+            <input
+              id="otp"
+              type="text"
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              maxLength={6}
+              value={otp}
+              onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+              disabled={isBusy}
+              placeholder={tAuth('otpPlaceholder')}
+              className="h-12 w-full rounded-xl border border-stone-300 dark:border-stone-600 bg-transparent px-2.5 py-1 text-base text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 transition-colors outline-none focus-visible:border-stone-500 dark:focus-visible:border-stone-400 focus-visible:ring-2 focus-visible:ring-stone-400/30 dark:focus-visible:ring-stone-500/30 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 tracking-widest text-center md:text-sm"
+              aria-invalid={otpError ? "true" : "false"}
+              aria-describedby={otpError ? "otp-error" : undefined}
+            />
+          </FormField>
+
+          <Button
+            type="submit"
+            disabled={isBusy || otp.length !== 6}
+            aria-busy={isRegistering || isVerifyingOtp}
+            className="mt-2 h-12 w-full rounded-xl bg-green-800 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 text-white font-sans font-medium transition-colors flex items-center justify-center gap-2"
+          >
+            {isVerifyingOtp || isRegistering ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                {isVerifyingOtp ? tAuth('verifyingOtp') : tAuth('creatingAccount')}
+              </>
+            ) : (
+              tAuth('verifyOtpAndCreateAccount')
+            )}
+          </Button>
+
+          <div className="flex items-center justify-between text-sm font-sans">
+            <button
+              type="button"
+              onClick={handleEditPhone}
+              disabled={isBusy}
+              className="text-stone-600 dark:text-stone-400 hover:underline disabled:opacity-50"
+            >
+              {tAuth('changePhoneNumber')}
+            </button>
+            <button
+              type="button"
+              onClick={handleResendOtp}
+              disabled={isBusy || resendCooldown > 0}
+              className="text-green-800 dark:text-green-500 font-medium hover:underline disabled:opacity-50 disabled:no-underline"
+            >
+              {resendCooldown > 0 ? tAuth('resendOtpIn', { seconds: resendCooldown }) : tAuth('resendOtp')}
+            </button>
+          </div>
+        </form>
+      )}
 
       <div className="text-center mt-2">
         <p className="font-sans text-sm text-stone-600 dark:text-stone-400">

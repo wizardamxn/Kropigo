@@ -223,6 +223,13 @@ export const updateListing = asyncHandler(async (req: Request, res: Response) =>
     }
   });
 
+  // Coordinates arrive as flat lat/lng (same shape createListing accepts) and are
+  // only moved when both are present — a partial pair would corrupt the pin.
+  const { lat, lng } = req.body as { lat?: number; lng?: number };
+  if (lat !== undefined && lng !== undefined) {
+    listing.farmCoordinates = { lat, lng };
+  }
+
   await listing.save();
   res.status(200).json({ success: true, data: listing });
 });

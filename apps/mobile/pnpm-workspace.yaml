@@ -1,0 +1,2 @@
+# This marker makes the Expo app its own pnpm install root. Metro needs a
+# hoisted node_modules tree on Windows.

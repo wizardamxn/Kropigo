@@ -46,6 +46,18 @@ const getNotificationIcon = (type: string) => {
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
         </div>
       );
+    case SOCKET_EVENTS.INTEREST_WITHDRAWN:
+      return (
+        <div className="p-2 bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-400 rounded-xl">
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6M3 10l6-6" /></svg>
+        </div>
+      );
+    case SOCKET_EVENTS.STATEMENT_UPDATED:
+      return (
+        <div className="p-2 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400 rounded-xl">
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+        </div>
+      );
     default:
       return (
         <div className="p-2 bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400 rounded-xl">
@@ -65,6 +77,8 @@ const getNavigationPath = (notification: Notification, role?: string): string | 
   if (type === SOCKET_EVENTS.ORDER_STATUS_UPDATED && payload?.orderId) return `${orderBase}/${payload.orderId}`;
   if (type === SOCKET_EVENTS.OFFER_REJECTED && payload?.listingId) return `/buyer/marketplace/${payload.listingId}`;
   if (type === SOCKET_EVENTS.NEW_OFFER_RECEIVED && payload?.listingId) return `/kisan/listings/${payload.listingId}/view`;
+  if (type === SOCKET_EVENTS.INTEREST_WITHDRAWN && payload?.listingId) return `/kisan/listings/${payload.listingId}/view`;
+  if (type === SOCKET_EVENTS.STATEMENT_UPDATED) return '/kisan/statements';
   return null;
 };
 

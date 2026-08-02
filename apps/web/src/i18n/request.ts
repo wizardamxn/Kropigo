@@ -15,6 +15,7 @@ export default getRequestConfig(async () => {
 
   return {
     locale,
-    messages: (await import(`../../messages/${locale}.json`)).default,
+    // Shared with apps/mobile — see packages/i18n.
+    messages: (await import(`../../../../packages/i18n/${locale}.json`)).default,
   };
 });

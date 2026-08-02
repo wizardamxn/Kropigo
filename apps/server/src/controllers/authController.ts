@@ -8,6 +8,7 @@ import { asyncHandler } from "../utils/asyncHandler";
 import { ApiResponse } from "../utils/ApiResponse";
 import { ApiError } from "../utils/ApiError";
 import { env } from "../config/env";
+import { verifyPhoneVerificationToken } from "../services/otp.service";
 
 const COOKIE_NAME = 'token';
 const COOKIE_OPTIONS = {
@@ -25,6 +26,7 @@ const registerSchema = z.object({
   phone: z.string().regex(/^[6-9]\d{9}$/, "Invalid Indian phone number format"),
   password: z.string().min(6, "Password must be at least 6 characters"),
   role: z.enum(["kisan", "buyer", "driver", "admin"]).default("kisan"),
+  verificationToken: z.string().min(1, "Phone verification is required"),
 });
 
 const loginSchema = z.object({
@@ -46,6 +48,8 @@ const buildUserResponse = (user: any) => ({
   role: user.role,
   username: user.username,
   location: user.location,
+  fathersName: user.fathersName,
+  marka: user.marka,
   profilePhoto: user.profilePhoto,
   farmerIdPhoto: user.farmerIdPhoto,
   aadharCardPhoto: user.aadharCardPhoto,
@@ -59,7 +63,11 @@ const buildUserResponse = (user: any) => ({
 
 export const register: RequestHandler = asyncHandler(
   async (req: Request, res: Response) => {
-    const { name, email, phone, password, role } = registerSchema.parse(req.body);
+    const { name, email, phone, password, role, verificationToken } = registerSchema.parse(req.body);
+
+    if (!verifyPhoneVerificationToken(verificationToken, phone)) {
+      throw new ApiError(400, "Phone number not verified. Please verify your phone number via OTP.");
+    }
 
     const existingUser = await User.findOne({ $or: [{ email }, { phone }] });
     if (existingUser) {
@@ -81,7 +89,7 @@ export const register: RequestHandler = asyncHandler(
     res.cookie(COOKIE_NAME, token, COOKIE_OPTIONS);
 
     res.status(201).json(
-      new ApiResponse(201, { user: buildUserResponse(user) }, "Registered successfully")
+      new ApiResponse(201, { user: buildUserResponse(user), token }, "Registered successfully")
     );
   }
 );
@@ -101,7 +109,7 @@ export const login: RequestHandler = asyncHandler(
     res.cookie(COOKIE_NAME, token, COOKIE_OPTIONS);
 
     res.status(200).json(
-      new ApiResponse(200, { user: buildUserResponse(user) }, "Logged in successfully")
+      new ApiResponse(200, { user: buildUserResponse(user), token }, "Logged in successfully")
     );
   }
 );

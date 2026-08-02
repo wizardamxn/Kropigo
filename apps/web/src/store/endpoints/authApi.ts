@@ -2,9 +2,29 @@ import { baseApi } from '../baseApi';
 
 export const authApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
+    sendOtp: builder.mutation<
+      { data: null; message: string },
+      { phone: string; email: string }
+    >({
+      query: (body) => ({
+        url: '/otp/send',
+        method: 'POST',
+        body,
+      }),
+    }),
+    verifyOtp: builder.mutation<
+      { data: { verificationToken: string }; message: string },
+      { phone: string; otp: string }
+    >({
+      query: (body) => ({
+        url: '/otp/verify',
+        method: 'POST',
+        body,
+      }),
+    }),
     register: builder.mutation<
       { data: { user: any }; message: string },
-      { name: string; email: string; phone: string; password: string; role: string }
+      { name: string; email: string; phone: string; password: string; role: string; verificationToken: string }
     >({
       query: (body) => ({
         url: '/auth/register',
@@ -60,6 +80,8 @@ export const authApi = baseApi.injectEndpoints({
 });
 
 export const {
+  useSendOtpMutation,
+  useVerifyOtpMutation,
   useRegisterMutation,
   useLoginMutation,
   useLogoutMutation,

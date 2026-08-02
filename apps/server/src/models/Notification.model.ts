@@ -21,6 +21,8 @@ const NotificationSchema = new Schema<INotification>({
       'offer_accepted',
       'offer_rejected',
       'new_offer_received',
+      'interest_withdrawn',
+      'statement_updated',
       'payment_received',
       'payout_sent',
       'dispute_raised',

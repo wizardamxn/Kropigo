@@ -1,5 +1,7 @@
 import mongoose from 'mongoose';
 import { DailyStatement, IStatementEntry } from '../models/DailyStatement.model';
+import { createAndEmitNotification } from './socket.service';
+import { SOCKET_EVENTS } from '../utils/socketEvents';
 
 const IST_OFFSET_MS = 5.5 * 60 * 60 * 1000; // India Standard Time = UTC+5:30
 
@@ -68,7 +70,7 @@ export async function recordSaleInStatement(sale: {
   );
 
   // Append + increment totals only if this order isn't already recorded today.
-  await DailyStatement.updateOne(
+  const appended = await DailyStatement.updateOne(
     { sellerId, dateKey, 'entries.orderId': { $ne: orderId } },
     {
       $push: { entries: entry },
@@ -79,4 +81,25 @@ export async function recordSaleInStatement(sale: {
       },
     },
   );
+
+  // Only notify when this call actually added the entry — the guard above makes
+  // retries no-ops, and a retry must not re-notify the seller.
+  if (appended.modifiedCount > 0) {
+    createAndEmitNotification({
+      type: SOCKET_EVENTS.STATEMENT_UPDATED,
+      message: `Aapke statement mein nayi sale add hui: ${sale.cropName} - Rs.${totalAmount}`,
+      payload: {
+        dateKey,
+        cropName: sale.cropName,
+        quantity,
+        unit: sale.unit,
+        totalAmount,
+      },
+      targetRole: 'kisan',
+      targetUserId: sellerId.toString(),
+      orderId: orderId.toString(),
+    }).catch((err) => {
+      console.error('Statement notification failed:', err);
+    });
+  }
 }

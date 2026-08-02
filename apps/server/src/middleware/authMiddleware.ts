@@ -20,7 +20,14 @@ declare global {
 
 export const authenticate: RequestHandler = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
-    const token = req.cookies?.token;
+    // Browsers authenticate with the existing httpOnly cookie. Native clients
+    // cannot use that flow reliably, so they send the same JWT as a Bearer
+    // token. Keeping the cookie first preserves web behaviour.
+    const authorization = req.get('authorization');
+    const bearerToken = authorization?.startsWith('Bearer ')
+      ? authorization.slice('Bearer '.length).trim()
+      : undefined;
+    const token = req.cookies?.token || bearerToken;
 
     if (!token) {
       throw new ApiError(401, 'Not authenticated. Please log in.');

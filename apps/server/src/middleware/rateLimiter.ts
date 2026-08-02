@@ -32,3 +32,17 @@ export const authLimiter = rateLimit({
   skip: skipOutsideProduction,
   message: { success: false, message: 'Too many attempts, please try again later.' },
 });
+
+/**
+ * Tight limiter for OTP send/verify — each /send triggers a billed Twilio SMS,
+ * so this guards against cost-abuse as well as OTP brute-forcing.
+ * 5 attempts / 10 min per IP.
+ */
+export const otpLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: skipOutsideProduction,
+  message: { success: false, message: 'Too many OTP requests, please try again later.' },
+});

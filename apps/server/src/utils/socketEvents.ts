@@ -6,4 +6,5 @@ export const SOCKET_EVENTS = {
   OFFER_REJECTED: 'offer_rejected',
   NEW_OFFER_RECEIVED: 'new_offer_received',
   INTEREST_WITHDRAWN: 'interest_withdrawn',
+  STATEMENT_UPDATED: 'statement_updated',
 } as const;

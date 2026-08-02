@@ -18,7 +18,7 @@ import { API_URL } from '@/lib/config';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import { Users, CheckCircle2, Package, MessageSquare, XCircle, Bell, Lock, Loader2, ArrowLeft } from 'lucide-react';
+import { Users, CheckCircle2, Package, MessageSquare, XCircle, Bell, Lock, Loader2, ArrowLeft, Undo2, FileText } from 'lucide-react';
 
 const LIMIT = 10;
 
@@ -55,6 +55,18 @@ const getNotificationIcon = (type: string) => {
           <XCircle className="w-5 h-5" />
         </div>
       );
+    case SOCKET_EVENTS.INTEREST_WITHDRAWN:
+      return (
+        <div className="p-2.5 bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-400 rounded-xl border border-orange-100 dark:border-orange-900/30 flex-shrink-0">
+          <Undo2 className="w-5 h-5" />
+        </div>
+      );
+    case SOCKET_EVENTS.STATEMENT_UPDATED:
+      return (
+        <div className="p-2.5 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400 rounded-xl border border-indigo-100 dark:border-indigo-900/30 flex-shrink-0">
+          <FileText className="w-5 h-5" />
+        </div>
+      );
     default:
       return (
         <div className="p-2.5 bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400 rounded-xl border border-stone-200 dark:border-stone-700 flex-shrink-0">
@@ -73,6 +85,8 @@ const getNavigationPath = (type: string, payload: any, role?: string): string | 
   if (type === SOCKET_EVENTS.ORDER_STATUS_UPDATED && payload?.orderId) return `${orderBase}/${payload.orderId}`;
   if (type === SOCKET_EVENTS.OFFER_REJECTED && payload?.listingId) return `/buyer/marketplace/${payload.listingId}`;
   if (type === SOCKET_EVENTS.NEW_OFFER_RECEIVED && payload?.listingId) return `/kisan/listings/${payload.listingId}/view`;
+  if (type === SOCKET_EVENTS.INTEREST_WITHDRAWN && payload?.listingId) return `/kisan/listings/${payload.listingId}/view`;
+  if (type === SOCKET_EVENTS.STATEMENT_UPDATED) return '/kisan/statements';
   return null;
 };
 
